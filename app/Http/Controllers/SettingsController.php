@@ -211,8 +211,9 @@ class SettingsController extends Controller
             // Temporarily set business email credentials
             config([
                 'mail.mailers.smtp.username' => $business->smtp_email,
-                'mail.mailers.smtp.password' => $business->smtp_password,
+                'mail.mailers.smtp.password' => $business->getDecryptedSmtpPassword(),
             ]);
+
 
             // Send test email
             Mail::raw(

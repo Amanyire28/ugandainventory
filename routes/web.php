@@ -218,8 +218,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Email Settings
         Route::put('/email', [SettingsController::class, 'updateEmail'])->name('update-email');
+        Route::get('/email/test', fn() => redirect()->route('settings.index')->with('info', 'Use the test form on the settings page to send a test email.'))->name('test-email-get');
         Route::post('/email/test', [SettingsController::class, 'testEmail'])->name('test-email');
         Route::delete('/email', [SettingsController::class, 'removeEmail'])->name('remove-email');
+
 
         // Tax Settings
         Route::put('/tax', [SettingsController::class, 'updateTax'])->name('update-tax');
