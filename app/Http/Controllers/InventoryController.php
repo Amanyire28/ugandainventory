@@ -287,13 +287,39 @@ class InventoryController extends Controller
 
         $session = StockTakingSession::where('business_id', $businessId)->findOrFail($id);
 
-        $session->update([
-            'status' => 'closed',
-            'closed_by' => Auth::id(),
-            'closed_at' => now(),
-        ]);
+        DB::beginTransaction();
+        try {
+            // Apply all pending stock adjustments to actual products
+            $adjustments = StockAdjustment::where('stock_taking_session_id', $session->id)
+                ->where('status', 'pending')
+                ->get();
 
-        return back()->with('success', 'Stock taking session closed successfully!');
+            foreach ($adjustments as $adjustment) {
+                $product = Product::find($adjustment->product_id);
+                if ($product) {
+                    $product->quantity = $adjustment->physical_count;
+                    $product->save();
+                    
+                    $adjustment->update([
+                        'status' => 'approved',
+                        'approved_by' => Auth::id(),
+                        'approved_at' => now(),
+                    ]);
+                }
+            }
+
+            $session->update([
+                'status' => 'closed',
+                'closed_by' => Auth::id(),
+                'closed_at' => now(),
+            ]);
+
+            DB::commit();
+            return back()->with('success', 'Stock taking session closed successfully! Product quantities have been updated.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Failed to close session: ' . $e->getMessage());
+        }
     }
 
     /**

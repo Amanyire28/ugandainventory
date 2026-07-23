@@ -612,6 +612,7 @@ function showReceipt(data) {
 }
 function closeReceipt() {
     document.getElementById('receiptModal').classList.add('hidden');
+    window.location.reload();
 }
 const searchInput = document.getElementById('productSearch');
 const dropdown = document.getElementById('searchResultsDropdown');
