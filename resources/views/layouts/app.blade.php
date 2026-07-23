@@ -506,10 +506,7 @@
                             {{ now()->format('D, M d, Y') }}
                         </span>
 
-                        <!-- Fullscreen Toggle Button -->
-                        <button onclick="toggleFullscreen()" class="px-2 py-2 text-gray-600 hover:bg-gray-200 rounded-lg transition" title="Fullscreen (ESC to exit)">
-                            <i class="fas fa-expand text-lg"></i>
-                        </button>
+
 
                         <a href="{{ route('pos.index') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
                             <i class="fas fa-cash-register mr-1"></i>
@@ -564,10 +561,7 @@
         </div>
     </div>
 
-    <!-- Floating Fullscreen Exit Button -->
-    <button class="fullscreen-exit-btn" onclick="toggleFullscreen()" title="Exit Fullscreen (ESC)">
-        <i class="fas fa-compress-alt mr-2"></i> Exit Fullscreen
-    </button>
+
 
     <script>
     // ========================================
@@ -674,20 +668,43 @@
         console.log('Sidebar toggle:', sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded');
     }
 
-    // ✅ TOGGLE FULLSCREEN MODE
-    function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.error('Could not enter fullscreen:', err.message);
-            });
-            localStorage.setItem('fullscreenMode', 'true');
+    // ✅ DETECT BROWSER NATIVE FULLSCREEN (F11 OR HTML5 API)
+    function checkFullscreenState() {
+        const isHTML5 = !!document.fullscreenElement;
+        const isNative = Math.abs(screen.height - window.innerHeight) < 15 || 
+                         window.matchMedia('(display-mode: fullscreen)').matches;
+        const isFullscreen = isHTML5 || isNative;
+
+        const sidebar = document.getElementById('sidebar');
+        const header = document.querySelector('header');
+        const main = document.querySelector('main');
+
+        if (isFullscreen) {
+            if (sidebar) sidebar.classList.add('hidden');
+            if (header) header.classList.add('hidden');
+            if (main) {
+                main.classList.remove('p-4', 'md:p-6');
+                main.classList.add('p-2');
+            }
         } else {
-            document.exitFullscreen().catch(err => {
-                console.error('Could not exit fullscreen:', err.message);
-            });
-            localStorage.removeItem('fullscreenMode');
+            if (sidebar) {
+                sidebar.classList.remove('hidden');
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('hidden-mobile');
+                } else {
+                    sidebar.classList.remove('hidden-mobile');
+                }
+            }
+            if (header) header.classList.remove('hidden');
+            if (main) {
+                main.classList.add('p-4', 'md:p-6');
+                main.classList.remove('p-2');
+            }
         }
     }
+
+    window.addEventListener('resize', checkFullscreenState);
+    document.addEventListener('fullscreenchange', checkFullscreenState);
 
     // ✅ AJAX PAGE LOADING
     function loadPageViaAjax(url) {
@@ -824,27 +841,10 @@
         }
     });
 
-    // ✅ RESTORE FULLSCREEN ON PAGE LOAD
+    // ✅ INITIALIZE STATE & LISTENER ON LOAD
     document.addEventListener('DOMContentLoaded', function() {
-        // Attach AJAX listeners to initial page
         attachAjaxListeners();
-
-        // Restore fullscreen if needed
-        if (localStorage.getItem('fullscreenMode') === 'true') {
-            setTimeout(() => {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log('Auto-fullscreen on load');
-                });
-            }, 300);
-        }
-    });
-
-    // ✅ EXIT FULLSCREEN ON ESC KEY
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape' && document.fullscreenElement) {
-            document.exitFullscreen();
-            localStorage.removeItem('fullscreenMode');
-        }
+        checkFullscreenState();
     });
 
     // ✅ EXPAND SIDEBAR ON HOVER (when collapsed)

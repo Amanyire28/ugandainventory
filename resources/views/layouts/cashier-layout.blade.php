@@ -297,6 +297,46 @@
                 }
             });
         }, 5000);
+
+        function checkFullscreenState() {
+            const isHTML5 = !!document.fullscreenElement;
+            const isNative = Math.abs(screen.height - window.innerHeight) < 15 || 
+                             window.matchMedia('(display-mode: fullscreen)').matches;
+            const isFullscreen = isHTML5 || isNative;
+
+            const sidebar = document.getElementById('sidebar');
+            const header = document.querySelector('header');
+            const main = document.querySelector('main');
+
+            if (isFullscreen) {
+                if (sidebar) sidebar.classList.add('hidden');
+                if (header) header.classList.add('hidden');
+                if (main) {
+                    main.classList.remove('p-4', 'md:p-6');
+                    main.classList.add('p-2');
+                }
+            } else {
+                if (sidebar) {
+                    sidebar.classList.remove('hidden');
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.add('hidden-mobile');
+                    } else {
+                        sidebar.classList.remove('hidden-mobile');
+                    }
+                }
+                if (header) header.classList.remove('hidden');
+                if (main) {
+                    main.classList.add('p-4', 'md:p-6');
+                    main.classList.remove('p-2');
+                }
+            }
+        }
+
+        window.addEventListener('resize', checkFullscreenState);
+        document.addEventListener('fullscreenchange', checkFullscreenState);
+        document.addEventListener('DOMContentLoaded', checkFullscreenState);
+        // Initial run
+        checkFullscreenState();
     </script>
 
     @stack('scripts')

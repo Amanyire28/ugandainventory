@@ -591,37 +591,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function togglePOSFullscreen() {
-function checkFullscreenState() {
-    // Detect HTML5 Fullscreen OR native F11 Fullscreen
-    const isHTML5 = !!document.fullscreenElement;
-    const isNative = window.innerHeight === screen.height || (window.outerHeight === screen.height && window.innerHeight >= screen.height - 10);
-    const isFullscreen = isHTML5 || isNative;
-
-    const sidebar = document.getElementById('sidebar');
-    const header = document.querySelector('header');
-    const main = document.querySelector('main');
-
-    if (isFullscreen) {
-        if (sidebar) sidebar.classList.add('hidden');
-        if (header) header.classList.add('hidden');
-        if (main) {
-            main.classList.remove('p-4', 'md:p-6');
-            main.classList.add('p-2');
-        }
-    } else {
-        if (sidebar) sidebar.classList.remove('hidden');
-        if (header) header.classList.remove('hidden');
-        if (main) {
-            main.classList.add('p-4', 'md:p-6');
-            main.classList.remove('p-2');
-        }
-    }
-}
-
-window.addEventListener('resize', checkFullscreenState);
-document.addEventListener('fullscreenchange', checkFullscreenState);
-// Run once on load to initialize state
-checkFullscreenState();
 </script>
 @endpush
