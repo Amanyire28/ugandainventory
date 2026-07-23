@@ -402,18 +402,43 @@ public function destroy($id)
         $invoice = Invoice::with(['items', 'business', 'customer', 'user'])
             ->where('user_id', $cashierId)
             ->findOrFail($id);
-        $paymentAmount = $request->input('amount', $invoice->total);
+        $paymentAmount = (float) $request->input('amount', $invoice->total);
 
         if ($invoice->status === 'paid') {
             return back()->with('info', 'Invoice already settled.');
         }
 
-        // Update payment information
-        $invoice->paid = $paymentAmount >= $invoice->total ? $invoice->total : $paymentAmount;
-        $invoice->status = ($invoice->paid >= $invoice->total) ? 'paid' : 'partial';
+        $maxOutstanding = $invoice->total - $invoice->paid;
+        $amountToPay = min($paymentAmount, $maxOutstanding);
+
+        // 1. Record payment in payments table (same as InvoiceController::pay)
+        DB::table('payments')->insert([
+            'invoice_id'  => $invoice->id,
+            'amount_paid' => $amountToPay,
+            'paid_at'     => now(),
+            'user_id'     => $cashierId,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        // 2. Recalculate totals from payments table
+        $newPaid   = DB::table('payments')->where('invoice_id', $invoice->id)->sum('amount_paid');
+        $newStatus = ($newPaid >= $invoice->total) ? 'paid' : 'partial';
+
+        $invoice->paid    = $newPaid;
+        $invoice->balance = $invoice->total - $newPaid;
+        $invoice->status  = $newStatus;
         $invoice->save();
 
-        if ($invoice->status === 'paid') {
+
+        // 3. Fetch the payment record just inserted (for the email)
+        $latestPayment = DB::table('payments')
+            ->where('invoice_id', $invoice->id)
+            ->orderByDesc('paid_at')
+            ->first();
+
+        // 4. Create Sale record only when fully paid
+        if ($newStatus === 'paid') {
             $sale = Sale::create([
                 'business_id'     => $invoice->business_id,
                 'user_id'         => $invoice->user_id,
@@ -437,14 +462,25 @@ public function destroy($id)
                     'total'      => $item->total,
                 ]);
             }
-
-            try {
-                if ($invoice->customer && $invoice->customer->email) {
-                    MailerService::sendInvoiceReceipt($invoice);
-                }
-            } catch (\Exception $e) {}
         }
 
-        return redirect()->route('cashier.invoices.index')->with('success', 'Invoice paid. Receipt sent!');
+        // 5. Send receipt email for BOTH partial and paid (moved outside the 'paid'-only block)
+        try {
+            if ($invoice->customer && $invoice->customer->email) {
+                MailerService::sendInvoiceReceipt($invoice, $latestPayment);
+            }
+        } catch (\Exception $e) {
+            // Log but don't break the flow
+            \Illuminate\Support\Facades\Log::error('Cashier invoice receipt email failed', [
+                'invoice_id' => $invoice->id,
+                'error'      => $e->getMessage(),
+            ]);
+        }
+
+        $msg = $newStatus === 'paid'
+            ? 'Invoice fully paid. Receipt emailed!'
+            : 'Partial payment recorded. Receipt emailed!';
+
+        return redirect()->route('cashier.invoices.index')->with('success', $msg);
     }
 }

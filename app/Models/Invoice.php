@@ -18,6 +18,7 @@ class Invoice extends Model
         'tax_amount',
         'total',
         'paid',
+        'balance',
         'notes',
     ];
 
@@ -45,6 +46,11 @@ class Invoice extends Model
     public function items()
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
     }
 }
 

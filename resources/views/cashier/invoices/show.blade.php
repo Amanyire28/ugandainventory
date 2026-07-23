@@ -17,12 +17,11 @@
             <i class="fas fa-print mr-2"></i>Print Invoice
         </a>
         @if($invoice->status !== 'paid')
-            <form action="{{ route('cashier.invoices.markPaid', $invoice->id) }}" method="POST" onsubmit="return confirm('Mark this invoice as PAID?');">
-                @csrf
-                <button type="submit" class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center font-bold">
-                    <i class="fas fa-coins mr-2"></i> Mark Paid
-                </button>
-            </form>
+            {{-- Payment Modal Trigger --}}
+            <button type="button" onclick="document.getElementById('payModal').classList.remove('hidden')"
+                class="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700 flex items-center font-bold">
+                <i class="fas fa-coins mr-2"></i> Record Payment
+            </button>
         @endif
         <form action="{{ route('cashier.invoices.show', $invoice->id) }}" method="POST" onsubmit="return confirm('Delete this invoice?');">
             @csrf
@@ -218,6 +217,68 @@
         </div>
     </div>
 </div>
+
+{{-- Payment Modal --}}
+@if($invoice->status !== 'paid')
+<div id="payModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-900"><i class="fas fa-coins text-green-600 mr-2"></i>Record Payment</h3>
+            <button onclick="document.getElementById('payModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+        </div>
+
+        @php $balance = $invoice->total - $invoice->paid; @endphp
+
+        <div class="bg-gray-50 rounded-xl p-4 mb-5 text-sm space-y-1">
+            <div class="flex justify-between">
+                <span class="text-gray-500">Invoice Total:</span>
+                <span class="font-semibold">UGX {{ number_format($invoice->total, 0) }}</span>
+            </div>
+            <div class="flex justify-between text-green-700">
+                <span>Already Paid:</span>
+                <span class="font-semibold">UGX {{ number_format($invoice->paid, 0) }}</span>
+            </div>
+            <div class="flex justify-between text-red-600 font-bold border-t pt-2">
+                <span>Balance Due:</span>
+                <span>UGX {{ number_format($balance, 0) }}</span>
+            </div>
+        </div>
+
+        <form action="{{ route('cashier.invoices.markPaid', $invoice->id) }}" method="POST">
+            @csrf
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Payment Type</label>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="payment_type" value="full" checked
+                            onchange="document.getElementById('amountField').value = {{ $balance }}; document.getElementById('amountField').readOnly = true;">
+                        <span class="text-sm font-medium">Full Balance (UGX {{ number_format($balance, 0) }})</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="payment_type" value="partial"
+                            onchange="document.getElementById('amountField').readOnly = false; document.getElementById('amountField').focus();">
+                        <span class="text-sm font-medium">Partial</span>
+                    </label>
+                </div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Amount (UGX)</label>
+                <input id="amountField" type="number" name="amount" value="{{ $balance }}"
+                    min="1" max="{{ $balance }}" step="1" readonly
+                    class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500">
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="document.getElementById('payModal').classList.add('hidden')"
+                    class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-semibold">Cancel</button>
+                <button type="submit"
+                    class="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold">
+                    <i class="fas fa-check mr-1"></i> Confirm Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 
 @push('styles')
 <style>
