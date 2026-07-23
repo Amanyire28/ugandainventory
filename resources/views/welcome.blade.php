@@ -407,7 +407,7 @@
     </footer>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-900 bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float">
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
@@ -487,8 +487,8 @@
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-900 bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float my-8">
+    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative modal-float my-8">
             <button onclick="closeRegisterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -505,107 +505,109 @@
                 @csrf
                 <input type="hidden" name="_form_type" value="register">
                 
-                <div>
-                    <label for="business_name" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-store text-indigo-600 mr-1"></i> Business Name <span class="text-red-500">*</span>
-                    </label>
-                    <input id="business_name" name="business_name" type="text" required
-                            value="{{ old('_form_type') == 'register' ? old('business_name') : '' }}"
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="e.g., Davis Electronics Store">
-                    @if(old('_form_type') == 'register')
-                        @error('business_name')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="business_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-store text-indigo-600 mr-1"></i> Business Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="business_name" name="business_name" type="text" required
+                                value="{{ old('_form_type') == 'register' ? old('business_name') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="e.g., Davis Electronics Store">
+                        @if(old('_form_type') == 'register')
+                            @error('business_name')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
 
-                <div>
-                    <label for="business_category_id" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-tags text-indigo-600 mr-1"></i> Business Category <span class="text-red-500">*</span>
-                    </label>
-                    <select id="business_category_id" name="business_category_id" required
-                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                        <option value="">-- Select Your Business Type --</option>
-                        @foreach($businessCategories ?? [] as $category)
-                            <option value="{{ $category->id }}" {{ (old('_form_type') == 'register' && old('business_category_id') == $category->id) ? 'selected' : '' }}>
-                                {{ $category->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @if(old('_form_type') == 'register')
-                        @error('business_category_id')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
+                    <div>
+                        <label for="business_category_id" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-tags text-indigo-600 mr-1"></i> Business Category <span class="text-red-500">*</span>
+                        </label>
+                        <select id="business_category_id" name="business_category_id" required
+                                class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="">-- Select Your Business Type --</option>
+                            @foreach($businessCategories ?? [] as $category)
+                                <option value="{{ $category->id }}" {{ (old('_form_type') == 'register' && old('business_category_id') == $category->id) ? 'selected' : '' }}>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @if(old('_form_type') == 'register')
+                            @error('business_category_id')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
 
-                <div>
-                    <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
-                    </label>
-                    <input id="business_email" name="business_email" type="email" required
-                            value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="business@example.com">
-                    @if(old('_form_type') == 'register')
-                        @error('business_email')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
-                
-                <div>
-                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
-                    </label>
-                    <input id="contact" name="contact" type="tel" required
-                            value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="0700123456">
-                    @if(old('_form_type') == 'register')
-                        @error('contact')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
+                    <div>
+                        <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
+                        </label>
+                        <input id="business_email" name="business_email" type="email" required
+                                value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="business@example.com">
+                        @if(old('_form_type') == 'register')
+                            @error('business_email')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                    
+                    <div>
+                        <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
+                        </label>
+                        <input id="contact" name="contact" type="tel" required
+                                value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="0700123456">
+                        @if(old('_form_type') == 'register')
+                            @error('contact')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
 
-                <div>
-                    <label for="personal_name" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-user text-indigo-600 mr-1"></i> Your Full Name <span class="text-red-500">*</span>
-                    </label>
-                    <input id="personal_name" name="personal_name" type="text" required
-                            value="{{ old('_form_type') == 'register' ? old('personal_name') : '' }}"
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Barigye Davis">
-                    @if(old('_form_type') == 'register')
-                        @error('personal_name')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
+                    <div class="md:col-span-2">
+                        <label for="personal_name" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-user text-indigo-600 mr-1"></i> Your Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="personal_name" name="personal_name" type="text" required
+                                value="{{ old('_form_type') == 'register' ? old('personal_name') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Barigye Davis">
+                        @if(old('_form_type') == 'register')
+                            @error('personal_name')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
 
-                <div>
-                    <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
-                    </label>
-                    <input id="register_password" name="password" type="password" required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Min. 8 characters">
-                    @if(old('_form_type') == 'register')
-                        @error('password')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
-                
-                <div>
-                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
-                    </label>
-                    <input id="password_confirmation" name="password_confirmation" type="password" required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Re-enter password">
+                    <div>
+                        <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="register_password" name="password" type="password" required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Min. 8 characters">
+                        @if(old('_form_type') == 'register')
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                    
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="password_confirmation" name="password_confirmation" type="password" required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Re-enter password">
+                    </div>
                 </div>
 
                 <div>
