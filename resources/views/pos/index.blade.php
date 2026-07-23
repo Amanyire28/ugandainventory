@@ -507,6 +507,15 @@ async function processSale() {
         
         if (result && result.success) {
             console.log('Sale successful, showing receipt');
+            
+            // Deduct sold quantities from the allProducts array locally
+            cart.forEach(item => {
+                let product = allProducts.find(p => p.id === item.id);
+                if (product) {
+                    product.stock -= item.quantity;
+                }
+            });
+
             console.log('Data:', result);
             showReceipt(result);
             cart = [];
@@ -609,10 +618,8 @@ function showReceipt(data) {
         console.error('Error displaying receipt modal:', error);
         alert('Sale #' + (data.sale_number || data.invoice_number) + ' completed successfully!');
     }
-}
 function closeReceipt() {
     document.getElementById('receiptModal').classList.add('hidden');
-    window.location.reload();
 }
 const searchInput = document.getElementById('productSearch');
 const dropdown = document.getElementById('searchResultsDropdown');
