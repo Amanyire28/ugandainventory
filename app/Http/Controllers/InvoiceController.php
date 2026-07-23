@@ -461,13 +461,24 @@ public function customerFinancialSummary($customerId)
     return view('invoices.customer', compact('customer', 'outstandingInvoices', 'paidInvoices', 'payments'));
 }
 
-public function customersWithInvoices()
-{
-    // Get only customers who have invoices
-   // $customers = \App\Models\Customer::whereHas('invoices')->get();
+    public function customersWithInvoices()
+    {
+        // Get only customers who have invoices
+        $customers = Customer::whereHas('invoices')->with('invoices')->get();
 
-    return view('invoices.customers', compact('customers'));
-}
+        return view('invoices.customers', compact('customers'));
+    }
 
+    public function creditors()
+    {
+        // Get customers who have unpaid or partially paid invoices
+        $customers = Customer::whereHas('invoices', function ($q) {
+            $q->where('status', '!=', 'paid');
+        })->with(['invoices' => function ($q) {
+            $q->where('status', '!=', 'paid');
+        }])->get();
+
+        return view('invoices.creditors', compact('customers'));
+    }
 }
 

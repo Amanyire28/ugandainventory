@@ -133,6 +133,49 @@
     </div>
   </div>
 
+  <!-- Inventory Summary Cards (NEW) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6">
+    <div class="card summary-indigo reveal" data-delay="100">
+      <div class="flex items-center justify-between">
+        <h4 class="card-title">Out of Stock</h4>
+        <span class="badge bg-red-100 text-red-700"><i class="fas fa-exclamation mr-1"></i>Critical</span>
+      </div>
+      <p class="text-3xl font-bold mt-2 text-red-600">{{ $outOfStockProducts ?? 0 }}</p>
+      <p class="muted text-xs mt-1">Products with zero quantity</p>
+      <a href="{{ route('products.index', ['status' => 'out_of_stock']) }}" class="inline-block mt-3 text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View →</a>
+    </div>
+
+    <div class="card summary-amber reveal" data-delay="200">
+      <div class="flex items-center justify-between">
+        <h4 class="card-title">Low Stock</h4>
+        <span class="badge bg-yellow-100 text-yellow-700"><i class="fas fa-warning mr-1"></i>Alert</span>
+      </div>
+      <p class="text-3xl font-bold mt-2 text-yellow-600">{{ $lowStockCount ?? 0 }}</p>
+      <p class="muted text-xs mt-1">Below reorder level</p>
+      <a href="{{ route('products.index', ['status' => 'low_stock']) }}" class="inline-block mt-3 text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View →</a>
+    </div>
+
+    <div class="card summary-blue reveal" data-delay="300">
+      <div class="flex items-center justify-between">
+        <h4 class="card-title">Expiring Soon</h4>
+        <span class="badge bg-blue-100 text-blue-700"><i class="fas fa-calendar mr-1"></i>30 Days</span>
+      </div>
+      <p class="text-3xl font-bold mt-2 text-blue-600">{{ $expiringSoonProducts ?? 0 }}</p>
+      <p class="muted text-xs mt-1">Expiring within 30 days</p>
+      <a href="{{ route('products.expiring-soon') }}" class="inline-block mt-3 text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View →</a>
+    </div>
+
+    <div class="card summary-rose reveal" data-delay="400">
+      <div class="flex items-center justify-between">
+        <h4 class="card-title">Expired</h4>
+        <span class="badge bg-rose-100 text-rose-700"><i class="fas fa-trash mr-1"></i>Remove</span>
+      </div>
+      <p class="text-3xl font-bold mt-2 text-rose-600">{{ $expiredProducts ?? 0 }}</p>
+      <p class="muted text-xs mt-1">Already expired</p>
+      <a href="{{ route('products.expired') }}" class="inline-block mt-3 text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View →</a>
+    </div>
+  </div>
+
   <!-- Financial Summary Cards (color-coded) -->
   <div class="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-6">
     <div class="card summary-green reveal" data-delay="100">

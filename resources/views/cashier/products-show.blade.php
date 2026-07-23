@@ -17,26 +17,9 @@
     </div>
 
     <!-- Product Details Card -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
-            
-            <!-- Product Image -->
-            <div>
-                <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                    @if($product->image)
-                    <img src="{{ asset('storage/' . $product->image) }}" 
-                         alt="{{ $product->name }}" 
-                         class="w-full h-full object-cover">
-                    @else
-                    <div class="w-full h-full flex items-center justify-center">
-                        <i class="fas fa-box text-9xl text-gray-300"></i>
-                    </div>
-                    @endif
-                </div>
-            </div>
-
-            <!-- Product Info -->
-            <div class="space-y-6">
+    <div class="bg-white rounded-xl shadow-lg p-6 max-w-2xl mx-auto">
+        <!-- Product Info -->
+        <div class="space-y-6">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ $product->name }}</h1>
                     @if($product->category)
@@ -124,7 +107,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Recent Sales -->
     @if($recentSales && $recentSales->count() > 0)

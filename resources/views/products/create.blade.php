@@ -7,6 +7,42 @@
 @endsection
 
 @section('content')
+
+<script>
+    // Define functions immediately so they're available for inline handlers
+    function toggleCategoryInput(option) {
+        const existingDiv = document.getElementById('existingCategoryDiv');
+        const newDiv = document.getElementById('newCategoryDiv');
+        const categorySelect = document.getElementById('category_id');
+        const newCategoryInput = document.getElementById('new_category_name');
+
+        if (option === 'existing') {
+            existingDiv.style.display = 'block';
+            newDiv.style.display = 'none';
+            categorySelect.disabled = false;
+            newCategoryInput.disabled = true;
+            newCategoryInput.required = false;
+            newCategoryInput.value = '';
+        } else {
+            existingDiv.style.display = 'none';
+            newDiv.style.display = 'block';
+            categorySelect.disabled = true;
+            categorySelect.value = '';
+            newCategoryInput.disabled = false;
+            newCategoryInput.required = true;
+            setTimeout(() => newCategoryInput.focus(), 100);
+        }
+    }
+
+    function toggleExpiryFields(checkbox) {
+        const expiryFields = document.getElementById('expiryFields');
+        if (checkbox.checked) {
+            expiryFields.style.display = 'block';
+        } else {
+            expiryFields.style.display = 'none';
+        }
+    }
+</script>
 <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-xl shadow-lg p-6">
         
@@ -111,7 +147,7 @@
                         </select>
                     </div>
 
-                    <div id="newCategoryDiv" class="hidden space-y-3">
+                    <div id="newCategoryDiv" class="hidden space-y-3" style="display: none;">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fas fa-plus text-green-600 mr-1"></i>
@@ -209,15 +245,7 @@
                     <p class="text-xs text-gray-500 mt-1">Alert when stock falls below this level</p>
                 </div>
 
-                <!-- Product Image -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-image text-indigo-600 mr-1"></i>
-                        Product Image
-                    </label>
-                    <input type="file" name="image" accept="image/*"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                </div>
+
 
                 <!-- Description -->
                 <div class="md:col-span-2">
@@ -306,48 +334,17 @@
 
 @push('scripts')
 <script>
-    function toggleCategoryInput(option) {
-        const existingDiv = document.getElementById('existingCategoryDiv');
-        const newDiv = document.getElementById('newCategoryDiv');
-        const categorySelect = document.getElementById('category_id');
-        const newCategoryInput = document.getElementById('new_category_name');
-
-        if (option === 'existing') {
-            existingDiv.classList.remove('hidden');
-            newDiv.classList.add('hidden');
-            categorySelect.disabled = false;
-            newCategoryInput.disabled = true;
-            newCategoryInput.required = false;
-            newCategoryInput.value = ''; // Clear the field
-        } else {
-            existingDiv.classList.add('hidden');
-            newDiv.classList.remove('hidden');
-            categorySelect.disabled = true;
-            categorySelect.value = ''; // Clear category selection
-            newCategoryInput.disabled = false;
-            newCategoryInput.required = true;
-            newCategoryInput.focus();
-        }
-    }
-
-    function toggleExpiryFields(checkbox) {
-        const expiryFields = document.getElementById('expiryFields');
-        if (checkbox.checked) {
-            expiryFields.classList.remove('hidden');
-        } else {
-            expiryFields.classList.add('hidden');
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize category display on page load
+        const checkedRadio = document.querySelector('input[name="category_option"]:checked');
+        if (checkedRadio) {
+            toggleCategoryInput(checkedRadio.value);
+        }
+
+        // Initialize expiry fields
         const trackExpiryCheckbox = document.getElementById('track_expiry');
         if (trackExpiryCheckbox && trackExpiryCheckbox.checked) {
             toggleExpiryFields(trackExpiryCheckbox);
-        }
-
-        const categoryOption = document.querySelector('input[name="category_option"]:checked');
-        if (categoryOption) {
-            toggleCategoryInput(categoryOption.value);
         }
 
         // Handle form submission with loading feedback

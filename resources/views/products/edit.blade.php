@@ -7,6 +7,42 @@
 @endsection
 
 @section('content')
+
+<script>
+    // Define functions immediately so they're available for inline handlers
+    function toggleCategoryInput(option) {
+        const existingDiv = document.getElementById('existingCategoryDiv');
+        const newDiv = document.getElementById('newCategoryDiv');
+        const categorySelect = document.getElementById('category_id');
+        const newCategoryInput = document.getElementById('new_category_name');
+
+        if (option === 'existing') {
+            existingDiv.style.display = 'block';
+            newDiv.style.display = 'none';
+            categorySelect.disabled = false;
+            newCategoryInput.disabled = true;
+            newCategoryInput.required = false;
+            newCategoryInput.value = '';
+        } else {
+            existingDiv.style.display = 'none';
+            newDiv.style.display = 'block';
+            categorySelect.disabled = true;
+            categorySelect.value = '';
+            newCategoryInput.disabled = false;
+            newCategoryInput.required = true;
+            setTimeout(() => newCategoryInput.focus(), 100);
+        }
+    }
+
+    function toggleExpiryFields(checkbox) {
+        const expiryFields = document.getElementById('expiryFields');
+        if (checkbox.checked) {
+            expiryFields.style.display = 'block';
+        } else {
+            expiryFields.style.display = 'none';
+        }
+    }
+</script>
 <div class="max-w-4xl mx-auto">
     <div class="bg-white rounded-xl shadow-lg p-6">
         
@@ -46,20 +82,60 @@
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                 </div>
 
-                <!-- Category -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                <!-- Category Section -->
+                <div class="md:col-span-2 space-y-3">
+                    <label class="block text-sm font-medium text-gray-700">
                         <i class="fas fa-folder text-indigo-600 mr-1"></i>
                         Category
                     </label>
-                    <select name="category_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Select Category</option>
-                        @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                        @endforeach
-                    </select>
+
+                    <div class="flex space-x-6 mb-3">
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="category_option" value="existing" checked
+                                   onchange="toggleCategoryInput(this.value)"
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">Select Existing</span>
+                        </label>
+                        <label class="flex items-center cursor-pointer">
+                            <input type="radio" name="category_option" value="new"
+                                   onchange="toggleCategoryInput(this.value)"
+                                   class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
+                            <span class="ml-2 text-sm text-gray-700">Add New Category</span>
+                        </label>
+                    </div>
+
+                    <div id="existingCategoryDiv">
+                        <select name="category_id" id="category_id" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Select Category (Optional) --</option>
+                            @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ old('category_id', $product->category_id) == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div id="newCategoryDiv" class="hidden space-y-3" style="display: none;">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-plus text-green-600 mr-1"></i>
+                                New Category Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="new_category_name" id="new_category_name" value="{{ old('new_category_name') }}"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                   placeholder="e.g., Electronics">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-align-left text-green-600 mr-1"></i>
+                                Category Description (Optional)
+                            </label>
+                            <textarea name="new_category_description" id="new_category_description" rows="2"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                      placeholder="Brief description">{{ old('new_category_description') }}</textarea>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Unit -->
@@ -136,24 +212,7 @@
                     </select>
                 </div>
 
-                <!-- Current Image -->
-                @if($product->image)
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Current Image</label>
-                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-32 h-32 object-cover rounded-lg">
-                </div>
-                @endif
 
-                <!-- Product Image -->
-                <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                        <i class="fas fa-image text-indigo-600 mr-1"></i>
-                        Update Product Image
-                    </label>
-                    <input type="file" name="image" accept="image/*"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-xs text-gray-500 mt-1">Leave blank to keep current image</p>
-                </div>
 
                 <!-- Description -->
                 <div class="md:col-span-2">
@@ -238,16 +297,14 @@
 
 @push('scripts')
 <script>
-    function toggleExpiryFields(checkbox) {
-        const expiryFields = document.getElementById('expiryFields');
-        if (checkbox.checked) {
-            expiryFields.classList.remove('hidden');
-        } else {
-            expiryFields.classList.add('hidden');
-        }
-    }
-
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize category display on page load
+        const checkedRadio = document.querySelector('input[name="category_option"]:checked');
+        if (checkedRadio) {
+            toggleCategoryInput(checkedRadio.value);
+        }
+
+        // Initialize expiry fields
         const trackExpiryCheckbox = document.getElementById('track_expiry');
         if (trackExpiryCheckbox && trackExpiryCheckbox.checked) {
             toggleExpiryFields(trackExpiryCheckbox);

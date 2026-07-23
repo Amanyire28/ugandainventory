@@ -1,58 +1,92 @@
-<table class="w-full table-auto border bg-white text-sm rounded-md shadow">
-    <thead class="bg-gray-100">
-    <tr>
-        <th class="p-2 text-left">Invoice #</th>
-        <th class="p-2 text-left">Customer</th>
-        <th class="p-2 text-left">Date</th>
-        <th class="p-2 text-right">Total</th>
-        <th class="p-2 text-center">Status</th>
-        <th class="p-2 text-center">Actions</th>
-    </tr>
+<table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+        <tr>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Invoice #</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Customer</th>
+            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+            <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Amount</th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+            <th scope="col" class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
     </thead>
-    <tbody>
-    @forelse($invoices as $invoice)
-        <tr>
-            <td class="p-2">{{ $invoice->invoice_number }}</td>
-            <td class="p-2">{{ $invoice->customer->name ?? '-' }}</td>
-            <td class="p-2">{{ $invoice->created_at->format('Y-m-d') }}</td>
-            <td class="p-2 text-right">{{ number_format($invoice->total,2) }}</td>
-            <td class="p-2 text-center">
-                @if($invoice->status === 'paid')
-                    <span class="rounded bg-green-500 text-white px-2 py-1">Paid</span>
-                @else
-                    <span class="rounded bg-yellow-400 text-white px-2 py-1">Unpaid</span>
-                @endif
-            </td>
-            <td class="p-2 text-center space-x-1">
-                <a href="{{ route('invoices.show', $invoice->id) }}"
-                  class="inline-block px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-800" title="View">
-                  <i class="fas fa-eye"></i>
-                </a>
-               
-                <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST"
-                      style="display: inline"
-                      onsubmit="return confirm('Delete this invoice? This cannot be undone.')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit"
-                      class="inline-block px-3 py-1 bg-red-600 text-white rounded hover:bg-red-800" title="Delete">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                </form>
+    <tbody class="bg-white divide-y divide-gray-200">
+        @forelse($invoices as $invoice)
+            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-indigo-600">
+                    <a href="{{ route('invoices.show', $invoice->id) }}" class="hover:underline">
+                        {{ $invoice->invoice_number }}
+                    </a>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 bg-indigo-50 rounded-full flex items-center justify-center mr-3 text-indigo-600 font-bold text-xs">
+                            {{ substr($invoice->customer->name ?? 'W', 0, 1) }}
+                        </div>
+                        <span class="font-medium text-gray-900">{{ $invoice->customer->name ?? 'Walk-in Customer' }}</span>
+                    </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {{ $invoice->created_at->format('M d, Y') }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                    UGX {{ number_format($invoice->total, 0) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                    <span class="px-2.5 py-1 text-xs font-bold rounded-full 
+                        {{ $invoice->status === 'paid' ? 'bg-green-100 text-green-800' : 
+                           ($invoice->status === 'partial' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800') }}">
+                        {{ ucfirst($invoice->status) }}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium space-x-2">
+                    <!-- View -->
+                    <a href="{{ route('invoices.show', $invoice->id) }}"
+                       class="inline-flex items-center p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors duration-200" 
+                       title="View Invoice">
+                        <i class="fas fa-eye text-sm"></i>
+                    </a>
+                   
+                    <!-- Edit (Only unpaid) -->
+                    @if($invoice->status === 'unpaid')
+                    <a href="{{ route('invoices.edit', $invoice->id) }}"
+                       class="inline-flex items-center p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors duration-200" 
+                       title="Edit Invoice">
+                        <i class="fas fa-edit text-sm"></i>
+                    </a>
+                    @endif
 
-@if($invoice->status !== 'paid')
-    <a href="{{ route('invoices.payForm', $invoice->id) }}"
-       class="inline-block bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 text-xs"
-       title="Make Payment">
-       <i class="fas fa-coins"></i> Make Payment
-    </a>
-@endif
-            </td>
-        </tr>
-    @empty
-        <tr>
-          <td colspan="6" class="text-center text-gray-400 p-5">No invoices found.</td>
-        </tr>
-    @endforelse
+                    <!-- Pay -->
+                    @if($invoice->status !== 'paid')
+                        <a href="{{ route('invoices.payForm', $invoice->id) }}"
+                           class="inline-flex items-center px-2.5 py-2 bg-green-50 text-green-700 hover:bg-green-100 rounded-lg text-xs font-semibold transition-colors duration-200"
+                           title="Record Payment">
+                           <i class="fas fa-coins mr-1"></i> Pay
+                        </a>
+                    @endif
+
+                    <!-- Delete -->
+                    <form action="{{ route('invoices.destroy', $invoice->id) }}" method="POST"
+                          class="inline-block"
+                          onsubmit="return confirm('Are you sure you want to delete this invoice? This action cannot be undone.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                                class="inline-flex items-center p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200" 
+                                title="Delete Invoice">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td colspan="6" class="px-6 py-10 text-center text-gray-500">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-file-invoice text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-sm font-medium">No invoices found</p>
+                    </div>
+                </td>
+            </tr>
+        @endforelse
     </tbody>
 </table>

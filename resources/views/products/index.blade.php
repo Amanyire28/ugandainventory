@@ -230,19 +230,12 @@
             <tbody class="bg-white divide-y divide-gray-200">
                 @forelse($products as $product)
                 <tr class="hover:bg-gray-50 transition">
-                    <!-- Product Name & Image -->
-                    <td class="px-4 py-3 whitespace-nowrap">
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10">
-                                <img src="{{ $product->image_url }}" 
-                                     alt="{{ $product->name }}" 
-                                     class="h-10 w-10 rounded-lg object-cover">
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm font-semibold text-gray-900">{{ $product->name }}</p>
-                                <p class="text-xs text-gray-500">{{ $product->unit }}</p>
-                            </div>
-                        </div>
+                    <!-- Product Name -->
+                    <td class="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-900">
+                        {{ $product->name }}
+                        @if($product->unit)
+                            <span class="text-xs text-gray-400 block mt-0.5">Unit: {{ $product->unit }}</span>
+                        @endif
                     </td>
 
                     <!-- SKU -->

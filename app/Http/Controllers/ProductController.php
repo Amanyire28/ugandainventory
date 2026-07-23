@@ -67,36 +67,46 @@ class ProductController extends Controller
         ->orderBy('name')
         ->get();
 
-    // ✅ AJAX REQUEST - Return JSON with HTML (for cashier grid view)
+    // ✅ AJAX REQUEST - Return JSON with HTML (for cashier tabular view)
     if ($request->ajax() || $request->has('ajax')) {
         $html = '';
         
         if ($products->count() > 0) {
             foreach ($products as $product) {
-                $stockClass = $product->quantity < 10 ?  'text-red-600 font-bold' : 'text-gray-600';
-                $imageHtml = $product->image 
-                    ? '<img src="' . asset('storage/' .  $product->image) . '" alt="' . $product->name . '" class="w-full h-full object-cover">'
-                    : '<div class="w-full h-full flex items-center justify-center"><i class="fas fa-box text-4xl text-gray-300"></i></div>';
+                $stockClass = $product->quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800';
+                $categoryName = $product->category ? $product->category->name : 'Uncategorized';
                 
                 $html .= '
-                <a href="' . route('products.show', $product->id) .  '" class="border border-gray-200 rounded-lg p-3 hover:shadow-lg transition cursor-pointer">
-                    <div class="aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden">
-                        ' . $imageHtml . '
-                    </div>
-                    <h4 class="font-semibold text-sm text-gray-900 truncate" title="' . $product->name . '">' . $product->name . '</h4>
-                    ' . ($product->sku ? '<p class="text-xs text-gray-500">' . $product->sku . '</p>' : '') . '
-                    <p class="text-lg font-bold text-green-600 mt-1">UGX ' . number_format($product->selling_price, 0) .  '</p>
-                    <p class="text-xs ' . $stockClass . '">Stock: ' . $product->quantity . ' ' . ($product->unit ?? 'pcs') . '</p>
-                    ' . ($product->category ? '<span class="inline-block mt-2 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">' . $product->category->name . '</span>' : '') . '
-                </a>';
+                <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="window.location=\'' . route('products.show', $product->id) . '\'">
+                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+                        ' . e($product->name) . '
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-mono">
+                        ' . e($product->sku ?? 'N/A') . '
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500">
+                        ' . e($categoryName) . '
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-gray-900">
+                        UGX ' . number_format($product->selling_price, 0) . '
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-full ' . $stockClass . '">
+                            ' . number_format($product->quantity, 0) . ' ' . e($product->unit ?? 'pcs') . '
+                        </span>
+                    </td>
+                </tr>';
             }
         } else {
             $html = '
-            <div class="col-span-full text-center py-12">
-                <i class="fas fa-search-minus text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500 text-lg">No products found</p>
-                <p class="text-gray-400 text-sm mt-2">Try a different search term or category</p>
-            </div>';
+            <tr>
+                <td colspan="5" class="px-6 py-10 text-center text-gray-400">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-search-minus text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-sm font-medium">No products found</p>
+                    </div>
+                </td>
+            </tr>';
         }
         
         return response()->json([
@@ -179,7 +189,7 @@ public function store(Request $request)
         abort(403);
     }
 
-    // ✅ UPDATED VALIDATION RULES
+    // ✅ UPDATED VALIDATION RULES WITH CONDITIONAL CATEGORY VALIDATION
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'sku' => 'nullable|string|max:100|unique:products,sku,NULL,id,business_id,' . $user->business_id,
@@ -187,6 +197,7 @@ public function store(Request $request)
         'unit' => 'required|string',
         
         // ✅ Category handling - conditional validation
+        'category_option' => 'required|in:existing,new',
         'category_id' => 'nullable|exists:categories,id',
         'new_category_name' => 'nullable|string|max:255',
         'new_category_description' => 'nullable|string',
@@ -206,18 +217,24 @@ public function store(Request $request)
         'image' => 'nullable|image|max:2048',
     ]);
 
-    // ✅ Validate that either category_id or new_category_name is provided
-    if (empty($validated['category_id']) && empty($validated['new_category_name'])) {
-        return redirect()->back()->withErrors([
-            'new_category_name' => 'Please either select an existing category or create a new one.'
-        ])->withInput();
-    }
-
-    // ✅ HANDLE NEW CATEGORY CREATION
-    if ($request->filled('new_category_name') && !$request->filled('category_id')) {
+    // ✅ VALIDATE CONDITIONAL CATEGORY REQUIREMENTS
+    if ($request->category_option === 'existing') {
+        if (empty($validated['category_id'])) {
+            return redirect()->back()->withErrors([
+                'category_id' => 'Please select an existing category.'
+            ])->withInput();
+        }
+    } elseif ($request->category_option === 'new') {
+        if (empty($validated['new_category_name'])) {
+            return redirect()->back()->withErrors([
+                'new_category_name' => 'Please enter a new category name.'
+            ])->withInput();
+        }
+        
+        // ✅ CREATE NEW CATEGORY
         $category = Category::create([
-            'name' => $request->new_category_name,
-            'description' => $request->new_category_description,
+            'name' => $validated['new_category_name'],
+            'description' => $validated['new_category_description'] ?? null,
             'business_id' => $user->business_id,
         ]);
         
@@ -246,6 +263,7 @@ public function store(Request $request)
     // ✅ REMOVE FIELDS NOT IN PRODUCT TABLE
     unset($validated['new_category_name']);
     unset($validated['new_category_description']);
+    unset($validated['category_option']);
     unset($validated['track_expiry']);
 
     // ✅ CREATE PRODUCT
@@ -300,15 +318,52 @@ public function store(Request $request)
             'name' => 'required|string|max:255',
             'sku' => 'nullable|string|max:100',
             'barcode' => 'nullable|string|max:100',
-            'category_id' => 'required|exists:categories,id',
+            'unit' => 'required|string',
+            
+            // ✅ Category handling - conditional validation
+            'category_option' => 'required|in:existing,new',
+            'category_id' => 'nullable|exists:categories,id',
+            'new_category_name' => 'nullable|string|max:255',
+            'new_category_description' => 'nullable|string',
+            
             'cost_price' => 'required|numeric|min:0',
             'selling_price' => 'required|numeric|min:0',
-            'quantity' => 'required|integer|min:0',
+            'quantity' => 'nullable|numeric|min:0',
             'reorder_level' => 'nullable|integer|min:0',
-            'expiry_date' => 'nullable|date',
+            
+            // ✅ Expiry tracking
+            'track_expiry' => 'nullable|boolean',
+            'manufacture_date' => 'nullable|date',
+            'expiry_date' => 'nullable|date|after:manufacture_date',
+            'expiry_alert_days' => 'nullable|integer|min:1|max:365',
+            
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:2048',
         ]);
+
+        // ✅ VALIDATE CONDITIONAL CATEGORY REQUIREMENTS
+        if ($request->category_option === 'existing') {
+            if (empty($validated['category_id'])) {
+                return redirect()->back()->withErrors([
+                    'category_id' => 'Please select an existing category.'
+                ])->withInput();
+            }
+        } elseif ($request->category_option === 'new') {
+            if (empty($validated['new_category_name'])) {
+                return redirect()->back()->withErrors([
+                    'new_category_name' => 'Please enter a new category name.'
+                ])->withInput();
+            }
+            
+            // ✅ CREATE NEW CATEGORY
+            $category = Category::create([
+                'name' => $validated['new_category_name'],
+                'description' => $validated['new_category_description'] ?? null,
+                'business_id' => $user->business_id,
+            ]);
+            
+            $validated['category_id'] = $category->id;
+        }
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -318,6 +373,12 @@ public function store(Request $request)
             }
             $validated['image'] = $request->file('image')->store('products', 'public');
         }
+
+        // ✅ REMOVE FIELDS NOT IN PRODUCT TABLE
+        unset($validated['new_category_name']);
+        unset($validated['new_category_description']);
+        unset($validated['category_option']);
+        unset($validated['track_expiry']);
 
         $product->update($validated);
 

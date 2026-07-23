@@ -12,58 +12,65 @@
     <div class="lg:col-span-2 space-y-4">
         <!-- Search & Filter -->
         <div class="bg-white rounded-xl shadow-lg p-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="relative">
-                    <input type="text" id="productSearch" placeholder="Search products (Name, SKU, Barcode)..." class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
-                </div>
-                <div>
-                    <select id="categoryFilter" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                        <option value="">All Categories</option>
-                        @foreach($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="relative w-full">
+                <input type="text" id="productSearch" placeholder="Search products (Name, SKU, Barcode)... [Press F11 for Fullscreen]" class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
             </div>
         </div>
-        <!-- Products Grid -->
+        <!-- Products Table -->
         <div class="bg-white rounded-xl shadow-lg p-4">
             <h3 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-box text-green-600 mr-2"></i>Products
+                <i class="fas fa-table text-green-600 mr-2"></i>Products List
             </h3>
-            <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[calc(100vh-300px)] overflow-y-auto">
-                @forelse($products as $product)
-                    <div class="product-card border border-gray-200 rounded-lg p-3 hover:shadow-lg transition cursor-pointer"
-                         data-id="{{ $product->id }}"
-                         data-name="{{ $product->name }}"
-                         data-price="{{ $product->selling_price }}"
-                         data-stock="{{ $product->quantity }}"
-                         data-unit="{{ $product->unit }}"
-                         data-category="{{ $product->category_id ?? '' }}"
-                         onclick="addToCart({{ $product->id }}, '{{ $product->name }}', {{ $product->selling_price }}, '{{ $product->unit }}', {{ $product->quantity }})">
-                        <div class="aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden">
-                            <img src="{{ $product->image_url }}"
-                                 alt="{{ $product->name }}"
-                                 class="w-full h-full object-cover">
-                        </div>
-                        <h4 class="font-semibold text-sm text-gray-900 truncate" title="{{ $product->name }}">
-                            {{ $product->name }}
-                        </h4>
-                        <p class="text-xs text-gray-500">{{ $product->sku }}</p>
-                        <p class="text-lg font-bold text-green-600 mt-1">
-                            UGX {{ number_format($product->selling_price, 0) }}
-                        </p>
-                        <p class="text-xs text-gray-600">
-                            Stock: {{ $product->quantity }} {{ $product->unit }}
-                        </p>
-                    </div>
-                @empty
-                    <div class="col-span-full text-center py-8 text-gray-500">
-                        <i class="fas fa-box-open text-4xl mb-2"></i>
-                        <p>No products available</p>
-                    </div>
-                @endforelse
+            <div class="max-h-[calc(100vh-300px)] overflow-y-auto rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-4 py-2.5 text-left font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
+                            <th scope="col" class="px-4 py-2.5 text-left font-semibold text-gray-500 uppercase tracking-wider">SKU</th>
+                            <th scope="col" class="px-4 py-2.5 text-right font-semibold text-gray-500 uppercase tracking-wider">Price</th>
+                            <th scope="col" class="px-4 py-2.5 text-right font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
+                            <th scope="col" class="px-4 py-2.5 text-center font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsGrid" class="bg-white divide-y divide-gray-200 text-gray-700">
+                        @forelse($products as $product)
+                            <tr class="product-card hover:bg-gray-50 transition cursor-pointer"
+                                 data-id="{{ $product->id }}"
+                                 data-name="{{ $product->name }}"
+                                 data-price="{{ $product->selling_price }}"
+                                 data-stock="{{ $product->quantity }}"
+                                 data-unit="{{ $product->unit }}"
+                                 data-category="{{ $product->category_id ?? '' }}"
+                                 onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }}, '{{ $product->unit }}', {{ $product->quantity }})">
+                                <td class="px-4 py-3 font-semibold text-gray-900">
+                                    {{ $product->name }}
+                                </td>
+                                <td class="px-4 py-3 text-gray-500 font-mono">
+                                    {{ $product->sku ?? 'N/A' }}
+                                </td>
+                                <td class="px-4 py-3 text-right font-bold text-gray-950">
+                                    UGX {{ number_format($product->selling_price, 0) }}
+                                </td>
+                                <td class="px-4 py-3 text-right">
+                                    <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ $product->quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                        {{ number_format($product->quantity, 0) }} {{ $product->unit }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-center">
+                                    <button type="button" 
+                                            class="px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-bold transition">
+                                        <i class="fas fa-plus"></i> Add
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-gray-550">No products available</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -620,37 +627,141 @@ function closeReceipt() {
 }
 document.getElementById('productSearch').addEventListener('input', function() {
     const search = this.value.toLowerCase();
-    filterProducts(search, document.getElementById('categoryFilter').value);
+    filterProducts(search);
 });
-document.getElementById('categoryFilter').addEventListener('change', function() {
-    const category = this.value;
-    filterProducts(document.getElementById('productSearch').value.toLowerCase(), category);
-});
-function filterProducts(search, category) {
+let activeRowIndex = 0;
+
+function updateRowHighlight() {
+    const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
+    
+    // Clear all highlights
+    document.querySelectorAll('.product-card').forEach(row => {
+        row.classList.remove('bg-green-50', 'ring-2', 'ring-green-500');
+    });
+
+    if (visibleRows.length === 0) {
+        activeRowIndex = -1;
+        return;
+    }
+
+    // Keep index in range
+    if (activeRowIndex < 0) {
+        activeRowIndex = 0;
+    } else if (activeRowIndex >= visibleRows.length) {
+        activeRowIndex = visibleRows.length - 1;
+    }
+
+    const activeRow = visibleRows[activeRowIndex];
+    if (activeRow) {
+        activeRow.classList.add('bg-green-50', 'ring-2', 'ring-green-500');
+        activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+}
+
+function filterProducts(search) {
     const products = document.querySelectorAll('.product-card');
     products.forEach(product => {
         const name = product.dataset.name.toLowerCase();
-        const productCategory = product.dataset.category;
         const matchesSearch = name.includes(search) || search === '';
-        const matchesCategory = category === '' || productCategory === category;
-        product.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
+        product.style.display = matchesSearch ? '' : 'none';
     });
+    
+    activeRowIndex = 0;
+    updateRowHighlight();
 }
+
+// Initialize highlight on load
+updateRowHighlight();
+
 document.addEventListener('keydown', function(e) {
-    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        document.getElementById('productSearch').focus();
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        if (!document.getElementById('checkoutBtn').disabled) {
-            processSale();
-        }
-    }
+    // Escape key
     if (e.key === 'Escape') {
         document.getElementById('productSearch').value = '';
         filterProducts('', '');
+        document.getElementById('productSearch').focus();
+        return;
+    }
+
+    // Control/Meta shortcuts
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'k') {
+            e.preventDefault();
+            document.getElementById('productSearch').focus();
+        }
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (!document.getElementById('checkoutBtn').disabled) {
+                processSale();
+            }
+        }
+        return;
+    }
+
+    // Only allow navigation when the search field is focused or body has focus
+    const isSearchFocused = document.activeElement === document.getElementById('productSearch');
+    
+    if (isSearchFocused || document.activeElement === document.body) {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
+            if (visibleRows.length > 0) {
+                activeRowIndex = (activeRowIndex + 1) % visibleRows.length;
+                updateRowHighlight();
+            }
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
+            if (visibleRows.length > 0) {
+                activeRowIndex = (activeRowIndex - 1 + visibleRows.length) % visibleRows.length;
+                updateRowHighlight();
+            }
+        } else if (e.key === 'Enter') {
+            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
+            if (activeRowIndex >= 0 && activeRowIndex < visibleRows.length) {
+                e.preventDefault();
+                const activeRow = visibleRows[activeRowIndex];
+                
+                // Trigger click to add to cart
+                activeRow.click();
+                
+                // Visual feedback flash
+                activeRow.classList.add('bg-green-200');
+                setTimeout(() => activeRow.classList.remove('bg-green-200'), 150);
+            }
+        }
     }
 });
+
+function checkFullscreenState() {
+    // Detect HTML5 Fullscreen OR native F11 Fullscreen
+    const isHTML5 = !!document.fullscreenElement;
+    const isNative = window.innerHeight === screen.height || (window.outerHeight === screen.height && window.innerHeight >= screen.height - 10);
+    const isFullscreen = isHTML5 || isNative;
+
+    const sidebar = document.getElementById('sidebar');
+    const header = document.querySelector('header');
+    const main = document.querySelector('main');
+
+    if (isFullscreen) {
+        if (sidebar) sidebar.classList.add('hidden');
+        if (header) header.classList.add('hidden');
+        if (main) {
+            main.classList.remove('p-4', 'md:p-6');
+            main.classList.add('p-2');
+        }
+    } else {
+        if (sidebar) sidebar.classList.remove('hidden');
+        if (header) header.classList.remove('hidden');
+        if (main) {
+            main.classList.add('p-4', 'md:p-6');
+            main.classList.remove('p-2');
+        }
+    }
+}
+
+window.addEventListener('resize', checkFullscreenState);
+document.addEventListener('fullscreenchange', checkFullscreenState);
+// Run once on load to initialize state
+checkFullscreenState();
 </script>
 @endsection
