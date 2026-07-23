@@ -5,8 +5,8 @@
 @section('page-title')
     <i class="fas fa-cash-register text-green-600 mr-2"></i>Point of Sale
 @endsection
-
-@<!-- JSON Products data for search autocomplete -->
+@section('content')
+<!-- JSON Products data for search autocomplete -->
 <script>
     const allProducts = [
         @foreach($products as $product)
