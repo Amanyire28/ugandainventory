@@ -49,7 +49,7 @@
 </head>
 <body class="bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-white shadow-lg fixed w-full z-50">
+    <nav class="bg-white shadow-lg fixed w-full z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -407,7 +407,7 @@
     </footer>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
+    <div id="loginModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float">
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
@@ -487,7 +487,7 @@
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
+    <div id="registerModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative modal-float my-8">
             <button onclick="closeRegisterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
