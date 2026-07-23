@@ -225,7 +225,7 @@
     <div class="flex h-screen overflow-hidden">
         
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="sidebar bg-indigo-900 text-white">
+        <aside id="sidebar" class="sidebar hidden-mobile bg-indigo-900 text-white">
             <!-- Logo -->
             <div class="p-4 border-b border-indigo-800">
                 <div class="flex items-center justify-between">
@@ -619,13 +619,7 @@
         });
     });
 
-    // ✅ Ensure sidebar is hidden on mobile on page load
-    window.addEventListener('load', function() {
-        const sidebar = document.getElementById('sidebar');
-        if (window.innerWidth < 768) {
-            sidebar.classList.add('hidden-mobile');
-        }
-    });
+
 
     // ✅ Handle window resize
     let resizeTimer;
