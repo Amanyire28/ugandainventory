@@ -136,54 +136,54 @@
         </div>
 
         <!-- Checkout Info Section -->
-        <div class="flex-1 flex flex-col justify-end pt-3 space-y-3 min-h-0">
-            <div class="space-y-2 text-xs">
-                <div class="flex justify-between">
-                    <span class="text-gray-500">Subtotal:</span>
-                    <span class="font-bold text-gray-900">UGX <span id="subtotalAmount">0</span></span>
+        <div class="flex-1 flex flex-col justify-between pt-4 pb-2 min-h-0">
+            <div class="space-y-4 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-650 font-medium">Subtotal:</span>
+                    <span class="font-bold text-gray-950 text-base">UGX <span id="subtotalAmount">0</span></span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="text-gray-500">Discount:</span>
-                    <input type="number" id="discountAmount" value="0" min="0" step="100" onchange="updateTotals()" class="w-24 px-2 py-1 border border-gray-300 rounded-md text-right text-xs font-semibold focus:ring-1 focus:ring-green-500">
+                    <span class="text-gray-650 font-medium">Discount:</span>
+                    <input type="number" id="discountAmount" value="0" min="0" step="100" onchange="updateTotals()" class="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-right text-sm font-bold focus:ring-2 focus:ring-green-500">
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-dashed">
-                    <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-1.5 h-3.5 w-3.5 text-green-600 focus:ring-green-500 rounded">
-                        <span class="text-gray-500">Add Tax (18%)</span>
+                    <label class="flex items-center cursor-pointer font-medium text-gray-650">
+                        <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 rounded">
+                        <span>Add Tax (18%)</span>
                     </label>
-                    <span class="font-bold text-gray-900">UGX <span id="taxAmount">0</span></span>
+                    <span class="font-bold text-gray-950 text-base">UGX <span id="taxAmount">0</span></span>
                 </div>
-                <div class="flex justify-between text-base font-bold text-green-600 pt-1 border-t">
+                <div class="flex justify-between items-center text-lg font-extrabold text-green-600 pt-2 border-t">
                     <span>TOTAL:</span>
                     <span>UGX <span id="totalAmount">0</span></span>
                 </div>
             </div>
 
             <!-- Cash Payment Details -->
-            <div id="cash-payment-div" class="space-y-2 flex-shrink-0">
-                <div class="flex items-center justify-between gap-2">
+            <div id="cash-payment-div" class="space-y-4 bg-gray-50 p-3 rounded-lg border border-gray-100 flex-shrink-0">
+                <div class="flex items-center justify-between gap-3">
                     <span class="text-xs font-bold text-gray-700 whitespace-nowrap">Amount Paid:</span>
-                    <input type="number" id="amountPaid" value="0" min="0" step="100" oninput="calculateChange()" class="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded-md text-right text-sm font-bold text-gray-900 focus:ring-2 focus:ring-green-500">
-                    <button type="button" onclick="exactAmount()" class="px-2 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-md text-xs font-semibold whitespace-nowrap">Exact</button>
+                    <input type="number" id="amountPaid" value="0" min="0" step="100" oninput="calculateChange()" class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg text-right text-base font-extrabold text-gray-900 focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="exactAmount()" class="px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg text-sm font-bold transition">Exact</button>
                 </div>
-                <div class="p-2 rounded-lg flex justify-between items-center text-xs" id="changeBox">
+                <div class="p-3 rounded-lg flex justify-between items-center text-sm" id="changeBox">
                      <span class="font-semibold text-gray-600">Change:</span>
-                     <span class="text-sm font-bold text-green-600">UGX <span id="changeAmount">0</span></span>
+                     <span class="text-base font-extrabold text-green-600">UGX <span id="changeAmount">0</span></span>
                 </div>
                 <div>
-                    <textarea id="saleNotes" rows="1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-green-500" placeholder="Notes (Optional)"></textarea>
+                    <textarea id="saleNotes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500" placeholder="Notes (Optional)..."></textarea>
                 </div>
             </div>
             
-            <div id="invoiceNotice" class="hidden p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700 text-center flex-shrink-0">
-                <i class="fas fa-info-circle mr-1"></i> Credit Sale. Items added to invoice.
+            <div id="invoiceNotice" class="hidden p-3 bg-indigo-50 border border-indigo-100 rounded-lg text-sm text-indigo-700 text-center flex-shrink-0">
+                <i class="fas fa-info-circle mr-1.5"></i> Credit Sale. Items added to invoice.
             </div>
 
             <!-- Checkout Action Button -->
             <button onclick="processSale()"
                     id="checkoutBtn"
-                    class="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-sm shadow-md transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0">
-                <i class="fas fa-check-circle"></i>
+                    class="w-full py-3.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-extrabold text-base shadow-lg hover:shadow-xl transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0">
+                <i class="fas fa-check-circle text-lg"></i>
                 <span id="checkoutBtnText">Complete Sale</span>
             </button>
         </div>
