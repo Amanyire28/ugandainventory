@@ -314,6 +314,12 @@ class InvoiceController extends Controller
             $subtotal = 0;
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
+                if ($product && $product->quantity < $item['quantity']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.",
+                    ], 400);
+                }
                 $lineTotal = $item['quantity'] * $item['price'];
                 InvoiceItem::create([
                     'invoice_id'  => $invoice->id,

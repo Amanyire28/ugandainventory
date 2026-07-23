@@ -333,6 +333,9 @@ public function destroy($id)
             $subtotal = 0;
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
+                if ($product && $product->quantity < $item['quantity']) {
+                    return back()->with('error', "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.");
+                }
                 $lineTotal = $item['quantity'] * $item['price'];
                 InvoiceItem::create([
                     'invoice_id'  => $invoice->id,

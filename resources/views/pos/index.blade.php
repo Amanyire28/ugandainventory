@@ -228,9 +228,13 @@ function togglePaymentType() {
 }
 
 function addToCart(id, name, price, unit, maxStock) {
+    if (maxStock <= 0) {
+        alert('Cannot add! Product is out of stock.');
+        return;
+    }
     const existingItem = cart.find(item => item.id === id);
     if (existingItem) {
-        if (existingItem.quantity >= maxStock) {
+        if (existingItem.quantity + 1 > maxStock) {
             alert('Cannot add more! Maximum stock available: ' + maxStock);
             return;
         }
@@ -253,6 +257,7 @@ function updateQuantity(id, newQuantity) {
     if (item) {
         if (newQuantity > item.maxStock) {
             alert('Cannot exceed available stock: ' + item.maxStock);
+            renderCart(); // Reset the visual input back to valid amount
             return;
         }
         if (newQuantity <= 0) {

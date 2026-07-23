@@ -99,9 +99,16 @@ class POSController extends Controller
                 $customerId = $customer->id;
             }
 
-            // Calculate totals
+            // Calculate totals and validate stock
             $subtotal = 0;
             foreach ($validated['items'] as $item) {
+                $product = Product::findOrFail($item['product_id']);
+                if ($product->quantity < $item['quantity']) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.",
+                    ], 400);
+                }
                 $subtotal += $item['quantity'] * $item['price'];
             }
 

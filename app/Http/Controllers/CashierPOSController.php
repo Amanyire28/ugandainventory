@@ -89,9 +89,13 @@ class CashierPOSController extends Controller
             $nextId = $lastSale ? $lastSale->id + 1 : 1;
             $saleNumber = 'SALE-' . date('Ymd') . '-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
 
-            // Calculate totals
+            // Calculate totals and validate stock
             $subtotal = 0;
             foreach ($items as $item) {
+                $product = Product::findOrFail($item['id']);
+                if ($product->quantity < $item['quantity']) {
+                    return back()->with('error', "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.");
+                }
                 $subtotal += $item['price'] * $item['quantity'];
             }
 
