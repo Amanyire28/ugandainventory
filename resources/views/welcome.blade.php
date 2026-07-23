@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uganda Inventory Management System - Manage Your Business Smartly</title>
+    <title>DukaFlow - Manage Your Business Smartly</title>
    <!--<script src="https://cdn.tailwindcss.com"></script> -->
 
   @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -54,7 +54,7 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <i class="fas fa-boxes text-3xl text-indigo-600"></i>
-                    <span class="ml-2 text-2xl font-bold text-gray-800">Uganda Inventory</span>
+                    <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="#" onclick="openLoginModal(event)" class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
@@ -73,295 +73,338 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center fade-in-up">
                 <h1 class="text-5xl md:text-6xl font-extrabold mb-6">
-                    Manage Your Ugandan Business Inventory Like a Pro
+                    Run Your Business Smarter with DukaFlow
                 </h1>
-                <p class="text-xl md:text-2xl mb-8 text-indigo-100">
-                    Complete multi-location inventory management system designed specifically for Ugandan businesses
+                <p class="text-xl md:text-2xl mb-8 text-indigo-100 max-w-4xl mx-auto">
+                    The all-in-one POS and Inventory Management System designed for retailers, wholesalers, supermarkets, pharmacies, hardware stores, restaurants, boutiques, and growing businesses. Sell faster, track inventory in real time, manage your business from anywhere, and make better decisions with powerful reports.
                 </p>
                 <div class="flex justify-center space-x-4">
                     <a href="#" onclick="openRegisterModal(event)" class="px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
-                        <i class="fas fa-rocket mr-2"></i> Start 30-Day Free Trial
+                        Start Free Trial
                     </a>
-                    <a href="#features" class="px-8 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
-                        <i class="fas fa-play-circle mr-2"></i> Learn More
+                    <a href="#demo" class="px-8 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
+                        Book a Demo
                     </a>
                 </div>
-                <p class="mt-6 text-indigo-100">
-                    <i class="fas fa-check-circle mr-2"></i> No credit card required
-                    <i class="fas fa-check-circle ml-4 mr-2"></i> Setup in 2 minutes
-                    <i class="fas fa-check-circle ml-4 mr-2"></i> Cancel anytime
+                <p class="mt-8 text-indigo-100 flex justify-center flex-wrap gap-4 text-sm font-medium">
+                    <span class="flex items-center"><i class="fas fa-check-circle mr-2"></i> No complicated setup</span>
+                    <span class="flex items-center"><i class="fas fa-check-circle mr-2"></i> Secure Cloud Access</span>
+                    <span class="flex items-center"><i class="fas fa-check-circle mr-2"></i> Works on Mobile, Tablet & Desktop</span>
+                    <span class="flex items-center"><i class="fas fa-check-circle mr-2"></i> Install as an App (PWA)</span>
                 </p>
             </div>
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="py-12 bg-white">
+    <!-- Trust Section -->
+    <section class="py-12 bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Trusted by Growing Businesses</h3>
+            <p class="text-gray-600 max-w-2xl mx-auto text-lg">
+                Whether you run a small shop or manage multiple branches, DukaFlow helps simplify your daily operations so you can focus on growing your business.
+            </p>
+        </div>
+    </section>
+
+    <!-- About DukaFlow -->
+    <section class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-                <div class="fade-in-up">
-                    <div class="text-4xl font-bold text-indigo-600">500+</div>
-                    <div class="text-gray-600 mt-2">Businesses Trust Us</div>
-                </div>
-                <div class="fade-in-up" style="animation-delay: 0.1s;">
-                    <div class="text-4xl font-bold text-indigo-600">50K+</div>
-                    <div class="text-gray-600 mt-2">Products Managed</div>
-                </div>
-                <div class="fade-in-up" style="animation-delay: 0.2s;">
-                    <div class="text-4xl font-bold text-indigo-600">99.9%</div>
-                    <div class="text-gray-600 mt-2">Uptime Guarantee</div>
-                </div>
-                <div class="fade-in-up" style="animation-delay: 0.3s;">
-                    <div class="text-4xl font-bold text-indigo-600">24/7</div>
-                    <div class="text-gray-600 mt-2">Support Available</div>
-                </div>
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">One Platform. Complete Business Control.</h2>
+            </div>
+            <div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg max-w-4xl mx-auto text-center border border-gray-100">
+                <p class="text-lg text-gray-700 mb-6">
+                    DukaFlow is a modern Point of Sale (POS) and Inventory Management System built specifically for businesses that need speed, accuracy, and simplicity.
+                </p>
+                <p class="text-lg text-gray-700 mb-6">
+                    From processing sales and managing stock to tracking expenses and generating reports, DukaFlow brings every part of your business together in one powerful platform.
+                </p>
+                <p class="text-xl text-indigo-600 font-bold bg-indigo-50 py-4 px-6 rounded-lg inline-block">
+                    Whether you're at your shop, at home, or traveling, you can access your business anytime, anywhere.
+                </p>
             </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-20 bg-gray-50">
+    <section id="features" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">
-                    Everything You Need to Manage Your Inventory
-                </h2>
-                <p class="text-xl text-gray-600">
-                    Powerful features designed for Ugandan businesses
-                </p>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Manage Your Business</h2>
             </div>
-
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Feature 1 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-warehouse text-3xl text-indigo-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Multi-Location Management</h3>
-                    <p class="text-gray-600">
-                        Track inventory across multiple warehouses, shops, or stores in real-time. Perfect for businesses with branches in Kampala, Entebbe, and beyond.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-2xl mb-4"><i class="fas fa-desktop"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Smart Point of Sale</h3>
+                    <p class="text-gray-600">Process sales quickly using an intuitive POS interface.</p>
                 </div>
-
                 <!-- Feature 2 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-mobile-alt text-3xl text-green-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Mobile Money Integration</h3>
-                    <p class="text-gray-600">
-                        Accept payments via MTN Mobile Money, Airtel Money, and more. Built specifically for Uganda's payment ecosystem.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-2xl mb-4"><i class="fas fa-boxes"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Inventory Management</h3>
+                    <p class="text-gray-600">Monitor stock levels in real time and prevent stock shortages.</p>
                 </div>
-
                 <!-- Feature 3 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-chart-line text-3xl text-yellow-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Real-Time Reports</h3>
-                    <p class="text-gray-600">
-                        Get instant insights on sales, profits, low stock alerts, and financial reports. Make data-driven decisions.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl mb-4"><i class="fas fa-shopping-cart"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Purchase Management</h3>
+                    <p class="text-gray-600">Record supplier purchases and automatically update inventory.</p>
                 </div>
-
                 <!-- Feature 4 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-receipt text-3xl text-red-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">URA Tax Compliance</h3>
-                    <p class="text-gray-600">
-                        Generate VAT reports, track taxes, and stay compliant with Uganda Revenue Authority requirements effortlessly.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-2xl mb-4"><i class="fas fa-users"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Customer Management</h3>
+                    <p class="text-gray-600">Build customer profiles and keep track of purchase history.</p>
                 </div>
-
                 <!-- Feature 5 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-users text-3xl text-purple-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Staff Management</h3>
-                    <p class="text-gray-600">
-                        Create multiple user accounts with different roles: Owner, Manager, Cashier, Accountant. Full access control.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-2xl mb-4"><i class="fas fa-truck"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Supplier Management</h3>
+                    <p class="text-gray-600">Manage suppliers and monitor outstanding balances.</p>
                 </div>
-
                 <!-- Feature 6 -->
-                <div class="bg-white p-8 rounded-xl shadow-lg hover-scale">
-                    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-bell text-3xl text-blue-600"></i>
-                    </div>
-                    <h3 class="text-2xl font-bold text-gray-900 mb-3">SMS Alerts</h3>
-                    <p class="text-gray-600">
-                        Get notified via SMS for low stock, new orders, and important updates. Stay connected even offline.
-                    </p>
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-2xl mb-4"><i class="fas fa-receipt"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Expense Tracking</h3>
+                    <p class="text-gray-600">Record business expenses and understand where your money goes.</p>
+                </div>
+                <!-- Feature 7 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-2xl mb-4"><i class="fas fa-chart-bar"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Sales Reports</h3>
+                    <p class="text-gray-600">View daily, weekly, monthly, and yearly sales performance.</p>
+                </div>
+                <!-- Feature 8 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-4"><i class="fas fa-chart-pie"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Profit Analysis</h3>
+                    <p class="text-gray-600">Know exactly how much profit your business makes.</p>
+                </div>
+                <!-- Feature 9 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-2xl mb-4"><i class="fas fa-barcode"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Barcode Support</h3>
+                    <p class="text-gray-600">Generate and scan barcodes for faster selling.</p>
+                </div>
+                <!-- Feature 10 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-2xl mb-4"><i class="fas fa-user-shield"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Multi-user Access</h3>
+                    <p class="text-gray-600">Allow cashiers, managers, and administrators to work with different permissions.</p>
+                </div>
+                <!-- Feature 11 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-800 text-2xl mb-4"><i class="fas fa-code-branch"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Multi-Branch Management</h3>
+                    <p class="text-gray-600">Manage multiple business locations from one dashboard.</p>
+                </div>
+                <!-- Feature 12 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-500 text-2xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Low Stock Alerts</h3>
+                    <p class="text-gray-600">Receive notifications when products need restocking.</p>
+                </div>
+                <!-- Feature 13 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-2xl mb-4"><i class="fas fa-undo-alt"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Returns & Refunds</h3>
+                    <p class="text-gray-600">Handle customer returns professionally.</p>
+                </div>
+                <!-- Feature 14 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-2xl mb-4"><i class="fas fa-tachometer-alt"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Dashboard Analytics</h3>
+                    <p class="text-gray-600">See your business performance at a glance.</p>
+                </div>
+                <!-- Feature 15 -->
+                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
+                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-2xl mb-4"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Secure Cloud Backup</h3>
+                    <p class="text-gray-600">Your data stays safe and is automatically backed up.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Advantages Section -->
+    <!-- Why Choose DukaFlow & Who Can Use -->
+    <section class="py-20 bg-gray-50 border-y border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-16">
+            <!-- Why Choose -->
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Why Choose DukaFlow</h2>
+                <p class="text-indigo-600 font-bold mb-8 text-lg">Built for Businesses That Want to Grow</p>
+                <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <ul class="space-y-4">
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Fast and Easy to Use</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Beautiful Modern Interface</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Secure Cloud Technology</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Real-Time Inventory Tracking</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Powerful Reports</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Mobile Friendly</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Install as an App</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Supports Multiple Users</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Affordable Pricing</li>
+                        <li class="flex items-center text-gray-700"><i class="fas fa-check-circle text-green-500 mr-3 text-lg"></i> Reliable Customer Support</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Who Can Use -->
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">Perfect for Every Business</h2>
+                <p class="text-indigo-600 font-bold mb-8 text-lg">DukaFlow is suitable for:</p>
+                <div class="grid grid-cols-2 gap-x-4 gap-y-3">
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Retail Shops</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Wholesale Businesses</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Supermarkets</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Pharmacies</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Hardware Stores</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Boutiques</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Restaurants</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Cafés</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Bakeries</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Cosmetic Shops</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Electronics Stores</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Agro Input Shops</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Bookshops</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Stationery Stores</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Liquor Stores</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Mini Markets</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Fashion Stores</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Auto Spare Shops</div>
+                    <div class="flex items-center text-gray-700"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Furniture Stores</div>
+                    <div class="flex items-center text-gray-700 font-bold text-indigo-600"><div class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></div> Any Growing SME</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
     <section class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">
-                    Why Choose Uganda Inventory Management?
-                </h2>
-                <p class="text-xl text-gray-600">
-                    Built by Ugandans, for Ugandans
-                </p>
+                <p class="text-indigo-600 font-bold tracking-widest uppercase mb-2">How It Works</p>
+                <h2 class="text-4xl font-bold text-gray-900">Start in Four Simple Steps</h2>
             </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Designed for Uganda</h3>
-                        <p class="text-gray-600">
-                            Supports UGX currency, Mobile Money, local tax requirements, and works even with intermittent internet.
-                        </p>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center relative">
+                <!-- Connectors for Desktop -->
+                <div class="hidden md:block absolute top-8 left-[12.5%] right-[12.5%] h-0.5 bg-indigo-100 z-0"></div>
+                
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold mb-6 shadow-lg border-4 border-white">1</div>
+                    <p class="font-bold text-gray-900 text-lg">Create your business account.</p>
                 </div>
-
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Affordable Pricing</h3>
-                        <p class="text-gray-600">
-                            Starting from UGX 50,000/month. No hidden fees. Cancel anytime. Perfect for small to medium businesses.
-                        </p>
-                    </div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold mb-6 shadow-lg border-4 border-white">2</div>
+                    <p class="font-bold text-gray-900 text-lg">Add your products and stock.</p>
                 </div>
-
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Easy to Use</h3>
-                        <p class="text-gray-600">
-                            No technical knowledge required. Simple interface in English. Setup in minutes, not hours.
-                        </p>
-                    </div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold mb-6 shadow-lg border-4 border-white">3</div>
+                    <p class="font-bold text-gray-900 text-lg">Start selling using DukaFlow POS.</p>
                 </div>
-
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">24/7 Local Support</h3>
-                        <p class="text-gray-600">
-                            WhatsApp and phone support available. We speak your language and understand your business.
-                        </p>
-                    </div>
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl font-bold mb-6 shadow-lg border-4 border-white">4</div>
+                    <p class="font-bold text-gray-900 text-lg">Track your business growth with detailed reports.</p>
                 </div>
+            </div>
+        </div>
+    </section>
 
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
+    <!-- Dashboard & Benefits Section -->
+    <section class="py-20 bg-gray-50 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+            <!-- Dashboard -->
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2">See Your Business at a Glance</h2>
+                <p class="text-indigo-600 font-bold mb-6 text-lg">Everything updates in real time.</p>
+                <div class="bg-white p-8 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-gray-800 mb-6 border-b border-gray-100 pb-3 text-lg">Monitor:</h4>
+                    <div class="grid grid-cols-2 gap-y-6">
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-indigo-50 text-indigo-500 flex items-center justify-center mr-3"><i class="fas fa-chart-line"></i></div> Daily Sales</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-blue-50 text-blue-500 flex items-center justify-center mr-3"><i class="fas fa-calendar-alt"></i></div> Monthly Revenue</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-green-50 text-green-500 flex items-center justify-center mr-3"><i class="fas fa-dollar-sign"></i></div> Profit</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-red-50 text-red-500 flex items-center justify-center mr-3"><i class="fas fa-file-invoice-dollar"></i></div> Expenses</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-yellow-50 text-yellow-500 flex items-center justify-center mr-3"><i class="fas fa-star"></i></div> Top Selling Products</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-orange-50 text-orange-500 flex items-center justify-center mr-3"><i class="fas fa-exclamation-circle"></i></div> Low Stock Items</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-teal-50 text-teal-500 flex items-center justify-center mr-3"><i class="fas fa-history"></i></div> Recent Transactions</div>
+                        <div class="flex items-center text-gray-700 font-medium"><div class="w-10 h-10 rounded bg-purple-50 text-purple-500 flex items-center justify-center mr-3"><i class="fas fa-users"></i></div> Customer Statistics</div>
                     </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Secure & Reliable</h3>
-                        <p class="text-gray-600">
-                            Your data is encrypted and backed up daily. 99.9% uptime guarantee. Bank-level security.
-                        </p>
-                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-100 flex items-center text-indigo-700 font-bold"><div class="w-10 h-10 rounded bg-indigo-100 flex items-center justify-center mr-3"><i class="fas fa-tachometer-alt"></i></div> Complete Business Performance</div>
                 </div>
-
-                <div class="flex items-start">
-                    <div class="flex-shrink-0">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xl"></i>
-                        </div>
+            </div>
+            
+            <!-- Benefits -->
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">More Than Just a POS</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-clock text-2xl text-indigo-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Save Time</h4></div>
                     </div>
-                    <div class="ml-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-2">Regular Updates</h3>
-                        <p class="text-gray-600">
-                            New features added monthly based on user feedback. Always improving, always free updates.
-                        </p>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-shield-alt text-2xl text-green-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Reduce Human Errors</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-smile text-2xl text-yellow-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Improve Customer Service</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-box-open text-2xl text-blue-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Know Your Stock Anytime</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-arrow-up text-2xl text-emerald-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Increase Profits</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-lightbulb text-2xl text-orange-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Better Business Decisions</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-globe text-2xl text-cyan-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Access Anywhere</h4></div>
+                    </div>
+                    <div class="flex p-5 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                        <i class="fas fa-seedling text-2xl text-teal-500 mr-4 mt-1"></i>
+                        <div><h4 class="font-bold text-gray-900">Grow With Confidence</h4></div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Perfect For Section -->
-    <section class="py-20 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">
-                    Perfect For All Ugandan Businesses
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-laptop text-4xl text-indigo-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Electronics</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-tshirt text-4xl text-pink-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Fashion</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-shopping-cart text-4xl text-green-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Supermarkets</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-pills text-4xl text-red-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Pharmacies</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-tools text-4xl text-yellow-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Hardware</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-car text-4xl text-blue-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Auto Parts</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-utensils text-4xl text-orange-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Restaurants</h4>
-                </div>
-                <div class="bg-white p-6 rounded-lg shadow text-center hover-scale">
-                    <i class="fas fa-book text-4xl text-purple-600 mb-3"></i>
-                    <h4 class="font-bold text-gray-900">Bookshops</h4>
-                </div>
+    <!-- Testimonials -->
+    <section class="py-20 bg-white border-t border-gray-100">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-bold text-gray-900 mb-12">What Business Owners Say</h2>
+            <div class="bg-gray-50 p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 italic text-xl md:text-2xl text-gray-700 relative text-center">
+                <i class="fas fa-quote-left text-5xl text-indigo-100 absolute top-6 left-6"></i>
+                <p class="relative z-10 px-4 md:px-8 font-light">"DukaFlow has transformed how we manage sales and inventory. Everything is now faster, more organized, and easier to track."</p>
+                <div class="mt-8 font-bold text-gray-900 not-italic text-lg">— Retail Business Owner</div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="gradient-bg py-20 text-white">
+    <section class="gradient-bg py-24 text-white">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl font-bold mb-6">
-                Ready to Transform Your Business?
-            </h2>
-            <p class="text-xl mb-8 text-indigo-100">
-                Join hundreds of Ugandan businesses already using our system
+            <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to Grow Your Business?</h2>
+            <p class="text-xl md:text-2xl mb-10 text-indigo-100">
+                Join businesses using DukaFlow to simplify operations, improve inventory management, and increase profitability.
             </p>
-            <a href="#" onclick="openRegisterModal(event)" class="inline-block px-10 py-4 bg-white text-indigo-600 rounded-lg font-bold text-xl hover:bg-gray-100 shadow-xl hover-scale">
-                <i class="fas fa-rocket mr-2"></i> Start Your Free 30-Day Trial
-            </a>
-            <p class="mt-4 text-indigo-100">
-                No credit card required • Setup in 2 minutes • Cancel anytime
-            </p>
+            <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <a href="#" onclick="openRegisterModal(event)" class="w-full sm:w-auto px-10 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
+                    Start Free Trial
+                </a>
+                <a href="#demo" class="w-full sm:w-auto px-10 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
+                    Request a Demo
+                </a>
+                <a href="mailto:support@dukaflow.com" class="w-full sm:w-auto px-10 py-4 bg-transparent border-2 border-white text-white rounded-lg font-bold text-lg hover:bg-white hover:text-indigo-600 shadow-xl hover-scale transition-colors duration-300">
+                    Contact Sales
+                </a>
+            </div>
         </div>
     </section>
 
@@ -370,9 +413,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div>
-                    <h3 class="text-xl font-bold mb-4">Uganda Inventory</h3>
+                    <h3 class="text-xl font-bold mb-4">DukaFlow</h3>
                     <p class="text-gray-400">
-                        The #1 inventory management system for Ugandan businesses.
+                        The all-in-one POS and inventory management system for your business.
                     </p>
                 </div>
                 <div>
@@ -395,13 +438,13 @@
                     <h4 class="font-bold mb-4">Contact</h4>
                     <ul class="space-y-2 text-gray-400">
                         <li><i class="fas fa-phone mr-2"></i> +256 700 123 456</li>
-                        <li><i class="fas fa-envelope mr-2"></i> support@inventory.ug</li>
+                        <li><i class="fas fa-envelope mr-2"></i> support@dukaflow.com</li>
                         <li><i class="fas fa-map-marker-alt mr-2"></i> Kampala, Uganda</li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                <p>&copy; {{ date('Y') }} Uganda Inventory Management System. Developed by BARIGYE-DAVIS. All rights reserved.</p>
+                <p>&copy; {{ date('Y') }} DukaFlow. Developed by BARIGYE-DAVIS. All rights reserved.</p>
             </div>
         </div>
     </footer>
