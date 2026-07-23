@@ -32,6 +32,19 @@
         .hover-scale:hover {
             transform: scale(1.05);
         }
+        @keyframes modalFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(-40px) scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .modal-float {
+            animation: modalFloat 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -394,8 +407,8 @@
     </footer>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadeIn">
+    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-900 bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float">
             <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -474,8 +487,8 @@
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative animate-fadeIn my-8">
+    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-blue-900 bg-opacity-30 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float my-8">
             <button onclick="closeRegisterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -527,35 +540,34 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
-                        </label>
-                        <input id="business_email" name="business_email" type="email" required
-                                value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="business@example.com">
-                        @if(old('_form_type') == 'register')
-                            @error('business_email')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                            @enderror
-                        @endif
-                    </div>
-                    <div>
-                        <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
-                        </label>
-                        <input id="contact" name="contact" type="tel" required
-                                value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="0700123456">
-                        @if(old('_form_type') == 'register')
-                            @error('contact')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                            @enderror
-                        @endif
-                    </div>
+                <div>
+                    <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
+                    </label>
+                    <input id="business_email" name="business_email" type="email" required
+                            value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="business@example.com">
+                    @if(old('_form_type') == 'register')
+                        @error('business_email')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+                
+                <div>
+                    <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
+                    </label>
+                    <input id="contact" name="contact" type="tel" required
+                            value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="0700123456">
+                    @if(old('_form_type') == 'register')
+                        @error('contact')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
                 </div>
 
                 <div>
@@ -573,28 +585,27 @@
                     @endif
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
-                        </label>
-                        <input id="register_password" name="password" type="password" required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Min. 8 characters">
-                        @if(old('_form_type') == 'register')
-                            @error('password')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                            @enderror
-                        @endif
-                    </div>
-                    <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
-                        </label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Re-enter password">
-                    </div>
+                <div>
+                    <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
+                    </label>
+                    <input id="register_password" name="password" type="password" required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Min. 8 characters">
+                    @if(old('_form_type') == 'register')
+                        @error('password')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+                
+                <div>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
+                    </label>
+                    <input id="password_confirmation" name="password_confirmation" type="password" required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Re-enter password">
                 </div>
 
                 <div>
