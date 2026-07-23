@@ -310,7 +310,6 @@
 
             if (isFullscreen) {
                 if (sidebar) sidebar.classList.add('hidden');
-                if (header) header.classList.add('hidden');
                 if (main) {
                     main.classList.remove('p-4', 'md:p-6');
                     main.classList.add('p-2');

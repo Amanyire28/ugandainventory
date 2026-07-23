@@ -6,211 +6,178 @@
     <i class="fas fa-cash-register text-green-600 mr-2"></i>Point of Sale
 @endsection
 
-@section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- LEFT SIDE: Products -->
-    <div class="lg:col-span-2 space-y-4">
-        <!-- Search & Filter -->
-        <div class="bg-white rounded-xl shadow-lg p-4">
+@<!-- JSON Products data for search autocomplete -->
+<script>
+    const allProducts = [
+        @foreach($products as $product)
+        {
+            id: {{ $product->id }},
+            name: '{{ addslashes($product->name) }}',
+            sku: '{{ addslashes($product->sku ?? "") }}',
+            price: {{ $product->selling_price }},
+            stock: {{ $product->quantity }},
+            unit: '{{ addslashes($product->unit) }}'
+        },
+        @endforeach
+    ];
+</script>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)] overflow-hidden">
+    <!-- LEFT SIDE: Selected Products Table -->
+    <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4">
+        <!-- Search Field -->
+        <div class="bg-white rounded-xl shadow-lg p-4 flex-shrink-0">
             <div class="relative w-full">
-                <input type="text" id="productSearch" placeholder="Search products (Name, SKU, Barcode)... [Press F11 for Fullscreen]" class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                <input type="text" id="productSearch" autocomplete="off" placeholder="Type product name, SKU or scan barcode..." class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
                 <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                <!-- Autocomplete Dropdown -->
+                <div id="searchResultsDropdown" class="hidden absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto animate-fadeIn"></div>
             </div>
         </div>
-        <!-- Products Table -->
-        <div class="bg-white rounded-xl shadow-lg p-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-table text-green-600 mr-2"></i>Products List
-            </h3>
-            <div class="max-h-[calc(100vh-300px)] overflow-y-auto rounded-lg border border-gray-200">
+
+        <!-- Selected Products List Table -->
+        <div class="bg-white rounded-xl shadow-lg p-4 flex-1 flex flex-col min-h-0">
+            <div class="flex justify-between items-center mb-3 flex-shrink-0">
+                <h3 class="text-lg font-bold text-gray-800">
+                    <i class="fas fa-shopping-basket text-green-600 mr-2"></i>Selected Products
+                </h3>
+                <button type="button" onclick="clearCart()" class="text-sm text-red-600 hover:text-red-800 font-semibold transition">
+                    <i class="fas fa-trash mr-1"></i>Clear All
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto rounded-lg border border-gray-200">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50">
+                    <thead class="bg-gray-50 sticky top-0 z-10">
                         <tr>
-                            <th scope="col" class="px-4 py-2.5 text-left font-semibold text-gray-500 uppercase tracking-wider">Product Name</th>
-                            <th scope="col" class="px-4 py-2.5 text-left font-semibold text-gray-500 uppercase tracking-wider">SKU</th>
-                            <th scope="col" class="px-4 py-2.5 text-right font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                            <th scope="col" class="px-4 py-2.5 text-right font-semibold text-gray-500 uppercase tracking-wider">Stock</th>
-                            <th scope="col" class="px-4 py-2.5 text-center font-semibold text-gray-500 uppercase tracking-wider">Action</th>
+                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                            <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider w-32">Price</th>
+                            <th scope="col" class="px-4 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider w-40">Quantity</th>
+                            <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider w-36">Total</th>
+                            <th scope="col" class="px-4 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider w-16">Action</th>
                         </tr>
                     </thead>
-                    <tbody id="productsGrid" class="bg-white divide-y divide-gray-200 text-gray-700">
-                        @forelse($products as $product)
-                            <tr class="product-card hover:bg-gray-50 transition cursor-pointer"
-                                 data-id="{{ $product->id }}"
-                                 data-name="{{ $product->name }}"
-                                 data-price="{{ $product->selling_price }}"
-                                 data-stock="{{ $product->quantity }}"
-                                 data-unit="{{ $product->unit }}"
-                                 data-category="{{ $product->category_id ?? '' }}"
-                                 onclick="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', {{ $product->selling_price }}, '{{ $product->unit }}', {{ $product->quantity }})">
-                                <td class="px-4 py-3 font-semibold text-gray-900">
-                                    {{ $product->name }}
-                                </td>
-                                <td class="px-4 py-3 text-gray-500 font-mono">
-                                    {{ $product->sku ?? 'N/A' }}
-                                </td>
-                                <td class="px-4 py-3 text-right font-bold text-gray-950">
-                                    UGX {{ number_format($product->selling_price, 0) }}
-                                </td>
-                                <td class="px-4 py-3 text-right">
-                                    <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ $product->quantity < 10 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
-                                        {{ number_format($product->quantity, 0) }} {{ $product->unit }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <button type="button" 
-                                            class="px-2.5 py-1 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 rounded-lg text-xs font-bold transition">
-                                        <i class="fas fa-plus"></i> Add
-                                    </button>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-gray-550">No products available</td>
-                            </tr>
-                        @endforelse
+                    <tbody id="cartItemsTable" class="bg-white divide-y divide-gray-200 text-gray-700">
+                        <tr>
+                            <td colspan="5" class="px-4 py-12 text-center text-gray-400">
+                                <i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>
+                                No products selected. Search/scan above to add.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- RIGHT SIDE -->
-    <div class="lg:col-span-1 space-y-4">
-        <!-- Payment Type Selection (FIRST) -->
-        <div class="bg-white rounded-xl shadow-lg p-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-coins text-green-600 mr-2"></i>Payment Option
+    <!-- RIGHT SIDE: Payment & Checkout Panel -->
+    <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-4 flex flex-col h-full justify-between min-h-0">
+        <!-- Customer Section -->
+        <div class="border-b pb-3 flex-shrink-0">
+            <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-user-circle text-green-600 mr-2"></i>Customer
             </h3>
-            <div class="flex items-center space-x-6 mb-2">
-                <label class="flex items-center">
-                    <input type="radio" name="payment_type" value="cash" checked onchange="togglePaymentType();" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                    <span class="ml-2 font-semibold text-gray-700">Cash Sale</span>
+            <div class="grid grid-cols-3 gap-2">
+                <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
+                    <input type="radio" name="customer_option" value="walk_in" checked onchange="toggleCustomerFields()" class="h-3.5 w-3.5 text-green-600 focus:ring-green-500 mr-1">
+                    <span>Walk-in</span>
                 </label>
-                <label class="flex items-center">
-                    <input type="radio" name="payment_type" value="invoice" onchange="togglePaymentType();" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500">
-                    <span class="ml-2 font-semibold text-indigo-700">Invoice (Credit)</span>
+                <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
+                    <input type="radio" name="customer_option" value="existing" onchange="toggleCustomerFields()" class="h-3.5 w-3.5 text-green-600 focus:ring-green-500 mr-1">
+                    <span>Existing</span>
+                </label>
+                <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
+                    <input type="radio" name="customer_option" value="new" onchange="toggleCustomerFields()" class="h-3.5 w-3.5 text-green-600 focus:ring-green-500 mr-1">
+                    <span>New</span>
                 </label>
             </div>
-            <p id="invoiceNotice" class="text-sm text-indigo-600 hidden">
-                Credit: Items will be added to the customer’s open invoice.
-            </p>
-        </div>
-        <!-- Customer Selection -->
-        <div class="bg-white rounded-xl shadow-lg p-4">
-            <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                <i class="fas fa-user text-green-600 mr-1"></i>Customer (Optional)
-            </h3>
-            <div class="space-y-3">
-                <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <input type="radio" name="customer_option" value="walk_in" checked onchange="toggleCustomerFields()" class="h-4 w-4 text-green-600 focus:ring-green-500">
-                    <span class="ml-3 text-sm font-medium text-gray-700">Walk-in Customer</span>
-                </label>
-                <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <input type="radio" name="customer_option" value="existing" onchange="toggleCustomerFields()" class="h-4 w-4 text-green-600 focus:ring-green-500">
-                    <span class="ml-3 text-sm font-medium text-gray-700">Existing Customer</span>
-                </label>
-                <label class="flex items-center cursor-pointer p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <input type="radio" name="customer_option" value="new" onchange="toggleCustomerFields()" class="h-4 w-4 text-green-600 focus:ring-green-500">
-                    <span class="ml-3 text-sm font-medium text-gray-700">New Customer</span>
-                </label>
-            </div>
-            <div id="existingCustomerDiv" class="hidden mt-3">
-                <select id="existingCustomerId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+            
+            <div id="existingCustomerDiv" class="hidden mt-2">
+                <select id="existingCustomerId" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-green-500">
                     <option value="">Select Customer</option>
                     @foreach($customers as $customer)
-                        <option value="{{ $customer->id }}">{{ $customer->name }} - {{ $customer->phone }}</option>
+                        <option value="{{ $customer->id }}">{{ $customer->name }}</option>
                     @endforeach
                 </select>
             </div>
-            <div id="newCustomerDiv" class="hidden mt-3 space-y-2 p-3 bg-green-50 rounded-lg">
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
-                    <input type="text" id="newCustomerName" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="Customer name">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Phone <span class="text-red-500">*</span></label>
-                    <input type="text" id="newCustomerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="0700123456">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" id="newCustomerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="customer@email.com">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">Address</label>
-                    <input type="text" id="newCustomerAddress" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-sm" placeholder="Kampala, Uganda">
-                </div>
+            
+            <div id="newCustomerDiv" class="hidden mt-2 grid grid-cols-2 gap-2 p-2 bg-green-50 rounded-lg text-xs">
+                <input type="text" id="newCustomerName" class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs" placeholder="Name *">
+                <input type="text" id="newCustomerPhone" class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs" placeholder="Phone *">
+                <input type="email" id="newCustomerEmail" class="col-span-2 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs" placeholder="Email">
+                <input type="text" id="newCustomerAddress" class="col-span-2 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs" placeholder="Address">
             </div>
         </div>
-        <!-- Cart -->
-        <div class="bg-white rounded-xl shadow-lg p-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-4 flex justify-between items-center">
-                <span><i class="fas fa-shopping-cart text-green-600 mr-2"></i>Cart</span>
-                <button onclick="clearCart()" class="text-xs text-red-600 hover:text-red-800">
-                    <i class="fas fa-trash mr-1"></i>Clear
-                </button>
+
+        <!-- Payment Option Section -->
+        <div class="border-b py-3 flex-shrink-0">
+            <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center">
+                <i class="fas fa-coins text-green-600 mr-2"></i>Payment Option
             </h3>
-            <div id="cartItems" class="space-y-2 max-h-64 overflow-y-auto mb-4">
-                <div class="text-center text-gray-400 py-8">
-                    <i class="fas fa-shopping-cart text-4xl mb-2"></i>
-                    <p>Cart is empty</p>
-                </div>
+            <div class="grid grid-cols-2 gap-2">
+                <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
+                    <input type="radio" name="payment_type" value="cash" checked onchange="togglePaymentType();" class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 mr-1.5">
+                    <span>Cash Sale</span>
+                </label>
+                <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
+                    <input type="radio" name="payment_type" value="invoice" onchange="togglePaymentType();" class="h-3.5 w-3.5 text-indigo-600 focus:ring-indigo-500 mr-1.5">
+                    <span>Credit Invoice</span>
+                </label>
             </div>
-            <div class="border-t pt-4 space-y-2">
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-600">Subtotal:</span>
-                    <span class="font-semibold">UGX <span id="subtotalAmount">0</span></span>
+        </div>
+
+        <!-- Checkout Info Section -->
+        <div class="flex-1 flex flex-col justify-end pt-3 space-y-3 min-h-0">
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Subtotal:</span>
+                    <span class="font-bold text-gray-900">UGX <span id="subtotalAmount">0</span></span>
                 </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-600">Discount:</span>
-                    <input type="number" id="discountAmount" value="0" min="0" step="100" onchange="updateTotals()" class="w-24 px-2 py-1 border border-gray-300 rounded text-right">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">Discount:</span>
+                    <input type="number" id="discountAmount" value="0" min="0" step="100" onchange="updateTotals()" class="w-24 px-2 py-1 border border-gray-300 rounded-md text-right text-xs font-semibold focus:ring-1 focus:ring-green-500">
                 </div>
-                <div class="flex justify-between items-center text-sm py-2 border-t">
+                <div class="flex justify-between items-center py-1 border-t border-dashed">
                     <label class="flex items-center cursor-pointer">
-                        <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 rounded">
-                        <span class="text-gray-600">Add Tax (18%)</span>
+                        <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-1.5 h-3.5 w-3.5 text-green-600 focus:ring-green-500 rounded">
+                        <span class="text-gray-500">Add Tax (18%)</span>
                     </label>
-                    <span class="font-semibold">UGX <span id="taxAmount">0</span></span>
+                    <span class="font-bold text-gray-900">UGX <span id="taxAmount">0</span></span>
                 </div>
-                <div class="flex justify-between text-lg font-bold text-green-600 pt-2 border-t">
+                <div class="flex justify-between text-base font-bold text-green-600 pt-1 border-t">
                     <span>TOTAL:</span>
                     <span>UGX <span id="totalAmount">0</span></span>
                 </div>
             </div>
-        </div>
-        <!-- Payment (only for cash) -->
-        <div id="cash-payment-div" class="bg-white rounded-xl shadow-lg p-4">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">
-                <i class="fas fa-money-bill-wave text-green-600 mr-2"></i>Payment (Cash)
-            </h3>
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Amount Paid</label>
-                <input type="number" id="amountPaid" value="0" min="0" step="100" onchange="calculateChange()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 text-lg font-bold text-right">
-            </div>
-            <div class="mb-4">
-                <button type="button" onclick="exactAmount()" class="w-full px-4 py-2 bg-blue-100 hover:bg-blue-200 rounded-lg text-sm font-semibold text-blue-700">
-                    <i class="fas fa-equals mr-1"></i> Exact Amount
-                </button>
-            </div>
-            <div class="mb-4 p-3 bg-green-50 rounded-lg" id="changeBox">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm font-semibold text-gray-700">Change:</span>
-                    <span class="text-xl font-bold text-green-600">UGX <span id="changeAmount">0</span></span>
+
+            <!-- Cash Payment Details -->
+            <div id="cash-payment-div" class="space-y-2 flex-shrink-0">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-bold text-gray-700 whitespace-nowrap">Amount Paid:</span>
+                    <input type="number" id="amountPaid" value="0" min="0" step="100" oninput="calculateChange()" class="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded-md text-right text-sm font-bold text-gray-900 focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="exactAmount()" class="px-2 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-md text-xs font-semibold whitespace-nowrap">Exact</button>
+                </div>
+                <div class="p-2 rounded-lg flex justify-between items-center text-xs" id="changeBox">
+                     <span class="font-semibold text-gray-600">Change:</span>
+                     <span class="text-sm font-bold text-green-600">UGX <span id="changeAmount">0</span></span>
+                </div>
+                <div>
+                    <textarea id="saleNotes" rows="1" class="w-full px-2 py-1 border border-gray-300 rounded-md text-xs focus:ring-2 focus:ring-green-500" placeholder="Notes (Optional)"></textarea>
                 </div>
             </div>
-            <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">Notes (Optional)</label>
-                <textarea id="saleNotes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500" placeholder="Add any notes..."></textarea>
+            
+            <div id="invoiceNotice" class="hidden p-2 bg-indigo-50 border border-indigo-100 rounded-lg text-xs text-indigo-700 text-center flex-shrink-0">
+                <i class="fas fa-info-circle mr-1"></i> Credit Sale. Items added to invoice.
             </div>
-        </div>
 
-        <!-- Always visible action button -->
-        <button onclick="processSale()"
-                id="checkoutBtn"
-                class="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-lg disabled:bg-gray-300 disabled:cursor-not-allowed">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span id="checkoutBtnText">Complete Sale</span>
-        </button>
+            <!-- Checkout Action Button -->
+            <button onclick="processSale()"
+                    id="checkoutBtn"
+                    class="w-full py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold text-sm shadow-md transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 flex-shrink-0">
+                <i class="fas fa-check-circle"></i>
+                <span id="checkoutBtnText">Complete Sale</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -299,53 +266,65 @@ function clearCart() {
 }
 
 function renderCart() {
-    const cartItemsDiv = document.getElementById('cartItems');
+    const tableBody = document.getElementById('cartItemsTable');
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    
     if (cart.length === 0) {
-        cartItemsDiv.innerHTML = `
-            <div class="text-center text-gray-400 py-8">
-                <i class="fas fa-shopping-cart text-4xl mb-2"></i>
-                <p>Cart is empty</p>
-            </div>
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-4 py-12 text-center text-gray-400">
+                    <i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>
+                    No products selected. Search/scan above to add.
+                </td>
+            </tr>
         `;
-        document.getElementById('checkoutBtn').disabled = true;
+        if (checkoutBtn) checkoutBtn.disabled = true;
         return;
     }
-    document.getElementById('checkoutBtn').disabled = false;
+    
+    if (checkoutBtn) checkoutBtn.disabled = false;
     let html = '';
     cart.forEach(item => {
         html += `
-            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div class="flex-1">
-                    <p class="font-semibold text-sm text-gray-900">${item.name}</p>
-                    <p class="text-xs text-gray-500">UGX ${item.price.toLocaleString()} × ${item.quantity} ${item.unit}</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})"
-                            class="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded flex items-center justify-center">
-                        <i class="fas fa-minus text-xs"></i>
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-4 py-3 font-semibold text-gray-900">
+                    ${item.name}
+                    <span class="text-xs text-gray-500 block font-mono">Max Stock: ${item.maxStock} ${item.unit}</span>
+                </td>
+                <td class="px-4 py-3 text-right text-gray-800 font-medium">
+                    UGX ${item.price.toLocaleString()}
+                </td>
+                <td class="px-4 py-3">
+                    <div class="flex items-center justify-center space-x-2">
+                        <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity - 1})"
+                                class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition border border-gray-200">
+                            <i class="fas fa-minus text-xs"></i>
+                        </button>
+                        <input type="number"
+                               value="${item.quantity}"
+                               min="1"
+                               max="${item.maxStock}"
+                               onchange="updateQuantity(${item.id}, this.value)"
+                               class="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-green-500">
+                        <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity + 1})"
+                                class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition border border-gray-200">
+                            <i class="fas fa-plus text-xs"></i>
+                        </button>
+                    </div>
+                </td>
+                <td class="px-4 py-3 text-right font-bold text-green-600">
+                    UGX ${(item.price * item.quantity).toLocaleString()}
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <button type="button" onclick="removeFromCart(${item.id})"
+                            class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200">
+                        <i class="fas fa-trash-alt text-sm"></i>
                     </button>
-                    <input type="number"
-                           value="${item.quantity}"
-                           min="1"
-                           max="${item.maxStock}"
-                           onchange="updateQuantity(${item.id}, this.value)"
-                           class="w-12 px-2 py-1 border border-gray-300 rounded text-center text-sm">
-                    <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})"
-                            class="w-6 h-6 bg-gray-200 hover:bg-gray-300 rounded flex items-center justify-center">
-                        <i class="fas fa-plus text-xs"></i>
-                    </button>
-                    <button onclick="removeFromCart(${item.id})"
-                            class="w-6 h-6 bg-red-100 hover:bg-red-200 text-red-600 rounded flex items-center justify-center ml-2">
-                        <i class="fas fa-times text-xs"></i>
-                    </button>
-                </div>
-                <div class="ml-3 text-right">
-                    <p class="font-bold text-green-600">UGX ${(item.price * item.quantity).toLocaleString()}</p>
-                </div>
-            </div>
+                </td>
+            </tr>
         `;
     });
-    cartItemsDiv.innerHTML = html;
+    tableBody.innerHTML = html;
 }
 
 function updateTotals() {
@@ -625,68 +604,124 @@ function showReceipt(data) {
 function closeReceipt() {
     document.getElementById('receiptModal').classList.add('hidden');
 }
-document.getElementById('productSearch').addEventListener('input', function() {
-    const search = this.value.toLowerCase();
-    filterProducts(search);
-});
-let activeRowIndex = 0;
+const searchInput = document.getElementById('productSearch');
+const dropdown = document.getElementById('searchResultsDropdown');
+let activeSearchIndex = 0;
 
-function updateRowHighlight() {
-    const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
-    
-    // Clear all highlights
-    document.querySelectorAll('.product-card').forEach(row => {
-        row.classList.remove('bg-green-50', 'ring-2', 'ring-green-500');
-    });
-
-    if (visibleRows.length === 0) {
-        activeRowIndex = -1;
+searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase().trim();
+    if (!query) {
+        dropdown.classList.add('hidden');
+        dropdown.innerHTML = '';
         return;
     }
 
-    // Keep index in range
-    if (activeRowIndex < 0) {
-        activeRowIndex = 0;
-    } else if (activeRowIndex >= visibleRows.length) {
-        activeRowIndex = visibleRows.length - 1;
+    const matches = allProducts.filter(p => 
+        p.name.toLowerCase().includes(query) || 
+        p.sku.toLowerCase().includes(query)
+    );
+
+    if (matches.length === 0) {
+        dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm text-center">No products found</div>';
+        dropdown.classList.remove('hidden');
+        return;
     }
 
-    const activeRow = visibleRows[activeRowIndex];
-    if (activeRow) {
-        activeRow.classList.add('bg-green-50', 'ring-2', 'ring-green-500');
-        activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    }
-}
-
-function filterProducts(search) {
-    const products = document.querySelectorAll('.product-card');
-    products.forEach(product => {
-        const name = product.dataset.name.toLowerCase();
-        const matchesSearch = name.includes(search) || search === '';
-        product.style.display = matchesSearch ? '' : 'none';
+    let html = '';
+    matches.forEach((p, index) => {
+        html += `
+            <div class="search-result-item p-3 border-b border-gray-100 hover:bg-green-50 cursor-pointer flex justify-between items-center ${index === 0 ? 'bg-green-50 ring-1 ring-green-400 font-semibold' : ''}" 
+                 data-id="${p.id}" 
+                 data-index="${index}">
+                <div>
+                    <span class="font-semibold text-gray-900">${p.name}</span>
+                    <span class="text-xs text-gray-500 font-mono ml-2">SKU: ${p.sku || 'N/A'}</span>
+                </div>
+                <div class="text-right">
+                    <span class="font-bold text-gray-950">UGX ${p.price.toLocaleString()}</span>
+                    <span class="text-xs text-gray-600 block">Stock: ${p.stock} ${p.unit}</span>
+                </div>
+            </div>
+        `;
     });
-    
-    activeRowIndex = 0;
-    updateRowHighlight();
-}
+    dropdown.innerHTML = html;
+    dropdown.classList.remove('hidden');
+    activeSearchIndex = 0;
+});
 
-// Initialize highlight on load
-updateRowHighlight();
+dropdown.addEventListener('click', function(e) {
+    const item = e.target.closest('.search-result-item');
+    if (item) {
+        const id = parseInt(item.dataset.id);
+        const product = allProducts.find(p => p.id === id);
+        if (product) {
+            addToCart(product.id, product.name, product.price, product.unit, product.stock);
+            searchInput.value = '';
+            dropdown.classList.add('hidden');
+            dropdown.innerHTML = '';
+            searchInput.focus();
+        }
+    }
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
 
 document.addEventListener('keydown', function(e) {
-    // Escape key
+    const isSearchFocused = document.activeElement === searchInput;
+    
+    // If dropdown is open, handle navigation there
+    if (!dropdown.classList.contains('hidden')) {
+        const items = dropdown.querySelectorAll('.search-result-item');
+        if (items.length > 0) {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeSearchIndex = (activeSearchIndex + 1) % items.length;
+                highlightSearchItem(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeSearchIndex = (activeSearchIndex - 1 + items.length) % items.length;
+                highlightSearchItem(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const activeItem = items[activeSearchIndex];
+                if (activeItem) {
+                    const id = parseInt(activeItem.dataset.id);
+                    const product = allProducts.find(p => p.id === id);
+                    if (product) {
+                        addToCart(product.id, product.name, product.price, product.unit, product.stock);
+                        searchInput.value = '';
+                        dropdown.classList.add('hidden');
+                        dropdown.innerHTML = '';
+                        searchInput.focus();
+                    }
+                }
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                searchInput.value = '';
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+                searchInput.focus();
+            }
+            return;
+        }
+    }
+
+    // Standard keyboard shortcuts when dropdown is not active
     if (e.key === 'Escape') {
-        document.getElementById('productSearch').value = '';
-        filterProducts('', '');
-        document.getElementById('productSearch').focus();
+        searchInput.value = '';
+        searchInput.focus();
         return;
     }
 
-    // Control/Meta shortcuts
     if (e.ctrlKey || e.metaKey) {
         if (e.key === 'k') {
             e.preventDefault();
-            document.getElementById('productSearch').focus();
+            searchInput.focus();
         }
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -696,41 +731,17 @@ document.addEventListener('keydown', function(e) {
         }
         return;
     }
-
-    // Only allow navigation when the search field is focused or body has focus
-    const isSearchFocused = document.activeElement === document.getElementById('productSearch');
-    
-    if (isSearchFocused || document.activeElement === document.body) {
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
-            if (visibleRows.length > 0) {
-                activeRowIndex = (activeRowIndex + 1) % visibleRows.length;
-                updateRowHighlight();
-            }
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
-            if (visibleRows.length > 0) {
-                activeRowIndex = (activeRowIndex - 1 + visibleRows.length) % visibleRows.length;
-                updateRowHighlight();
-            }
-        } else if (e.key === 'Enter') {
-            const visibleRows = Array.from(document.querySelectorAll('.product-card')).filter(row => row.style.display !== 'none');
-            if (activeRowIndex >= 0 && activeRowIndex < visibleRows.length) {
-                e.preventDefault();
-                const activeRow = visibleRows[activeRowIndex];
-                
-                // Trigger click to add to cart
-                activeRow.click();
-                
-                // Visual feedback flash
-                activeRow.classList.add('bg-green-200');
-                setTimeout(() => activeRow.classList.remove('bg-green-200'), 150);
-            }
-        }
-    }
 });
 
+function highlightSearchItem(items) {
+    items.forEach((item, index) => {
+        if (index === activeSearchIndex) {
+            item.classList.add('bg-green-50', 'ring-1', 'ring-green-400', 'font-semibold');
+            item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        } else {
+            item.classList.remove('bg-green-50', 'ring-1', 'ring-green-400', 'font-semibold');
+        }
+    });
+}
 </script>
 @endsection
