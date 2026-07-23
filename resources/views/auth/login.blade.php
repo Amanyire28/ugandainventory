@@ -81,30 +81,6 @@
                         @enderror
                     </div>
 
-                    <!-- Role Selection -->
-                    <div>
-                        <label for="role_id" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-user-tag text-indigo-600 mr-1"></i>
-                            Select Your Role <span class="text-red-500">*</span>
-                        </label>
-                        <select id="role_id" name="role_id" required
-                                class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                            <option value="">-- Choose your role --</option>
-                            @foreach($roles as $role)
-                                <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>
-                                    {{ $role->display_name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('role_id')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                        <p class="mt-1 text-xs text-gray-500">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Select the role you were assigned by your business
-                        </p>
-                    </div>
-
                     <!-- Remember Me -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center">
@@ -130,7 +106,6 @@
                                 <p class="font-medium">Login Tips:</p>
                                 <ul class="list-disc list-inside mt-1 text-xs space-y-1">
                                     <li>Use the email you registered/were assigned</li>
-                                    <li>Select the correct role (Owner, Manager, Cashier, etc.)</li>
                                     <li>Contact your business owner if you forgot your password</li>
                                 </ul>
                             </div>

@@ -30,7 +30,6 @@ class LoginController extends Controller
         $credentials = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'],
-            'role_id'  => ['required', 'exists:roles,id'], // validate selected role
         ]);
 
         // Fetch user record by email
@@ -40,13 +39,6 @@ class LoginController extends Controller
         if ($user && !$user->is_active) {
             throw ValidationException::withMessages([
                 'email' => ['Your account has been deactivated. Please contact the administrator.'],
-            ]);
-        }
-
-        // Ensure selected role matches user's role
-        if ($user && (int) $user->role_id !== (int) $request->role_id) {
-            throw ValidationException::withMessages([
-                'role_id' => ['The selected role does not match your account. Please select the correct role.'],
             ]);
         }
 
@@ -68,17 +60,10 @@ class LoginController extends Controller
                 // Column may not exist; ignore
             }
 
-            // 2FA handoff:
-            // - Reset the verification flag on each successful login
-            // - If 2FA is enabled (default to enabled if column is missing/null), send user to 2FA challenge
-            session(['two_factor_verified' => false]);
+            // Always bypass 2FA
+            session(['two_factor_verified' => true]);
 
-            $twoFactorEnabled = (int) data_get($user, 'two_factor_enabled', 1) === 1;
-            if ($twoFactorEnabled) {
-                return redirect()->route('auth.twofactor.show');
-            }
-
-            // If 2FA disabled, proceed with role-based redirect
+            // Proceed with role-based redirect
             return $this->redirectBasedOnRole($user)
                 ->with('success', "Welcome back, {$user->name}!");
         }

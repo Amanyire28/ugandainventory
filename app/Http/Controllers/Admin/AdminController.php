@@ -50,8 +50,9 @@ class AdminController extends Controller
         Auth::guard('admin')->login($admin);
         $request->session()->regenerate();
 
-        return redirect()->route('admin.auth.twofactor.show')
-            ->with('success', 'Admin created.  Verify with 2FA.');
+        session(['two_factor_verified' => true]);
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Admin created successfully.');
     }
 
     // ========================================
@@ -98,8 +99,9 @@ class AdminController extends Controller
             $authAdmin->save();
         }
 
-        return redirect()->route('admin.auth.twofactor.show')
-            ->with('success', 'Verification code sent.');
+        session(['two_factor_verified' => true]);
+        return redirect()->route('admin.dashboard')
+            ->with('success', 'Welcome back!');
     }
 
     // ========================================
