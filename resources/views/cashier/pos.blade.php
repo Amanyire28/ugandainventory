@@ -5,7 +5,16 @@
 
 
 @section('content')
-<form id="posForm" method="POST">
+<style>
+    main {
+        display: flex !important;
+        flex-direction: column !important;
+        height: calc(100vh - 72px) !important;
+        overflow: hidden !important;
+        padding: 1rem !important;
+    }
+</style>
+<form id="posForm" method="POST" class="h-full">
     @csrf
     <input type="hidden" name="payment_type" id="payment_type" value="cash">
 
@@ -25,7 +34,7 @@
         ];
     </script>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[calc(100vh-140px)] overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-hidden">
         <!-- LEFT SIDE: Selected Products Table -->
         <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4">
             <!-- Search Field -->
