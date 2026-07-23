@@ -49,13 +49,25 @@
     </style>
 </head>
 <body class="bg-gray-50">
-    <!-- PWA Splash Screen -->
-    <div id="pwaSplashScreen" class="fixed inset-0 z-[100] hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex-col items-center justify-center p-4">
-        <i class="fas fa-boxes text-6xl text-indigo-600 mb-6 fade-in-up"></i>
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 fade-in-up" style="animation-delay: 0.2s">Welcome to DukaFlow</h1>
-        <p class="text-lg text-indigo-600 font-semibold mb-8 fade-in-up" style="animation-delay: 0.4s">Proudly powered by ResNet</p>
-        <div class="mt-8 fade-in-up" style="animation-delay: 0.6s">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+    <!-- PWA Welcome Screen -->
+    <div id="pwaWelcomeScreen" class="fixed inset-0 z-40 hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex-col items-center justify-between">
+        <div class="flex-1 w-full flex flex-col items-center justify-center p-6">
+            <i class="fas fa-boxes text-7xl text-indigo-600 mb-6 fade-in-up"></i>
+            <h1 class="text-4xl font-extrabold text-gray-900 mb-2 fade-in-up text-center" style="animation-delay: 0.2s">Welcome to DukaFlow</h1>
+            <p class="text-lg text-indigo-600 font-medium mb-12 fade-in-up text-center" style="animation-delay: 0.3s">Manage your business smartly</p>
+            
+            <div class="w-full max-w-sm space-y-4 fade-in-up" style="animation-delay: 0.5s">
+                <button onclick="openLoginModal(event)" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 transition-all flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Login
+                </button>
+                <button onclick="openRegisterModal(event)" class="w-full py-4 bg-white hover:bg-indigo-50 text-indigo-700 border-2 border-indigo-100 rounded-xl font-bold text-lg shadow-sm transition-all flex items-center justify-center">
+                    <i class="fas fa-user-plus mr-2"></i> Create Account
+                </button>
+            </div>
+        </div>
+        
+        <div class="w-full pb-8 text-center fade-in-up" style="animation-delay: 0.7s">
+            <p class="text-sm font-semibold text-gray-400">Powered by ResNet</p>
         </div>
     </div>
 
@@ -746,33 +758,13 @@
                 // Permanently hide the web landing page
                 document.getElementById('mainContentWrapper').style.display = 'none';
                 
-                // Hide the close buttons on the modals
-                document.querySelectorAll('button[onclick^="close"]').forEach(btn => btn.style.display = 'none');
-
-                // Prevent clicking outside the modal from closing it
-                window.closeLoginModal = function() {};
-                window.closeRegisterModal = function() {};
-
-                if (!sessionStorage.getItem('splashShown')) {
-                    // Show splash screen
-                    const splash = document.getElementById('pwaSplashScreen');
-                    splash.classList.remove('hidden');
-                    splash.classList.add('flex');
-                    
-                    // After 2.5 seconds, hide splash and show login
-                    setTimeout(() => {
-                        splash.classList.remove('flex');
-                        splash.classList.add('hidden');
-                        
-                        openLoginModal();
-                        sessionStorage.setItem('splashShown', 'true');
-                    }, 2500);
-                } else {
-                    // Ensure a modal is always visible if they reload the app
-                    @if(!isset($showLoginModal) && old('_form_type') != 'login' && !isset($showRegisterModal) && old('_form_type') != 'register')
-                        openLoginModal();
-                    @endif
-                }
+                // Show the PWA Welcome Screen as the app's base background
+                const welcomeScreen = document.getElementById('pwaWelcomeScreen');
+                welcomeScreen.classList.remove('hidden');
+                welcomeScreen.classList.add('flex');
+                
+                // If there is an error from a previous form submission, the modal will automatically
+                // open on top of this welcome screen thanks to the PHP logic above.
             }
         });
 
