@@ -148,25 +148,26 @@ class InventoryController extends Controller
         ->where('product_id', $product->id)
         ->sum('quantity');
 
-        // Calculate opening stock
+        // Calculate opening stock — use the stored opening_stock field (same as activities())
+        $openingStock = $product->opening_stock ?? 0;
         $currentStock = $product->quantity;
-        $openingStock = $currentStock - $totalPurchases + $totalSales;
 
         $activity = [
-            'product_id' => $product->id,
-            'product_name' => $product->name,
-            'category' => $product->category->name ?? 'N/A',
-            'opening_stock' => max(0, $openingStock),
-            'purchases' => $totalPurchases,
-            'sales' => $totalSales,
-            'current_stock' => $currentStock,
-            'cost_price' => $product->cost_price,
-            'selling_price' => $product->selling_price,
-            'opening_value' => max(0, $openingStock) * $product->cost_price,
+            'product_id'      => $product->id,
+            'product_name'    => $product->name,
+            'category'        => $product->category->name ?? 'N/A',
+            'opening_stock'   => $openingStock,
+            'purchases'       => $totalPurchases,
+            'sales'           => $totalSales,
+            'current_stock'   => $currentStock,
+            'cost_price'      => $product->cost_price,
+            'selling_price'   => $product->selling_price,
+            'opening_value'   => $openingStock * $product->cost_price,
             'purchases_value' => $totalPurchases * $product->cost_price,
-            'sales_value' => $totalSales * $product->selling_price,
-            'current_value' => $currentStock * $product->cost_price,
+            'sales_value'     => $totalSales * $product->selling_price,
+            'current_value'   => $currentStock * $product->cost_price,
         ];
+
 
         return view('inventory.show', compact('product', 'activity'));
     }

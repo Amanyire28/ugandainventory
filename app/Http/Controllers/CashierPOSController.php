@@ -101,18 +101,18 @@ class CashierPOSController extends Controller
 
             // Create sale record
             $sale = Sale::create([
-                'business_id' => $businessId,
-                'user_id' => $user->id,
-                'customer_id' => $validated['customer_id'],
-                'sale_number' => $saleNumber,
-                'sale_date' => now(),
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'discount' => $discount,
-                'total' => $total,
-                'payment_method' => $validated['payment_method'],
-                'payment_status' => 'paid',
-                'notes' => $validated['notes'] ?? null,
+                'business_id'     => $businessId,
+                'user_id'         => $user->id,
+                'customer_id'     => $validated['customer_id'],
+                'sale_number'     => $saleNumber,
+                'sale_date'       => now(),
+                'subtotal'        => $subtotal,
+                'tax_amount'      => $tax,
+                'discount_amount' => $discount,
+                'total'           => $total,
+                'payment_method'  => $validated['payment_method'],
+                'payment_status'  => 'paid',
+                'notes'           => $validated['notes'] ?? null,
             ]);
 
             // Create sale items and update stock
@@ -131,11 +131,11 @@ class CashierPOSController extends Controller
 
                 // Create sale item
                 SaleItem::create([
-                    'sale_id' => $sale->id,
+                    'sale_id'    => $sale->id,
                     'product_id' => $product->id,
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['price'] * $item['quantity'],
+                    'quantity'   => $item['quantity'],
+                    'unit_price' => $item['price'],
+                    'total'      => $item['price'] * $item['quantity'],
                 ]);
 
                 // Reduce stock

@@ -380,11 +380,21 @@ public function store(Request $request)
         unset($validated['category_option']);
         unset($validated['track_expiry']);
 
+        // ✅ SYNC opening_stock when quantity is manually edited
+        // Formula: opening_stock = new_quantity + all_sales - all_purchases
+        // This keeps the activities formula consistent: opening + purchases - sales = current
+        if (isset($validated['quantity'])) {
+            $totalSales = \App\Models\SaleItem::where('product_id', $product->id)->sum('quantity');
+            $totalPurchases = \App\Models\PurchaseItem::where('product_id', $product->id)->sum('quantity');
+            $validated['opening_stock'] = max(0, $validated['quantity'] + $totalSales - $totalPurchases);
+        }
+
         $product->update($validated);
 
         return redirect()->route('products.index')
             ->with('success', "Product '{$product->name}' updated successfully! ✅");
     }
+
 
     /**
      * Delete product
