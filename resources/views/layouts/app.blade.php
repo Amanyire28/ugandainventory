@@ -225,7 +225,7 @@
     <div class="flex h-screen overflow-hidden">
         
         <!-- SIDEBAR -->
-        <aside id="sidebar" class="sidebar hidden-mobile bg-indigo-900 text-white">
+        <aside id="sidebar" class="sidebar bg-indigo-900 text-white">
             <!-- Logo -->
             <div class="p-4 border-b border-indigo-800">
                 <div class="flex items-center justify-between">
@@ -487,6 +487,13 @@
             </div>
         </aside>
 
+        <!-- Inline script to prevent FOUC on mobile without hiding on desktop -->
+        <script>
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').classList.add('hidden-mobile');
+            }
+        </script>
+
         <!-- MAIN CONTENT -->
         <div class="flex-1 flex flex-col overflow-hidden">
             
@@ -665,8 +672,7 @@
     // ✅ DETECT BROWSER NATIVE FULLSCREEN (F11 OR HTML5 API)
     function checkFullscreenState() {
         const isHTML5 = !!document.fullscreenElement;
-        const isNative = Math.abs(screen.height - window.innerHeight) < 15 || 
-                         window.matchMedia('(display-mode: fullscreen)').matches;
+        const isNative = window.matchMedia('(display-mode: fullscreen)').matches;
         const isFullscreen = isHTML5 || isNative;
 
         const sidebar = document.getElementById('sidebar');

@@ -300,8 +300,7 @@
 
         function checkFullscreenState() {
             const isHTML5 = !!document.fullscreenElement;
-            const isNative = Math.abs(screen.height - window.innerHeight) < 15 || 
-                             window.matchMedia('(display-mode: fullscreen)').matches;
+            const isNative = window.matchMedia('(display-mode: fullscreen)').matches;
             const isFullscreen = isHTML5 || isNative;
 
             const sidebar = document.getElementById('sidebar');
