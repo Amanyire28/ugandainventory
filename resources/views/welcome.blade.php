@@ -56,12 +56,15 @@
                     <i class="fas fa-boxes text-3xl text-indigo-600"></i>
                     <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="#" onclick="openLoginModal(event)" class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
-                        <i class="fas fa-sign-in-alt mr-1"></i> Login
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <a href="#" class="px-3 sm:px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 font-bold rounded-lg transition-colors flex items-center text-sm sm:text-base shadow-sm">
+                        <i class="fas fa-download sm:mr-2"></i> <span class="hidden sm:inline">Download App</span>
                     </a>
-                    <a href="#" onclick="openRegisterModal(event)" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-md hover-scale">
-                        <i class="fas fa-rocket mr-1"></i> Get Started Free
+                    <a href="#" onclick="openLoginModal(event)" class="px-2 sm:px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm sm:text-base">
+                        <i class="fas fa-sign-in-alt mr-1"></i> <span class="hidden sm:inline">Login</span>
+                    </a>
+                    <a href="#" onclick="openRegisterModal(event)" class="px-3 sm:px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-md hover-scale text-sm sm:text-base whitespace-nowrap">
+                        <i class="fas fa-rocket sm:mr-1"></i> <span class="hidden sm:inline">Get Started Free</span><span class="sm:hidden">Start</span>
                     </a>
                 </div>
             </div>
@@ -457,7 +460,8 @@
                 <div>
                     <h4 class="font-bold mb-4">Contact</h4>
                     <ul class="space-y-2 text-gray-400">
-                        <li><i class="fas fa-phone mr-2"></i> +256 700 123 456</li>
+                        <li><i class="fas fa-phone mr-2"></i> Calls: 0787320647</li>
+                        <li><i class="fab fa-whatsapp text-green-500 mr-2"></i> WhatsApp: 0702132952</li>
                         <li><i class="fas fa-envelope mr-2"></i> support@dukaflow.com</li>
                         <li><i class="fas fa-map-marker-alt mr-2"></i> Kampala, Uganda</li>
                     </ul>
