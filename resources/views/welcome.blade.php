@@ -741,29 +741,37 @@
 
             // PWA Standalone Mode Detection
             const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            if (isStandalone && !sessionStorage.getItem('splashShown')) {
-                // Hide main content
+            if (isStandalone) {
+                // Permanently hide the web landing page
                 document.getElementById('mainContentWrapper').style.display = 'none';
                 
-                // Show splash screen
-                const splash = document.getElementById('pwaSplashScreen');
-                splash.classList.remove('hidden');
-                splash.classList.add('flex');
-                
-                // After 2.5 seconds, hide splash and show login
-                setTimeout(() => {
-                    splash.classList.remove('flex');
-                    splash.classList.add('hidden');
+                // Hide the close buttons on the modals
+                document.querySelectorAll('button[onclick^="close"]').forEach(btn => btn.style.display = 'none');
+
+                // Prevent clicking outside the modal from closing it
+                window.closeLoginModal = function() {};
+                window.closeRegisterModal = function() {};
+
+                if (!sessionStorage.getItem('splashShown')) {
+                    // Show splash screen
+                    const splash = document.getElementById('pwaSplashScreen');
+                    splash.classList.remove('hidden');
+                    splash.classList.add('flex');
                     
-                    document.getElementById('mainContentWrapper').style.display = 'block';
-                    openLoginModal();
-                    sessionStorage.setItem('splashShown', 'true');
-                }, 2500);
-            } else if (isStandalone) {
-                // If splash was already shown this session, just make sure Login is open if they hit home
-                @if(!isset($showLoginModal) && old('_form_type') != 'login' && !isset($showRegisterModal) && old('_form_type') != 'register')
-                    openLoginModal();
-                @endif
+                    // After 2.5 seconds, hide splash and show login
+                    setTimeout(() => {
+                        splash.classList.remove('flex');
+                        splash.classList.add('hidden');
+                        
+                        openLoginModal();
+                        sessionStorage.setItem('splashShown', 'true');
+                    }, 2500);
+                } else {
+                    // Ensure a modal is always visible if they reload the app
+                    @if(!isset($showLoginModal) && old('_form_type') != 'login' && !isset($showRegisterModal) && old('_form_type') != 'register')
+                        openLoginModal();
+                    @endif
+                }
             }
         });
 
