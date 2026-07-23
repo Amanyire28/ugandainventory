@@ -8,6 +8,7 @@
 
   @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <link rel="manifest" href="/manifest.json">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @keyframes fadeInUp {
@@ -48,6 +49,17 @@
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- PWA Splash Screen -->
+    <div id="pwaSplashScreen" class="fixed inset-0 z-[100] hidden bg-gradient-to-br from-blue-50 to-indigo-100 flex-col items-center justify-center p-4">
+        <i class="fas fa-boxes text-6xl text-indigo-600 mb-6 fade-in-up"></i>
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-2 fade-in-up" style="animation-delay: 0.2s">Welcome to DukaFlow</h1>
+        <p class="text-lg text-indigo-600 font-semibold mb-8 fade-in-up" style="animation-delay: 0.4s">Proudly powered by ResNet</p>
+        <div class="mt-8 fade-in-up" style="animation-delay: 0.6s">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+        </div>
+    </div>
+
+    <div id="mainContentWrapper">
     <!-- Navigation -->
     <nav class="bg-white shadow-lg fixed w-full z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -57,7 +69,7 @@
                     <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="#" class="px-3 sm:px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 font-bold rounded-lg transition-colors flex items-center text-sm sm:text-base shadow-sm">
+                    <a href="#" id="installPwaBtn" class="px-3 sm:px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 font-bold rounded-lg transition-colors flex items-center text-sm sm:text-base shadow-sm">
                         <i class="fas fa-download sm:mr-2"></i> <span class="hidden sm:inline">Download App</span>
                     </a>
                     <a href="#" onclick="openLoginModal(event)" class="px-2 sm:px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm sm:text-base">
@@ -460,9 +472,9 @@
                 <div>
                     <h4 class="font-bold mb-4">Contact</h4>
                     <ul class="space-y-2 text-gray-400">
-                        <li><i class="fas fa-phone mr-2"></i> Calls: 0787320647</li>
-                        <li><i class="fab fa-whatsapp text-green-500 mr-2"></i> WhatsApp: 0702132952</li>
-                        <li><i class="fas fa-envelope mr-2"></i> support@dukaflow.com</li>
+                        <li><a href="tel:+256787320647" class="hover:text-white transition-colors"><i class="fas fa-phone mr-2"></i> Calls: 0787320647</a></li>
+                        <li><a href="https://wa.me/256702132952" target="_blank" class="hover:text-white transition-colors"><i class="fab fa-whatsapp text-green-500 mr-2"></i> WhatsApp: 0702132952</a></li>
+                        <li><a href="mailto:support@dukaflow.com" class="hover:text-white transition-colors"><i class="fas fa-envelope mr-2"></i> support@dukaflow.com</a></li>
                         <li><i class="fas fa-map-marker-alt mr-2"></i> Kampala, Uganda</li>
                     </ul>
                 </div>
@@ -472,6 +484,7 @@
             </div>
         </div>
     </footer>
+    </div>
 
     <!-- Login Modal -->
     <div id="loginModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4">
@@ -725,7 +738,65 @@
             @if(isset($showRegisterModal) || old('_form_type') == 'register')
                 openRegisterModal();
             @endif
+
+            // PWA Standalone Mode Detection
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            if (isStandalone && !sessionStorage.getItem('splashShown')) {
+                // Hide main content
+                document.getElementById('mainContentWrapper').style.display = 'none';
+                
+                // Show splash screen
+                const splash = document.getElementById('pwaSplashScreen');
+                splash.classList.remove('hidden');
+                splash.classList.add('flex');
+                
+                // After 2.5 seconds, hide splash and show login
+                setTimeout(() => {
+                    splash.classList.remove('flex');
+                    splash.classList.add('hidden');
+                    
+                    document.getElementById('mainContentWrapper').style.display = 'block';
+                    openLoginModal();
+                    sessionStorage.setItem('splashShown', 'true');
+                }, 2500);
+            } else if (isStandalone) {
+                // If splash was already shown this session, just make sure Login is open if they hit home
+                @if(!isset($showLoginModal) && old('_form_type') != 'login' && !isset($showRegisterModal) && old('_form_type') != 'register')
+                    openLoginModal();
+                @endif
+            }
         });
+
+        // PWA Installation
+        let deferredPrompt;
+        const installBtn = document.getElementById('installPwaBtn');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                } else {
+                    alert('App is already installed, or your browser does not support installation.');
+                }
+            });
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.log('SW registration failed: ', err);
+                });
+            });
+        }
     </script>
 </body>
 </html>
