@@ -44,10 +44,10 @@
                     <span class="ml-2 text-2xl font-bold text-gray-800">Uganda Inventory</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('login') }}" class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
+                    <a href="#" onclick="openLoginModal(event)" class="px-4 py-2 text-indigo-600 hover:text-indigo-800 font-medium">
                         <i class="fas fa-sign-in-alt mr-1"></i> Login
                     </a>
-                    <a href="{{ route('register') }}" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-md hover-scale">
+                    <a href="#" onclick="openRegisterModal(event)" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium shadow-md hover-scale">
                         <i class="fas fa-rocket mr-1"></i> Get Started Free
                     </a>
                 </div>
@@ -66,7 +66,7 @@
                     Complete multi-location inventory management system designed specifically for Ugandan businesses
                 </p>
                 <div class="flex justify-center space-x-4">
-                    <a href="{{ route('register') }}" class="px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
+                    <a href="#" onclick="openRegisterModal(event)" class="px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
                         <i class="fas fa-rocket mr-2"></i> Start 30-Day Free Trial
                     </a>
                     <a href="#features" class="px-8 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
@@ -343,7 +343,7 @@
             <p class="text-xl mb-8 text-indigo-100">
                 Join hundreds of Ugandan businesses already using our system
             </p>
-            <a href="{{ route('register') }}" class="inline-block px-10 py-4 bg-white text-indigo-600 rounded-lg font-bold text-xl hover:bg-gray-100 shadow-xl hover-scale">
+            <a href="#" onclick="openRegisterModal(event)" class="inline-block px-10 py-4 bg-white text-indigo-600 rounded-lg font-bold text-xl hover:bg-gray-100 shadow-xl hover-scale">
                 <i class="fas fa-rocket mr-2"></i> Start Your Free 30-Day Trial
             </a>
             <p class="mt-4 text-indigo-100">
@@ -392,5 +392,260 @@
             </div>
         </div>
     </footer>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative animate-fadeIn">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-8">
+                <i class="fas fa-sign-in-alt text-5xl text-indigo-600 mb-4"></i>
+                <h2 class="text-3xl font-extrabold text-gray-900">Welcome Back!</h2>
+                <p class="mt-2 text-sm text-gray-600">Sign in to access your dashboard</p>
+            </div>
+            
+            @if(session('error'))
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span>{{ session('error') }}</span>
+                    </div>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('login') }}" class="space-y-6">
+                @csrf
+                <input type="hidden" name="_form_type" value="login">
+                <div>
+                    <label for="login_email" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-envelope text-indigo-600 mr-1"></i> Email Address <span class="text-red-500">*</span>
+                    </label>
+                    <input id="login_email" name="email" type="email" required autofocus
+                            value="{{ old('_form_type') == 'login' ? old('email') : '' }}"
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="your@email.com">
+                    @if(old('_form_type') == 'login')
+                        @error('email')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+
+                <div>
+                    <label for="login_password" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
+                    </label>
+                    <input id="login_password" name="password" type="password" required
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Enter your password">
+                    @if(old('_form_type') == 'login')
+                        @error('password')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember" name="remember" type="checkbox"
+                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-900">Remember me</label>
+                    </div>
+                    <div class="text-sm">
+                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot password?</a>
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg transform transition hover:scale-105">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In to Dashboard
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <span class="text-gray-600">Don't have an account?</span>
+                    <a href="#" onclick="openRegisterModal(event)" class="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
+                        Register your business <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="fixed inset-0 z-[100] hidden overflow-y-auto bg-gray-900 bg-opacity-75 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative animate-fadeIn my-8">
+            <button onclick="closeRegisterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-8">
+                <i class="fas fa-rocket text-5xl text-indigo-600 mb-4"></i>
+                <h2 class="text-3xl font-extrabold text-gray-900">Register Your Business</h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    <i class="fas fa-gift text-green-500 mr-1"></i>
+                    Get started with <span class="font-bold text-green-600">30 days FREE trial</span>
+                </p>
+            </div>
+
+            <form method="POST" action="{{ route('register') }}" class="space-y-6">
+                @csrf
+                <input type="hidden" name="_form_type" value="register">
+                
+                <div>
+                    <label for="business_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-store text-indigo-600 mr-1"></i> Business Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="business_name" name="business_name" type="text" required
+                            value="{{ old('_form_type') == 'register' ? old('business_name') : '' }}"
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="e.g., Davis Electronics Store">
+                    @if(old('_form_type') == 'register')
+                        @error('business_name')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+
+                <div>
+                    <label for="business_category_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-tags text-indigo-600 mr-1"></i> Business Category <span class="text-red-500">*</span>
+                    </label>
+                    <select id="business_category_id" name="business_category_id" required
+                            class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        <option value="">-- Select Your Business Type --</option>
+                        @foreach($businessCategories ?? [] as $category)
+                            <option value="{{ $category->id }}" {{ (old('_form_type') == 'register' && old('business_category_id') == $category->id) ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @if(old('_form_type') == 'register')
+                        @error('business_category_id')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
+                        </label>
+                        <input id="business_email" name="business_email" type="email" required
+                                value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="business@example.com">
+                        @if(old('_form_type') == 'register')
+                            @error('business_email')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                    <div>
+                        <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
+                        </label>
+                        <input id="contact" name="contact" type="tel" required
+                                value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="0700123456">
+                        @if(old('_form_type') == 'register')
+                            @error('contact')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                </div>
+
+                <div>
+                    <label for="personal_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        <i class="fas fa-user text-indigo-600 mr-1"></i> Your Full Name <span class="text-red-500">*</span>
+                    </label>
+                    <input id="personal_name" name="personal_name" type="text" required
+                            value="{{ old('_form_type') == 'register' ? old('personal_name') : '' }}"
+                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                            placeholder="Barigye Davis">
+                    @if(old('_form_type') == 'register')
+                        @error('personal_name')
+                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                        @enderror
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="register_password" name="password" type="password" required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Min. 8 characters">
+                        @if(old('_form_type') == 'register')
+                            @error('password')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+                    <div>
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                            <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
+                        </label>
+                        <input id="password_confirmation" name="password_confirmation" type="password" required
+                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Re-enter password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg transform transition hover:scale-105">
+                        <i class="fas fa-rocket mr-2"></i> Create My Business Account
+                    </button>
+                </div>
+
+                <div class="text-center">
+                    <span class="text-gray-600">Already have an account?</span>
+                    <a href="#" onclick="openLoginModal(event)" class="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
+                        Login here <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openLoginModal(e) {
+            if(e) e.preventDefault();
+            document.getElementById('loginModal').classList.remove('hidden');
+            document.getElementById('registerModal').classList.add('hidden');
+        }
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+        function openRegisterModal(e) {
+            if(e) e.preventDefault();
+            document.getElementById('registerModal').classList.remove('hidden');
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+        function closeRegisterModal() {
+            document.getElementById('registerModal').classList.add('hidden');
+        }
+
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) closeLoginModal();
+        });
+        document.getElementById('registerModal').addEventListener('click', function(e) {
+            if (e.target === this) closeRegisterModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(isset($showLoginModal) || old('_form_type') == 'login')
+                openLoginModal();
+            @endif
+            @if(isset($showRegisterModal) || old('_form_type') == 'register')
+                openRegisterModal();
+            @endif
+        });
+    </script>
 </body>
 </html>

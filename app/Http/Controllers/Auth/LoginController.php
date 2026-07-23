@@ -15,10 +15,8 @@ class LoginController extends Controller
      */
     public function showLoginForm()
     {
-        // Pass roles to login view
-        $roles = Role::all();
-
-        return view('auth.login', compact('roles'));
+        $businessCategories = \App\Models\BusinessCategory::all();
+        return view('welcome', compact('businessCategories'))->with('showLoginModal', true);
     }
 
     /**

@@ -23,7 +23,7 @@ class RegisterController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('auth.register', compact('businessCategories'));
+        return view('welcome', compact('businessCategories'))->with('showRegisterModal', true);
     }
 
     public function register(Request $request)

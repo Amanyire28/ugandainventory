@@ -36,7 +36,8 @@ use App\Http\Controllers\ExpenseController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $businessCategories = \App\Models\BusinessCategory::all();
+    return view('welcome', compact('businessCategories'));
 })->name('welcome');
 
 /*
