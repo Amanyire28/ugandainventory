@@ -96,32 +96,46 @@
         </div>
     </section>
 
-    <!-- Trust Section -->
-    <section class="py-12 bg-white border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 class="text-2xl font-bold text-gray-800 mb-4">Trusted by Growing Businesses</h3>
-            <p class="text-gray-600 max-w-2xl mx-auto text-lg">
-                Whether you run a small shop or manage multiple branches, DukaFlow helps simplify your daily operations so you can focus on growing your business.
-            </p>
-        </div>
-    </section>
-
-    <!-- About DukaFlow -->
-    <section class="py-20 bg-gray-50">
+    <!-- Trust & About Section -->
+    <section class="py-20 bg-gray-50 border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">One Platform. Complete Business Control.</h2>
-            </div>
-            <div class="bg-white p-8 md:p-12 rounded-2xl shadow-lg max-w-4xl mx-auto text-center border border-gray-100">
-                <p class="text-lg text-gray-700 mb-6">
-                    DukaFlow is a modern Point of Sale (POS) and Inventory Management System built specifically for businesses that need speed, accuracy, and simplicity.
-                </p>
-                <p class="text-lg text-gray-700 mb-6">
-                    From processing sales and managing stock to tracking expenses and generating reports, DukaFlow brings every part of your business together in one powerful platform.
-                </p>
-                <p class="text-xl text-indigo-600 font-bold bg-indigo-50 py-4 px-6 rounded-lg inline-block">
-                    Whether you're at your shop, at home, or traveling, you can access your business anytime, anywhere.
-                </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <!-- Trust Card -->
+                <div class="bg-white p-10 md:p-12 rounded-3xl shadow-lg border border-gray-100 flex flex-col justify-center h-full relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
+                    <div class="relative z-10">
+                        <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-3xl mb-8 shadow-sm">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">Trusted by Growing Businesses</h3>
+                        <p class="text-gray-600 text-lg md:text-xl leading-relaxed">
+                            Whether you run a small shop or manage multiple branches, DukaFlow helps simplify your daily operations so you can focus on growing your business.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- About Card -->
+                <div class="bg-indigo-600 p-10 md:p-12 rounded-3xl shadow-xl text-white flex flex-col justify-center h-full relative overflow-hidden group">
+                    <div class="absolute bottom-0 right-0 w-40 h-40 bg-indigo-500 rounded-tl-full -mr-10 -mb-10 transition-transform group-hover:scale-110 opacity-50"></div>
+                    <div class="relative z-10">
+                        <div class="w-16 h-16 bg-white/20 text-white rounded-2xl flex items-center justify-center text-3xl mb-8 shadow-sm backdrop-blur-sm">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-bold mb-6 leading-tight">One Platform. Complete Business Control.</h2>
+                        <p class="text-indigo-100 text-lg mb-6 leading-relaxed">
+                            DukaFlow is a modern Point of Sale (POS) and Inventory Management System built specifically for businesses that need speed, accuracy, and simplicity.
+                        </p>
+                        <p class="text-indigo-100 text-lg mb-8 leading-relaxed">
+                            From processing sales and managing stock to tracking expenses and generating reports, DukaFlow brings every part of your business together in one powerful platform.
+                        </p>
+                        <div class="bg-indigo-700/50 backdrop-blur-md py-4 px-6 rounded-xl border border-indigo-500/50 inline-block">
+                            <p class="text-lg md:text-xl font-bold text-white flex items-center">
+                                <i class="fas fa-globe-africa mr-3 text-indigo-300"></i>
+                                Whether you're at your shop, at home, or traveling, you can access your business anytime, anywhere.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
