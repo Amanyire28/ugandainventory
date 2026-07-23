@@ -623,6 +623,8 @@ function showReceipt(data) {
         console.error('Error displaying receipt modal:', error);
         alert('Sale #' + (data.sale_number || data.invoice_number) + ' completed successfully!');
     }
+}
+
 function closeReceipt() {
     document.getElementById('receiptModal').classList.add('hidden');
 }
