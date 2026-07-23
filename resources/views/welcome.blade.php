@@ -146,96 +146,96 @@
             <div class="text-center mb-16">
                 <h2 class="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Manage Your Business</h2>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                 <!-- Feature 1 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-2xl mb-4"><i class="fas fa-desktop"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Smart Point of Sale</h3>
-                    <p class="text-gray-600">Process sales quickly using an intuitive POS interface.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-desktop"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Smart Point of Sale</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Process sales quickly using an intuitive POS interface.</p>
                 </div>
                 <!-- Feature 2 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-2xl mb-4"><i class="fas fa-boxes"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Inventory Management</h3>
-                    <p class="text-gray-600">Monitor stock levels in real time and prevent stock shortages.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-boxes"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Inventory Management</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Monitor stock levels in real time and prevent stock shortages.</p>
                 </div>
                 <!-- Feature 3 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-2xl mb-4"><i class="fas fa-shopping-cart"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Purchase Management</h3>
-                    <p class="text-gray-600">Record supplier purchases and automatically update inventory.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-shopping-cart"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Purchase Management</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Record supplier purchases and automatically update inventory.</p>
                 </div>
                 <!-- Feature 4 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-2xl mb-4"><i class="fas fa-users"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Customer Management</h3>
-                    <p class="text-gray-600">Build customer profiles and keep track of purchase history.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-users"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Customer Management</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Build customer profiles and keep track of purchase history.</p>
                 </div>
                 <!-- Feature 5 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-2xl mb-4"><i class="fas fa-truck"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Supplier Management</h3>
-                    <p class="text-gray-600">Manage suppliers and monitor outstanding balances.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-truck"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Supplier Management</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Manage suppliers and monitor outstanding balances.</p>
                 </div>
                 <!-- Feature 6 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-2xl mb-4"><i class="fas fa-receipt"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Expense Tracking</h3>
-                    <p class="text-gray-600">Record business expenses and understand where your money goes.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-receipt"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Expense Tracking</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Record business expenses and understand where your money goes.</p>
                 </div>
                 <!-- Feature 7 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-2xl mb-4"><i class="fas fa-chart-bar"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Sales Reports</h3>
-                    <p class="text-gray-600">View daily, weekly, monthly, and yearly sales performance.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-chart-bar"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Sales Reports</h3>
+                    <p class="text-xs sm:text-base text-gray-600">View daily, weekly, monthly, and yearly sales performance.</p>
                 </div>
                 <!-- Feature 8 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-2xl mb-4"><i class="fas fa-chart-pie"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Profit Analysis</h3>
-                    <p class="text-gray-600">Know exactly how much profit your business makes.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-chart-pie"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Profit Analysis</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Know exactly how much profit your business makes.</p>
                 </div>
                 <!-- Feature 9 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-2xl mb-4"><i class="fas fa-barcode"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Barcode Support</h3>
-                    <p class="text-gray-600">Generate and scan barcodes for faster selling.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-barcode"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Barcode Support</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Generate and scan barcodes for faster selling.</p>
                 </div>
                 <!-- Feature 10 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-2xl mb-4"><i class="fas fa-user-shield"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Multi-user Access</h3>
-                    <p class="text-gray-600">Allow cashiers, managers, and administrators to work with different permissions.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-user-shield"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Multi-user Access</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Allow cashiers, managers, and administrators to work with different permissions.</p>
                 </div>
                 <!-- Feature 11 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-800 text-2xl mb-4"><i class="fas fa-code-branch"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Multi-Branch Management</h3>
-                    <p class="text-gray-600">Manage multiple business locations from one dashboard.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-800 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-code-branch"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Multi-Branch Management</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Manage multiple business locations from one dashboard.</p>
                 </div>
                 <!-- Feature 12 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center text-red-500 text-2xl mb-4"><i class="fas fa-exclamation-triangle"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Low Stock Alerts</h3>
-                    <p class="text-gray-600">Receive notifications when products need restocking.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-100 rounded-full flex items-center justify-center text-red-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Low Stock Alerts</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Receive notifications when products need restocking.</p>
                 </div>
                 <!-- Feature 13 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-2xl mb-4"><i class="fas fa-undo-alt"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Returns & Refunds</h3>
-                    <p class="text-gray-600">Handle customer returns professionally.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-undo-alt"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Returns & Refunds</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Handle customer returns professionally.</p>
                 </div>
                 <!-- Feature 14 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-2xl mb-4"><i class="fas fa-tachometer-alt"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Dashboard Analytics</h3>
-                    <p class="text-gray-600">See your business performance at a glance.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-tachometer-alt"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Dashboard Analytics</h3>
+                    <p class="text-xs sm:text-base text-gray-600">See your business performance at a glance.</p>
                 </div>
                 <!-- Feature 15 -->
-                <div class="bg-gray-50 p-6 rounded-xl hover-scale border border-gray-100 shadow-sm">
-                    <div class="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-2xl mb-4"><i class="fas fa-cloud-upload-alt"></i></div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Secure Cloud Backup</h3>
-                    <p class="text-gray-600">Your data stays safe and is automatically backed up.</p>
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
+                    <div class="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Secure Cloud Backup</h3>
+                    <p class="text-xs sm:text-base text-gray-600">Your data stays safe and is automatically backed up.</p>
                 </div>
             </div>
         </div>
