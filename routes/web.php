@@ -217,6 +217,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/logo', [SettingsController::class, 'removeLogo'])->name('remove-logo');
 
         // Email Settings
+        Route::get('/email', fn() => redirect()->route('settings.index'))->name('email-get');
         Route::put('/email', [SettingsController::class, 'updateEmail'])->name('update-email');
         Route::get('/email/test', fn() => redirect()->route('settings.index')->with('info', 'Use the test form on the settings page to send a test email.'))->name('test-email-get');
         Route::post('/email/test', [SettingsController::class, 'testEmail'])->name('test-email');
