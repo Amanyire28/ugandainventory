@@ -452,6 +452,11 @@
                   </form>
                 @endif
 
+                <!-- Monitor Operations Trigger -->
+                <a href="{{ route('admin.businesses.monitor', $business) }}" class="action-btn" title="Monitor Operations" style="color: var(--primary); display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                  <i class="fas fa-desktop"></i>
+                </a>
+
                 <!-- Edit Plan Trigger -->
                 <button type="button" class="action-btn" title="Edit Subscription" 
                   onclick="openSubscriptionModal('{{ $business->id }}', '{{ addslashes($business->name) }}', '{{ $business->subscription_plan ?? 'trial' }}', '{{ $business->subscription_expires_at ? $business->subscription_expires_at->format('Y-m-d') : '' }}')">

@@ -11,6 +11,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
+use App\Models\Package;
+use App\Models\Sale;
+use App\Models\Invoice;
+use App\Models\Payment;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -245,13 +250,15 @@ public function users(Request $request)
         return redirect()->route('admin.auth.twofactor.show');
     }
 
-    $query = User::with('role');
+    $query = User::with(['role', 'business']);
 
     // Search filter
     if ($request->filled('search')) {
         $search = $request->search;
-        $query->where('name', 'like', "%{$search}%")
+        $query->where(function($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
               ->orWhere('email', 'like', "%{$search}%");
+        });
     }
 
     // Status filter
@@ -264,7 +271,8 @@ public function users(Request $request)
         $query->where('role_id', $request->role);
     }
 
-    $users = $query->latest()->paginate(20);
+    // Order by business_id to assist grouping visually
+    $users = $query->orderBy('business_id', 'asc')->latest()->paginate(50);
     $roles = Role::all();
 
     return view('admin.users.index', compact('users', 'roles'));
@@ -488,5 +496,227 @@ public function updateUser(Request $request, User $user)
         ]);
 
         return back()->with('success', 'Business subscription updated successfully.');
+    }
+
+    // ========================================
+    // PACKAGES MANAGEMENT ACTIONS
+    // ========================================
+
+    public function packagesIndex(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $packages = Package::all();
+        // Define all system features available to gate
+        $availableFeatures = [
+            'pos' => 'Point of Sale (POS) Billing',
+            'products' => 'Products Management',
+            'inventory' => 'Inventory & Stock Session Audits',
+            'invoices' => 'Invoices / Credit Sales',
+            'customers' => 'Customer Accounts & Ledger',
+            'suppliers' => 'Supplier Tracking',
+            'expenses' => 'Expense Records',
+            'reports' => 'Profit & Sales Analytics Reports'
+        ];
+
+        return view('admin.packages.index', compact('packages', 'availableFeatures'));
+    }
+
+    public function packagesStore(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', 'unique:packages'],
+            'slug' => ['required', 'string', 'max:255', 'unique:packages'],
+            'description' => ['nullable', 'string'],
+            'features' => ['required', 'array'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'billing_cycle_days' => ['required', 'integer', 'min:1'],
+        ]);
+
+        Package::create($data);
+
+        return back()->with('success', 'Subscription package created successfully.');
+    }
+
+    public function packagesUpdate(Request $request, Package $package)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255', Rule::unique('packages')->ignore($package->id)],
+            'slug' => ['required', 'string', 'max:255', Rule::unique('packages')->ignore($package->id)],
+            'description' => ['nullable', 'string'],
+            'features' => ['required', 'array'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'billing_cycle_days' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $package->update($data);
+
+        return back()->with('success', 'Subscription package updated successfully.');
+    }
+
+    public function packagesDestroy(Package $package)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        // Prevent deleting active/in-use package to avoid breaking relationships
+        $businessesUsingCount = Business::where('subscription_plan', $package->slug)->count();
+        if ($businessesUsingCount > 0) {
+            return back()->with('error', "Cannot delete package. It is currently assigned to {$businessesUsingCount} business(es).");
+        }
+
+        $package->delete();
+        return back()->with('success', 'Subscription package deleted successfully.');
+    }
+
+    // ========================================
+    // BUSINESS OPERATIONS MONITORING ACTIONS
+    // ========================================
+
+    public function monitorBusiness(Business $business)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        // Load operations indicators
+        $users = User::where('business_id', $business->id)->with('role')->get();
+        $recentSales = Sale::where('business_id', $business->id)->latest()->take(20)->get();
+        
+        // Dynamic stats
+        $totalSales = Sale::where('business_id', $business->id)->count();
+        $totalRevenue = Sale::where('business_id', $business->id)->sum('grand_total');
+        $totalInvoices = Invoice::where('business_id', $business->id)->count();
+        $totalPayments = Payment::where('business_id', $business->id)->count();
+
+        // Parsed activity logs from storage/logs/activity.log
+        $activityLogs = [];
+        $logPath = storage_path('logs/activity.log');
+        
+        if (File::exists($logPath)) {
+            $logLines = file($logPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            // Reverse so we get latest first
+            $logLines = array_reverse($logLines);
+            
+            $limit = 100; // Limit parsed lines for performance
+            $counter = 0;
+            
+            foreach ($logLines as $line) {
+                if ($counter >= $limit) break;
+                
+                // Parse Monolog output e.g. [2026-07-24 08:37:03] local.INFO: User Data Modification {"user_id":1,...}
+                // Extract JSON part
+                preg_match('/local\.(INFO|WARNING|ERROR|DEBUG): (.*) (\{.*\})/', $line, $matches);
+                if (count($matches) === 4) {
+                    $actionType = $matches[2];
+                    $jsonData = json_decode($matches[3], true);
+                    
+                    if (is_array($jsonData) && isset($jsonData['business_id']) && $jsonData['business_id'] == $business->id) {
+                        $activityLogs[] = array_merge([
+                            'action_title' => $actionType,
+                            'timestamp' => $jsonData['timestamp'] ?? '',
+                        ], $jsonData);
+                        $counter++;
+                    }
+                }
+            }
+        }
+
+        return view('admin.businesses.monitor', compact(
+            'business', 'users', 'recentSales', 'totalSales', 
+            'totalRevenue', 'totalInvoices', 'totalPayments', 'activityLogs'
+        ));
+    }
+
+    public function resetBusinessTransactions(Business $business)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        // Delete sales, invoices, stock adjust session and related data for this tenant
+        DB::transaction(function() use ($business) {
+            // Delete payments & invoice items
+            DB::table('payments')->where('business_id', $business->id)->delete();
+            DB::table('invoice_items')->whereIn('invoice_id', function($q) use ($business) {
+                $q->select('id')->from('invoices')->where('business_id', $business->id);
+            })->delete();
+            DB::table('invoices')->where('business_id', $business->id)->delete();
+
+            // Delete sales & sale items
+            DB::table('sale_items')->whereIn('sale_id', function($q) use ($business) {
+                $q->select('id')->from('sales')->where('business_id', $business->id);
+            })->delete();
+            DB::table('sales')->where('business_id', $business->id)->delete();
+            
+            // Delete purchases & expenses
+            DB::table('purchase_items')->whereIn('purchase_id', function($q) use ($business) {
+                $q->select('id')->from('purchases')->where('business_id', $business->id);
+            })->delete();
+            DB::table('purchases')->where('business_id', $business->id)->delete();
+            DB::table('expenses')->where('business_id', $business->id)->delete();
+
+            // Reset opening stock of products to 0
+            DB::table('products')->where('business_id', $business->id)->update([
+                'quantity' => 0,
+                'opening_stock' => 0
+            ]);
+            
+            // Reset stock taking sessions
+            DB::table('stock_taking_sessions')->where('business_id', $business->id)->delete();
+            DB::table('stock_adjustments')->where('business_id', $business->id)->delete();
+        });
+
+        return back()->with('success', 'All business transactions, sales, expenses, and invoices have been fully reset.');
+    }
+
+    public function resetBusinessSettings(Business $business)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $business->update([
+            'tax_enabled' => false,
+            'tax_rate' => 18.00,
+            'smtp_email' => null,
+            'smtp_password' => null,
+            'email_configured' => false,
+            'website' => null
+        ]);
+
+        return back()->with('success', 'Business settings and SMTP configurations have been reset to system defaults.');
     }
 }

@@ -41,4 +41,19 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::get('/businesses', [AdminController::class, 'businesses'])->name('businesses.index');
     Route::patch('/businesses/{business}/toggle', [AdminController::class, 'toggleBusinessActive'])->name('businesses.toggle');
     Route::put('/businesses/{business}/subscription', [AdminController::class, 'updateBusinessSubscription'])->name('businesses.subscription.update');
+
+    // ========================================
+    // BUSINESS OPERATIONS MONITORING
+    // ========================================
+    Route::get('/businesses/{business}/monitor', [AdminController::class, 'monitorBusiness'])->name('businesses.monitor');
+    Route::post('/businesses/{business}/reset-transactions', [AdminController::class, 'resetBusinessTransactions'])->name('businesses.reset_transactions');
+    Route::post('/businesses/{business}/reset-settings', [AdminController::class, 'resetBusinessSettings'])->name('businesses.reset_settings');
+
+    // ========================================
+    // PACKAGES MANAGEMENT
+    // ========================================
+    Route::get('/packages', [AdminController::class, 'packagesIndex'])->name('packages.index');
+    Route::post('/packages', [AdminController::class, 'packagesStore'])->name('packages.store');
+    Route::put('/packages/{package}', [AdminController::class, 'packagesUpdate'])->name('packages.update');
+    Route::delete('/packages/{package}', [AdminController::class, 'packagesDestroy'])->name('packages.destroy');
 });

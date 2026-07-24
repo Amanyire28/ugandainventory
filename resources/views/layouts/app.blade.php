@@ -255,187 +255,254 @@
                     <span class="sidebar-text">Dashboard</span>
                 </a>
 
-                <!-- Quick Access -->
-                <a href="{{ route('pos.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-green-300 font-semibold sidebar-icon-only">
-                    <i class="fas fa-cash-register text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">POS - New Sale</span>
-                </a>
+                <!-- Quick Access / POS -->
+                @if(auth()->user()->business->hasFeature('pos'))
+                    <a href="{{ route('pos.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-green-300 font-semibold sidebar-icon-only">
+                        <i class="fas fa-cash-register text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">POS - New Sale</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('POS & Billing')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-cash-register text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">POS - New Sale</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Products Accordion -->
-                <div class="accordion-group">
-                    <div onclick="toggleAccordion(event, 'products')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('products.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-box text-lg flex-shrink-0"></i>
-                            <span class="sidebar-text">Products</span>
+                @if(auth()->user()->business->hasFeature('products'))
+                    <div class="accordion-group">
+                        <div onclick="toggleAccordion(event, 'products')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('products.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-box text-lg flex-shrink-0"></i>
+                                <span class="sidebar-text">Products</span>
+                            </div>
+                            <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('products.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('products.*') ? '' : 'collapsed' }}"></i>
+                        <div id="products" class="accordion-content {{ request()->routeIs('products.*') ? '' : 'collapsed' }} space-y-1">
+                            <a href="{{ route('products.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-list text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">All Products</span>
+                            </a>
+                            <a href="{{ route('products.create') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.create') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-plus text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Add Product</span>
+                            </a>
+                            <a href="{{ route('products.expired') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expired') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-exclamation-triangle text-sm text-red-400 flex-shrink-0"></i>
+                                <span class="sidebar-text">Expired Products</span>
+                            </a>
+                            <a href="{{ route('products.expiring-soon') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expiring-soon') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-clock text-sm text-yellow-400 flex-shrink-0"></i>
+                                <span class="sidebar-text">Expiring Soon</span>
+                            </a>
+                        </div>
                     </div>
-                    <div id="products" class="accordion-content {{ request()->routeIs('products.*') ? '' : 'collapsed' }} space-y-1">
-                        <a href="{{ route('products.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-list text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">All Products</span>
-                        </a>
-                        <a href="{{ route('products.create') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.create') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-plus text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Add Product</span>
-                        </a>
-                        <a href="{{ route('products.expired') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expired') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-exclamation-triangle text-sm text-red-400 flex-shrink-0"></i>
-                            <span class="sidebar-text">Expired Products</span>
-                        </a>
-                        <a href="{{ route('products.expiring-soon') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expiring-soon') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-clock text-sm text-yellow-400 flex-shrink-0"></i>
-                            <span class="sidebar-text">Expiring Soon</span>
-                        </a>
-                    </div>
-                </div>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Products Management')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-box text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Products</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Sales Accordion -->
-                <div class="accordion-group">
-                    <div onclick="toggleAccordion(event, 'sales')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('sales.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-shopping-cart text-lg flex-shrink-0"></i>
-                            <span class="sidebar-text">Sales</span>
+                @if(auth()->user()->business->hasFeature('pos'))
+                    <div class="accordion-group">
+                        <div onclick="toggleAccordion(event, 'sales')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('sales.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-shopping-cart text-lg flex-shrink-0"></i>
+                                <span class="sidebar-text">Sales Logs</span>
+                            </div>
+                            <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('sales.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('sales.*') ? '' : 'collapsed' }}"></i>
+                        <div id="sales" class="accordion-content {{ request()->routeIs('sales.*') ? '' : 'collapsed' }} space-y-1">
+                            <a href="{{ route('sales.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-list text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">All Sales</span>
+                            </a>
+                            <a href="{{ route('sales.today') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-day text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Today's Sales</span>
+                            </a>
+                            <a href="{{ route('sales.weekly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-week text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Weekly Sales</span>
+                            </a>
+                            <a href="{{ route('sales.monthly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-alt text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Monthly Sales</span>
+                            </a>
+                        </div>
                     </div>
-                    <div id="sales" class="accordion-content {{ request()->routeIs('sales.*') ? '' : 'collapsed' }} space-y-1">
-                        <a href="{{ route('sales.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-list text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">All Sales</span>
-                        </a>
-                        <a href="{{ route('sales.today') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-day text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Today's Sales</span>
-                        </a>
-                        <a href="{{ route('sales.weekly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-week text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Weekly Sales</span>
-                        </a>
-                        <a href="{{ route('sales.monthly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-alt text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Monthly Sales</span>
-                        </a>
-                    </div>
-                </div>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Sales Transactions Logs')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-shopping-cart text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Sales Logs</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Invoices/Credit Sales -->
-                <a href="{{route('invoices.index')}}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
-                    <i class="fas fa-file-invoice-dollar text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">Invoices/Credit Sales</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('invoices'))
+                    <a href="{{route('invoices.index')}}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
+                        <i class="fas fa-file-invoice-dollar text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">Invoices/Credit Sales</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Invoices & Credit Sales')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-file-invoice-dollar text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Invoices/Credit Sales</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Inventory Accordion -->
-                <div class="accordion-group">
-                    <div onclick="toggleAccordion(event, 'inventory')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('inventory.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-warehouse text-lg flex-shrink-0"></i>
-                            <span class="sidebar-text">Inventory</span>
+                @if(auth()->user()->business->hasFeature('inventory'))
+                    <div class="accordion-group">
+                        <div onclick="toggleAccordion(event, 'inventory')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('inventory.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-warehouse text-lg flex-shrink-0"></i>
+                                <span class="sidebar-text">Inventory</span>
+                            </div>
+                            <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }}"></i>
+                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }} space-y-1">
+                            <a href="{{ route('inventory.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-boxes text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Inventory Management</span>
+                            </a>
+                            <a href="{{ route('inventory.activities') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.activities') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-history text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Inventory Activities</span>
+                            </a>
+                            <a href="{{ route('stock-taking.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('stock-taking.*') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-list-check text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Stock Taking</span>
+                            </a>
+                        </div>
                     </div>
-                    <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }} space-y-1">
-                        <a href="{{ route('inventory.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-boxes text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Inventory Management</span>
-                        </a>
-                        <a href="{{ route('inventory.activities') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.activities') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-history text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Inventory Activities</span>
-                        </a>
-                        <a href="{{ route('stock-taking.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('stock-taking.*') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-list-check text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Stock Taking</span>
-                        </a>
-                        {{-- Period Closing History - Disabled for later activation --}}
-                        {{-- <a href="{{ route('inventory.periods') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.periods', 'inventory.reconciliation') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                            <i class="fas fa-balance-scale text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Period Closing History</span>
-                        </a> --}}
-                    </div>
-                </div>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Inventory Management & Auditing')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-warehouse text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Inventory</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Customers -->
-                <a href="{{ route('customers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
-                    <i class="fas fa-users text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">Customers</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('customers'))
+                    <a href="{{ route('customers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
+                        <i class="fas fa-users text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">Customers</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Customer Accounts Ledger')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-users text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Customers</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Suppliers -->
-                <a href="{{ route('suppliers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
-                    <i class="fas fa-truck text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">Suppliers</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('suppliers'))
+                    <a href="{{ route('suppliers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
+                        <i class="fas fa-truck text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">Suppliers</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Supplier Management')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-truck text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Suppliers</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Expenses Accordion -->
-                <div class="accordion-group">
-                    <div onclick="toggleAccordion(event, 'expenses')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('expenses.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-wallet text-lg flex-shrink-0"></i>
-                            <span class="sidebar-text">Expenses</span>
+                @if(auth()->user()->business->hasFeature('expenses'))
+                    <div class="accordion-group">
+                        <div onclick="toggleAccordion(event, 'expenses')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('expenses.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-wallet text-lg flex-shrink-0"></i>
+                                <span class="sidebar-text">Expenses</span>
+                            </div>
+                            <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('expenses.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('expenses.*') ? '' : 'collapsed' }}"></i>
+                        <div id="expenses" class="accordion-content {{ request()->routeIs('expenses.*') ? '' : 'collapsed' }} space-y-1">
+                            <a href="{{ route('expenses.create') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-plus text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Record Expense</span>
+                            </a>
+                            <a href="{{ route('expenses.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-list text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">All Expenses</span>
+                            </a>
+                            <a href="{{ route('expenses.today') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-day text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Today's Expenses</span>
+                            </a>
+                            <a href="{{ route('expenses.weekly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-week text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Weekly</span>
+                            </a>
+                            <a href="{{ route('expenses.monthly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-alt text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Monthly</span>
+                            </a>
+                        </div>
                     </div>
-                    <div id="expenses" class="accordion-content {{ request()->routeIs('expenses.*') ? '' : 'collapsed' }} space-y-1">
-                        <a href="{{ route('expenses.create') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-plus text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Record Expense</span>
-                        </a>
-                        <a href="{{ route('expenses.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-list text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">All Expenses</span>
-                        </a>
-                        <a href="{{ route('expenses.today') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-day text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Today's Expenses</span>
-                        </a>
-                        <a href="{{ route('expenses.weekly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-week text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Weekly</span>
-                        </a>
-                        <a href="{{ route('expenses.monthly') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-alt text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Monthly</span>
-                        </a>
-                    </div>
-                </div>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Expense Log & Tracking')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-wallet text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Expenses</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 <!-- Reports Accordion -->
-                <div class="accordion-group">
-                    <div onclick="toggleAccordion(event, 'reports')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-chart-bar text-lg flex-shrink-0"></i>
-                            <span class="sidebar-text">Reports</span>
+                @if(auth()->user()->business->hasFeature('reports'))
+                    <div class="accordion-group">
+                        <div onclick="toggleAccordion(event, 'reports')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-chart-bar text-lg flex-shrink-0"></i>
+                                <span class="sidebar-text">Reports</span>
+                            </div>
+                            <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? '' : 'collapsed' }}"></i>
+                        <div id="reports" class="accordion-content {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? '' : 'collapsed' }} space-y-1">
+                            <a href="{{ route('dashboard.annual') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-chart-line text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Annual Performance</span>
+                            </a>
+                            <a href="{{ route('profit.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-chart-pie text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Profit Report</span>
+                            </a>
+                            <a href="{{ route('reports.sales') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-chart-line text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Sales Report</span>
+                            </a>
+                            <a href="{{ route('reports.products') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-box-open text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Product Report</span>
+                            </a>
+                            <a href="{{ route('reports.top-selling') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-fire text-sm text-orange-400 flex-shrink-0"></i>
+                                <span class="sidebar-text">Top Selling</span>
+                            </a>
+                            <a href="{{ route('reports.custom') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-calendar-check text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Custom Range</span>
+                            </a>
+                        </div>
                     </div>
-                    <div id="reports" class="accordion-content {{ request()->routeIs('reports.*', 'dashboard.annual', 'profit.*') ? '' : 'collapsed' }} space-y-1">
-                        <a href="{{ route('dashboard.annual') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-chart-line text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Annual Performance</span>
-                        </a>
-                        <a href="{{ route('profit.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-chart-pie text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Profit Report</span>
-                        </a>
-                        <a href="{{ route('reports.sales') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-chart-line text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Sales Report</span>
-                        </a>
-                        <a href="{{ route('reports.products') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-box-open text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Product Report</span>
-                        </a>
-                        <a href="{{ route('reports.top-selling') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-fire text-sm text-orange-400 flex-shrink-0"></i>
-                            <span class="sidebar-text">Top Selling</span>
-                        </a>
-                        <a href="{{ route('reports.custom') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                            <i class="fas fa-calendar-check text-sm flex-shrink-0"></i>
-                            <span class="sidebar-text">Custom Range</span>
-                        </a>
-                    </div>
-                </div>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Analytics & Financial Reports')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                        <i class="fas fa-chart-bar text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Reports</span>
+                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                    </a>
+                @endif
 
                 @if(auth()->user()->isOwner() || auth()->user()->role->name === 'manager')
                 <a href="{{ route('staff.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
@@ -858,6 +925,74 @@
         
         console.log('Sidebar hover listener initialized');
     });
+</script>
+
+<!-- Premium Upgrade Plan Modal -->
+<div id="upgradeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 transition-all duration-300">
+    <div class="bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden shadow-2xl border border-slate-100 transform scale-95 transition-all duration-300">
+        <!-- Accent Header -->
+        <div class="bg-gradient-to-r from-amber-500 to-orange-600 p-6 text-white text-center relative">
+            <div class="absolute right-4 top-4">
+                <button onclick="closeUpgradeModal()" class="text-white/80 hover:text-white text-xl">✕</button>
+            </div>
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fas fa-gem text-3xl text-yellow-300 animate-pulse"></i>
+            </div>
+            <h3 class="text-xl font-bold">Premium Module Locked</h3>
+            <p class="text-amber-100 text-xs mt-1">Upgrade your subscription plan to unlock full potential</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="p-6">
+            <p class="text-gray-600 text-sm leading-relaxed text-center">
+                Access to <strong id="upgradeFeatureName" class="text-indigo-900">this feature</strong> is restricted on your current plan. Unlock professional tools, insights, and workflows to boost your business.
+            </p>
+            
+            <div class="mt-6 space-y-3">
+                <a href="tel:0787320647" class="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 border border-gray-100 hover:border-indigo-100 transition group text-decoration-none">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <p class="text-xs text-gray-500 font-medium">Call Support Office</p>
+                            <p class="text-sm text-gray-900 font-semibold">0787320647</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-indigo-600 text-xs"></i>
+                </a>
+
+                <a href="https://wa.me/256702132952?text=I%20want%20to%20upgrade%20my%20DukaFlow%20subscription%20package" target="_blank" class="flex items-center justify-between p-3 bg-green-50/50 rounded-xl hover:bg-green-50 border border-green-100/50 hover:border-green-200 transition group text-decoration-none">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 bg-green-100 text-green-700 rounded-lg flex items-center justify-center">
+                            <i class="fab fa-whatsapp text-lg"></i>
+                        </div>
+                        <div style="text-align: left;">
+                            <p class="text-xs text-green-600 font-medium">WhatsApp Support Desk</p>
+                            <p class="text-sm text-gray-900 font-semibold">0702132952</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400 group-hover:text-green-600 text-xs"></i>
+                </a>
+            </div>
+            
+            <button onclick="closeUpgradeModal()" class="w-full mt-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-bold text-sm transition">
+                Return to Dashboard
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function triggerUpgradeModal(featureName) {
+        document.getElementById('upgradeFeatureName').textContent = featureName;
+        document.getElementById('upgradeModal').classList.remove('hidden');
+        document.getElementById('upgradeModal').classList.add('flex');
+    }
+    function closeUpgradeModal() {
+        document.getElementById('upgradeModal').classList.add('hidden');
+        document.getElementById('upgradeModal').classList.remove('flex');
+    }
 </script>
 </body>
 </html>

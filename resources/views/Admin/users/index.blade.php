@@ -460,68 +460,80 @@
         </tr>
       </thead>
       <tbody id="tableBody">
-        @forelse($users as $user)
-        <tr class="user-row" data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}">
-          <td>
-            <div class="user-info">
-              <div class="user-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
-              <div class="user-details">
-                <h4>{{ $user->name }}</h4>
-                <p>{{ $user->email }}</p>
-              </div>
-            </div>
-          </td>
-          <td>
-            <span class="badge badge-info" data-role-id="{{ $user->role_id }}">
-              <i class="fas fa-tag"></i>
-              {{ $user->role?->name ?? 'No Role' }}
-            </span>
-          </td>
-          <td>
-            @if($user->is_active)
-              <span class="badge badge-success status-badge">
-                <i class="fas fa-circle"></i> Active
-              </span>
-            @else
-              <span class="badge badge-danger status-badge">
-                <i class="fas fa-circle"></i> Inactive
-              </span>
-            @endif
-          </td>
-          <td>
-            <small style="color:var(--muted);">
-              {{ $user->created_at->format('M d, Y') }}
-            </small>
-          </td>
-          <td>
-            <div class="actions-cell">
-              @if($user->is_active)
-                <button class="action-btn danger" onclick="deactivateUser({{ $user->id }}, '{{ $user->name }}')" title="Deactivate User">
-                  <i class="fas fa-ban"></i>
-                </button>
-              @else
-                <button class="action-btn success" onclick="activateUser({{ $user->id }}, '{{ $user->name }}')" title="Activate User">
-                  <i class="fas fa-check"></i>
-                </button>
-              @endif
-              <button class="action-btn" onclick="editUser({{ $user->id }})" title="Edit User">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="action-btn" onclick="viewUser({{ $user->id }})" title="View User">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
+        @php
+          $groupedUsers = $users->groupBy(function($user) {
+              return $user->business->name ?? 'System Admins / No Business';
+          });
+        @endphp
+        @forelse($groupedUsers as $businessName => $businessUsers)
+          <tr class="business-group-header-row" style="background: rgba(79,70,229,0.06); font-weight: bold; pointer-events: none;">
+            <td colspan="5" style="padding: 12px 16px; color: var(--primary); font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--border);">
+              <i class="fas fa-building" style="margin-right: 8px;"></i> {{ $businessName }} ({{ $businessUsers->count() }} Staff)
+            </td>
+          </tr>
+          @foreach($businessUsers as $user)
+            <tr class="user-row" data-user-id="{{ $user->id }}" data-user-name="{{ $user->name }}" data-user-email="{{ $user->email }}">
+              <td>
+                <div class="user-info">
+                  <div class="user-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                  <div class="user-details">
+                    <h4>{{ $user->name }}</h4>
+                    <p>{{ $user->email }}</p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge badge-info" data-role-id="{{ $user->role_id }}">
+                  <i class="fas fa-tag"></i>
+                  {{ $user->role?->name ?? 'No Role' }}
+                </span>
+              </td>
+              <td>
+                @if($user->is_active)
+                  <span class="badge badge-success status-badge">
+                    <i class="fas fa-circle"></i> Active
+                  </span>
+                @else
+                  <span class="badge badge-danger status-badge">
+                    <i class="fas fa-circle"></i> Inactive
+                  </span>
+                @endif
+              </td>
+              <td>
+                <small style="color:var(--muted);">
+                  {{ $user->created_at->format('M d, Y') }}
+                </small>
+              </td>
+              <td>
+                <div class="actions-cell">
+                  @if($user->is_active)
+                    <button class="action-btn danger" onclick="deactivateUser({{ $user->id }}, '{{ $user->name }}')" title="Deactivate User">
+                      <i class="fas fa-ban"></i>
+                    </button>
+                  @else
+                    <button class="action-btn success" onclick="activateUser({{ $user->id }}, '{{ $user->name }}')" title="Activate User">
+                      <i class="fas fa-check"></i>
+                    </button>
+                  @endif
+                  <button class="action-btn" onclick="editUser({{ $user->id }})" title="Edit User">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="action-btn" onclick="viewUser({{ $user->id }})" title="View User">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          @endforeach
         @empty
-        <tr>
-          <td colspan="5">
-            <div class="empty-state">
-              <i class="fas fa-inbox"></i>
-              <p>No users found.  Start adding users to your system.</p>
-            </div>
-          </td>
-        </tr>
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p>No users found. Start adding users to your system.</p>
+              </div>
+            </td>
+          </tr>
         @endforelse
       </tbody>
     </table>
@@ -648,14 +660,28 @@
     const roleValue = document.getElementById('roleFilter').value;
     const rows = document.querySelectorAll('#tableBody tr');
     let visibleCount = 0;
+    
+    let currentHeader = null;
+    let headerHasMatch = false;
 
-    rows. forEach(row => {
+    rows.forEach(row => {
+      // If it is a header row, we temporarily record it and keep it visible
+      if (row.classList.contains('business-group-header-row')) {
+        if (currentHeader && !headerHasMatch) {
+          currentHeader.style.display = 'none';
+        }
+        currentHeader = row;
+        headerHasMatch = false;
+        row.style.display = '';
+        return;
+      }
+
       const userNameEl = row.querySelector('.user-details h4');
-      if(! userNameEl) return;
+      if(!userNameEl) return;
 
-      const name = userNameEl.textContent. toLowerCase();
+      const name = userNameEl.textContent.toLowerCase();
       const email = row.querySelector('.user-details p').textContent.toLowerCase();
-      const statusBadge = row.querySelector('.status-badge').textContent. toLowerCase();
+      const statusBadge = row.querySelector('.status-badge').textContent.toLowerCase();
       const roleEl = row.querySelector('.badge-info');
       const roleId = roleEl.getAttribute('data-role-id');
 
@@ -663,8 +689,8 @@
       let matchesSearch = name.includes(searchValue) || email.includes(searchValue);
 
       // Match status
-      let matchesStatus = ! statusValue || 
-        (statusValue === 'active' && statusBadge. includes('active')) || 
+      let matchesStatus = !statusValue || 
+        (statusValue === 'active' && statusBadge.includes('active')) || 
         (statusValue === 'inactive' && statusBadge.includes('inactive'));
 
       // Match role
@@ -673,10 +699,16 @@
       if(matchesSearch && matchesStatus && matchesRole){
         row.style.display = '';
         visibleCount++;
+        headerHasMatch = true;
       } else {
         row.style.display = 'none';
       }
     });
+
+    // Handle last section header
+    if (currentHeader && !headerHasMatch) {
+      currentHeader.style.display = 'none';
+    }
 
     document.getElementById('resultCount').textContent = visibleCount;
   }

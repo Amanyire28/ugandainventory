@@ -247,6 +247,36 @@ class Business extends Model
         return $this->hasMany(Category:: class);
     }
 
+    /**
+     * Get the subscription package associated with the business
+     */
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class, 'subscription_plan', 'slug');
+    }
+
+    /**
+     * Check if the business has a specific feature enabled based on its package
+     */
+    public function hasFeature(string $feature): bool
+    {
+        // If subscription is expired, block all premium features
+        if ($this->subscription_expires_at && $this->subscription_expires_at->isPast()) {
+            return false;
+        }
+
+        // Fetch package from database using the subscription plan key
+        $package = Package::where('slug', $this->subscription_plan)->first();
+
+        if (!$package) {
+            // Default fallback trial features if no package exists yet
+            $trialFeatures = ['pos', 'products', 'customers'];
+            return in_array(strtolower($feature), $trialFeatures);
+        }
+
+        return in_array(strtolower($feature), array_map('strtolower', $package->features ?? []));
+    }
+
     // =====================================
     // ✅ Business Status Methods
     // =====================================

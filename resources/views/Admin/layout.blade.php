@@ -361,6 +361,10 @@
             <i class="fas fa-building"></i>
             <span>Businesses</span>
           </a>
+          <a href="{{ route('admin.packages.index') }}" class="@if(request()->routeIs('admin.packages.*')) active @endif">
+            <i class="fas fa-box"></i>
+            <span>Packages</span>
+          </a>
           <a href="#">
             <i class="fas fa-cog"></i>
             <span>Settings</span>
