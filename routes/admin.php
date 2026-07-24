@@ -56,4 +56,8 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::post('/packages', [AdminController::class, 'packagesStore'])->name('packages.store');
     Route::put('/packages/{package}', [AdminController::class, 'packagesUpdate'])->name('packages.update');
     Route::delete('/packages/{package}', [AdminController::class, 'packagesDestroy'])->name('packages.destroy');
+    // ========================================
+    // REVENUE REPORTS
+    // ========================================
+    Route::get('/reports/revenue', [AdminController::class, 'revenueReport'])->name('reports.revenue');
 });

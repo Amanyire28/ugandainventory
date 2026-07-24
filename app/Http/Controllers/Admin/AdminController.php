@@ -723,4 +723,102 @@ public function updateUser(Request $request, User $user)
 
         return back()->with('success', 'Business settings and SMTP configurations have been reset to system defaults.');
     }
+
+    public function revenueReport(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        // Get filter inputs
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $business_id = $request->input('business_id');
+
+        // Defaults to last 30 days if no custom dates
+        if (empty($start_date)) {
+            $start_date = now()->subDays(30)->format('Y-m-d');
+        }
+        if (empty($end_date)) {
+            $end_date = now()->format('Y-m-d');
+        }
+
+        $businesses = Business::orderBy('name')->get();
+
+        // Calculate stats query limits
+        $start_time = $start_date . ' 00:00:00';
+        $end_time = $end_date . ' 23:59:59';
+
+        $totalRevenue = 0;
+        $totalSalesCount = 0;
+        $reportData = [];
+
+        if (empty($business_id) || $business_id === 'all') {
+            // Aggregate all businesses
+            $totalRevenue = Sale::whereBetween('sale_date', [$start_time, $end_time])->sum('total');
+            $totalSalesCount = Sale::whereBetween('sale_date', [$start_time, $end_time])->count();
+
+            // Detail per business
+            foreach ($businesses as $b) {
+                $bRevenue = Sale::where('business_id', $b->id)
+                    ->whereBetween('sale_date', [$start_time, $end_time])
+                    ->sum('total');
+                $bSalesCount = Sale::where('business_id', $b->id)
+                    ->whereBetween('sale_date', [$start_time, $end_time])
+                    ->count();
+
+                $reportData[] = [
+                    'business' => $b,
+                    'revenue' => $bRevenue,
+                    'sales_count' => $bSalesCount,
+                ];
+            }
+
+            // Sort by revenue descending
+            usort($reportData, function($a, $b) {
+                return $b['revenue'] <=> $a['revenue'];
+            });
+
+            $selectedBusiness = null;
+        } else {
+            // Drilldown specific business
+            $selectedBusiness = Business::findOrFail($business_id);
+            $totalRevenue = Sale::where('business_id', $selectedBusiness->id)
+                ->whereBetween('sale_date', [$start_time, $end_time])
+                ->sum('total');
+            $totalSalesCount = Sale::where('business_id', $selectedBusiness->id)
+                ->whereBetween('sale_date', [$start_time, $end_time])
+                ->count();
+
+            // Daily breakdown for table
+            $dailySales = Sale::where('business_id', $selectedBusiness->id)
+                ->whereBetween('sale_date', [$start_time, $end_time])
+                ->selectRaw('DATE(sale_date) as date, COUNT(*) as sales_count, SUM(total) as revenue')
+                ->groupBy('date')
+                ->orderBy('date', 'desc')
+                ->get();
+
+            foreach ($dailySales as $day) {
+                $reportData[] = [
+                    'date' => $day->date,
+                    'revenue' => $day->revenue,
+                    'sales_count' => $day->sales_count,
+                ];
+            }
+        }
+
+        return view('Admin.reports.revenue', compact(
+            'businesses',
+            'start_date',
+            'end_date',
+            'business_id',
+            'totalRevenue',
+            'totalSalesCount',
+            'reportData',
+            'selectedBusiness'
+        ));
+    }
 }

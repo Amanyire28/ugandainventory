@@ -379,7 +379,7 @@
             <i class="fas fa-shield-alt"></i>
             <span>Security</span>
           </a>
-          <a href="#">
+          <a href="{{ route('admin.reports.revenue') }}" class="@if(request()->routeIs('admin.reports.*')) active @endif">
             <i class="fas fa-chart-bar"></i>
             <span>Reports</span>
           </a>
