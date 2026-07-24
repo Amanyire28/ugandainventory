@@ -596,7 +596,7 @@ public function updateUser(Request $request, User $user)
     // BUSINESS OPERATIONS MONITORING ACTIONS
     // ========================================
 
-    public function monitorBusiness(Business $business)
+    public function monitorBusiness(Request $request, Business $business)
     {
         if (!Auth::guard('admin')->check()) {
             return redirect()->route('admin.login');
@@ -605,17 +605,44 @@ public function updateUser(Request $request, User $user)
             return redirect()->route('admin.auth.twofactor.show');
         }
 
+        // Get filter inputs
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+
+        // Defaults to start of current month to today (matches PWA Reports default!)
+        if (empty($start_date)) {
+            $start_date = now()->startOfMonth()->format('Y-m-d');
+        }
+        if (empty($end_date)) {
+            $end_date = now()->format('Y-m-d');
+        }
+
+        $start_time = $start_date . ' 00:00:00';
+        $end_time = $end_date . ' 23:59:59';
+
         // Load operations indicators
         $users = User::where('business_id', $business->id)->with('role')->get();
-        $recentSales = Sale::where('business_id', $business->id)->latest()->take(20)->get();
+        $recentSales = Sale::where('business_id', $business->id)
+            ->whereBetween('sale_date', [$start_time, $end_time])
+            ->latest()
+            ->take(20)
+            ->get();
         
-        // Dynamic stats
-        $totalSales = Sale::where('business_id', $business->id)->count();
-        $totalRevenue = Sale::where('business_id', $business->id)->sum('total');
-        $totalInvoices = Invoice::where('business_id', $business->id)->count();
+        // Dynamic stats in timeframe
+        $totalSales = Sale::where('business_id', $business->id)
+            ->whereBetween('sale_date', [$start_time, $end_time])
+            ->count();
+        $totalRevenue = Sale::where('business_id', $business->id)
+            ->whereBetween('sale_date', [$start_time, $end_time])
+            ->sum('total');
+        $totalInvoices = Invoice::where('business_id', $business->id)
+            ->whereBetween('created_at', [$start_time, $end_time])
+            ->count();
         $totalPayments = Payment::whereIn('invoice_id', function($q) use ($business) {
             $q->select('id')->from('invoices')->where('business_id', $business->id);
-        })->count();
+        })
+        ->whereBetween('paid_at', [$start_time, $end_time])
+        ->count();
 
         // Parsed activity logs from storage/logs/activity.log
         $activityLogs = [];
@@ -652,7 +679,8 @@ public function updateUser(Request $request, User $user)
 
         return view('admin.businesses.monitor', compact(
             'business', 'users', 'recentSales', 'totalSales', 
-            'totalRevenue', 'totalInvoices', 'totalPayments', 'activityLogs'
+            'totalRevenue', 'totalInvoices', 'totalPayments', 'activityLogs',
+            'start_date', 'end_date'
         ));
     }
 
@@ -738,9 +766,8 @@ public function updateUser(Request $request, User $user)
         $end_date = $request->input('end_date');
         $business_id = $request->input('business_id');
 
-        // Defaults to last 30 days if no custom dates
         if (empty($start_date)) {
-            $start_date = now()->subDays(30)->format('Y-m-d');
+            $start_date = now()->startOfMonth()->format('Y-m-d');
         }
         if (empty($end_date)) {
             $end_date = now()->format('Y-m-d');

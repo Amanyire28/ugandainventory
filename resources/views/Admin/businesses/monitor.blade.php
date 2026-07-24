@@ -245,6 +245,28 @@
   </div>
 </div>
 
+<!-- Date Filter Panel -->
+<div style="background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.04);">
+  <form method="GET" action="{{ route('admin.businesses.monitor', $business) }}" data-pjax>
+    <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">Start Date</label>
+        <input type="date" name="start_date" value="{{ $start_date }}" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); font-size: 13px;">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <label style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">End Date</label>
+        <input type="date" name="end_date" value="{{ $end_date }}" style="padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--panel); color: var(--text); font-size: 13px;">
+      </div>
+      <div>
+        <button type="submit" style="background: var(--primary); color: white; padding: 9px 18px; border: none; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;">Filter Period</button>
+      </div>
+      <div style="margin-left: auto; font-size: 13px; color: var(--muted); font-weight: 500; align-self: center;">
+        Showing performance data from: <strong style="color: var(--text);">{{ \Carbon\Carbon::parse($start_date)->format('M d, Y') }}</strong> to <strong style="color: var(--text);">{{ \Carbon\Carbon::parse($end_date)->format('M d, Y') }}</strong>
+      </div>
+    </div>
+  </form>
+</div>
+
 <!-- Stats Indicators -->
 <div class="monitor-stats">
   <div class="m-stat-card">
