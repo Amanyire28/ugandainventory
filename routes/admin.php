@@ -60,4 +60,12 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     // REVENUE REPORTS
     // ========================================
     Route::get('/reports/revenue', [AdminController::class, 'revenueReport'])->name('reports.revenue');
+
+    // ========================================
+    // PAYMENTS MANAGEMENT (Admin Billing Tracker)
+    // ========================================
+    Route::get('/payments', [AdminController::class, 'paymentsManagement'])->name('payments.index');
+    Route::post('/payments/record', [AdminController::class, 'recordPayment'])->name('payments.record');
+    Route::patch('/payments/{subscription}/verify', [AdminController::class, 'verifyPayment'])->name('payments.verify');
+    Route::patch('/payments/{subscription}/cancel', [AdminController::class, 'cancelPayment'])->name('payments.cancel');
 });

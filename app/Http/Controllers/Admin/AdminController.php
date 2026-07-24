@@ -848,4 +848,123 @@ public function updateUser(Request $request, User $user)
             'selectedBusiness'
         ));
     }
+
+    // ========================================
+    // PAYMENTS MANAGEMENT (SaaS Billing)
+    // ========================================
+
+    public function paymentsManagement(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+        if (session('two_factor_verified') !== true) return redirect()->route('admin.auth.twofactor.show');
+
+        $start_date = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $end_date   = $request->input('end_date', now()->format('Y-m-d'));
+        $status     = $request->input('status');
+        $pkg        = $request->input('package_slug');
+        $biz_id     = $request->input('business_id');
+
+        $query = \App\Models\BusinessSubscription::with(['business', 'package'])
+            ->whereBetween('created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59']);
+
+        if ($status)  $query->where('status', $status);
+        if ($pkg)     $query->where('package_slug', $pkg);
+        if ($biz_id)  $query->where('business_id', $biz_id);
+
+        $payments = $query->latest()->paginate(30)->withQueryString();
+
+        // Summary stats
+        $totalCollected = (clone $query)->where('status', 'paid')->sum('amount');
+        $totalPending   = (clone $query)->where('status', 'pending')->sum('amount');
+        $totalCount     = (clone $query)->count();
+
+        // Revenue per package
+        $packageRevenue = \App\Models\BusinessSubscription::where('status', 'paid')
+            ->whereBetween('created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59'])
+            ->selectRaw('package_slug, SUM(amount) as total, COUNT(*) as count')
+            ->groupBy('package_slug')
+            ->get();
+
+        $businesses = Business::orderBy('name')->get();
+        $packages   = Package::where('is_active', true)->orderBy('name')->get();
+
+        return view('Admin.payments.index', compact(
+            'payments', 'start_date', 'end_date', 'status', 'pkg',
+            'biz_id', 'totalCollected', 'totalPending', 'totalCount',
+            'packageRevenue', 'businesses', 'packages'
+        ));
+    }
+
+    public function recordPayment(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+        if (session('two_factor_verified') !== true) return redirect()->route('admin.auth.twofactor.show');
+
+        $data = $request->validate([
+            'business_id'    => 'required|exists:businesses,id',
+            'package_slug'   => 'required|string',
+            'amount'         => 'required|numeric|min:0',
+            'payment_method' => 'required|string',
+            'reference'      => 'nullable|string|max:255',
+            'notes'          => 'nullable|string',
+            'period_start'   => 'nullable|date',
+            'period_end'     => 'nullable|date',
+            'status'         => 'required|in:pending,paid,failed,refunded,cancelled',
+        ]);
+
+        $data['recorded_by'] = Auth::guard('admin')->id();
+        if ($data['status'] === 'paid') {
+            $data['paid_at'] = now();
+        }
+
+        \App\Models\BusinessSubscription::create($data);
+
+        // If paid, auto-update the business subscription plan & expiry
+        if ($data['status'] === 'paid') {
+            $business = Business::find($data['business_id']);
+            $package  = Package::where('slug', $data['package_slug'])->first();
+            if ($business && $package) {
+                $expires = isset($data['period_end'])
+                    ? \Carbon\Carbon::parse($data['period_end'])
+                    : now()->addDays($package->billing_cycle_days);
+                $business->update([
+                    'subscription_plan'       => $package->slug,
+                    'subscription_expires_at' => $expires,
+                ]);
+            }
+        }
+
+        return back()->with('success', 'Payment recorded successfully.');
+    }
+
+    public function verifyPayment(Request $request, \App\Models\BusinessSubscription $subscription)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+
+        $subscription->update(['status' => 'paid', 'paid_at' => now()]);
+
+        // Auto-update business plan
+        $business = $subscription->business;
+        $package  = Package::where('slug', $subscription->package_slug)->first();
+        if ($business && $package) {
+            $expires = $subscription->period_end
+                ? \Carbon\Carbon::parse($subscription->period_end)
+                : now()->addDays($package->billing_cycle_days);
+            $business->update([
+                'subscription_plan'       => $package->slug,
+                'subscription_expires_at' => $expires,
+            ]);
+        }
+
+        return back()->with('success', 'Payment marked as verified/paid.');
+    }
+
+    public function cancelPayment(Request $request, \App\Models\BusinessSubscription $subscription)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+
+        $subscription->update(['status' => 'cancelled']);
+
+        return back()->with('success', 'Payment has been cancelled.');
+    }
 }

@@ -383,6 +383,10 @@
             <i class="fas fa-chart-bar"></i>
             <span>Reports</span>
           </a>
+          <a href="{{ route('admin.payments.index') }}" class="@if(request()->routeIs('admin.payments.*')) active @endif">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Payments</span>
+          </a>
         </nav>
         <div class="sidebar-footer">
           <form method="POST" action="{{ route('admin.logout') }}" style="width:100%;">
