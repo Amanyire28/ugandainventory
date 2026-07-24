@@ -502,10 +502,14 @@
         const path = new URL(url).pathname;
         const navLinks = sidebar.querySelectorAll('.nav a');
         navLinks.forEach(link => {
-          if (!link.href) return;
+          const hrefAttr = link.getAttribute('href');
+          if (!hrefAttr || hrefAttr === '#' || hrefAttr.startsWith('javascript:')) {
+            link.classList.remove('active');
+            return;
+          }
           const linkPath = new URL(link.href).pathname;
-          // Check exact match or sub-paths (except base admin route)
-          if (linkPath === path || (linkPath !== '/admin' && path.startsWith(linkPath))) {
+          // Check exact match or sub-paths (except base admin /admin or dashboard route)
+          if (linkPath === path || (linkPath !== '/admin' && linkPath !== '/admin/dashboard' && path.startsWith(linkPath))) {
             link.classList.add('active');
           } else {
             link.classList.remove('active');

@@ -808,6 +808,7 @@
 
             // Update URL
             window.history.pushState({ path: url }, '', url);
+            syncSidebarActiveState(url);
 
             main.style.opacity = '1';
             main.style.pointerEvents = 'auto';
@@ -888,6 +889,7 @@
                     }
 
                     window.history.pushState({ path: url }, '', url);
+                    syncSidebarActiveState(url);
                     attachAjaxListeners();
 
                     console.log('Form submitted via AJAX');
@@ -911,6 +913,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         attachAjaxListeners();
         checkFullscreenState();
+        syncSidebarActiveState(window.location.href);
     });
 
     // ✅ EXPAND SIDEBAR ON HOVER (when collapsed)
@@ -925,6 +928,53 @@
         
         console.log('Sidebar hover listener initialized');
     });
+
+    // ✅ DYNAMIC SIDEBAR ACTIVE HIGHLIGHT & ACCORDION SYNC
+    function syncSidebarActiveState(url) {
+        const path = new URL(url, window.location.origin).pathname;
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+        
+        // 1. Reset all active backgrounds & styling from sidebar links and headers
+        sidebar.querySelectorAll('nav a').forEach(link => {
+            link.classList.remove('bg-indigo-800');
+            link.classList.add('hover:bg-indigo-800');
+        });
+        sidebar.querySelectorAll('.accordion-header').forEach(header => {
+            header.classList.remove('bg-indigo-700');
+        });
+
+        // 2. Identify and highlight the exact active page link
+        sidebar.querySelectorAll('nav a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href || href === '#' || href.startsWith('javascript:')) return;
+            
+            const linkPath = new URL(href, window.location.origin).pathname;
+            
+            if (linkPath === path) {
+                link.classList.add('bg-indigo-800');
+                link.classList.remove('hover:bg-indigo-800');
+                
+                // Expand matching parent accordion if the link is nested inside one
+                const accordionContent = link.closest('.accordion-content');
+                if (accordionContent) {
+                    accordionContent.classList.remove('collapsed');
+                    accordionContent.style.maxHeight = '500px';
+                    accordionContent.style.opacity = '1';
+                    
+                    const accordionGroup = accordionContent.closest('.accordion-group');
+                    if (accordionGroup) {
+                        const header = accordionGroup.querySelector('.accordion-header');
+                        if (header) {
+                            header.classList.add('bg-indigo-700');
+                            const icon = header.querySelector('.accordion-icon');
+                            if (icon) icon.classList.remove('collapsed');
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 
 <!-- Premium Upgrade Plan Modal -->
