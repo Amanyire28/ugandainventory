@@ -864,7 +864,14 @@ public function updateUser(Request $request, User $user)
         $pkg        = $request->input('package_slug');
         $biz_id     = $request->input('business_id');
 
-        $query = \App\Models\BusinessSubscription::with(['business', 'package'])
+        // ── Pending submissions from businesses (always shown, no date filter) ──
+        $pendingFromBusinesses = \App\Models\BusinessSubscription::with(['business', 'package', 'submittedByUser'])
+            ->where('submitted_by', 'business')
+            ->where('status', 'pending')
+            ->latest()
+            ->get();
+
+        $query = \App\Models\BusinessSubscription::with(['business', 'package', 'submittedByUser'])
             ->whereBetween('created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59']);
 
         if ($status)  $query->where('status', $status);
@@ -877,6 +884,7 @@ public function updateUser(Request $request, User $user)
         $totalCollected = (clone $query)->where('status', 'paid')->sum('amount');
         $totalPending   = (clone $query)->where('status', 'pending')->sum('amount');
         $totalCount     = (clone $query)->count();
+
 
         // Revenue per package
         $packageRevenue = \App\Models\BusinessSubscription::where('status', 'paid')
@@ -891,7 +899,7 @@ public function updateUser(Request $request, User $user)
         return view('Admin.payments.index', compact(
             'payments', 'start_date', 'end_date', 'status', 'pkg',
             'biz_id', 'totalCollected', 'totalPending', 'totalCount',
-            'packageRevenue', 'businesses', 'packages'
+            'packageRevenue', 'businesses', 'packages', 'pendingFromBusinesses'
         ));
     }
 
@@ -957,6 +965,44 @@ public function updateUser(Request $request, User $user)
         }
 
         return back()->with('success', 'Payment marked as verified/paid.');
+    }
+
+    public function approvePayment(Request $request, \App\Models\BusinessSubscription $subscription)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+
+        $subscription->update(['status' => 'paid', 'paid_at' => now(), 'rejection_reason' => null]);
+
+        // Auto-update business subscription plan & expiry
+        $business = $subscription->business;
+        $package  = Package::where('slug', $subscription->package_slug)->first();
+        if ($business && $package) {
+            $expires = $subscription->period_end
+                ? \Carbon\Carbon::parse($subscription->period_end)
+                : now()->addDays($package->billing_cycle_days);
+            $business->update([
+                'subscription_plan'       => $package->slug,
+                'subscription_expires_at' => $expires,
+            ]);
+        }
+
+        return back()->with('success', "Payment #{$subscription->id} approved. Business subscription activated.");
+    }
+
+    public function rejectPayment(Request $request, \App\Models\BusinessSubscription $subscription)
+    {
+        if (!Auth::guard('admin')->check()) return redirect()->route('admin.login');
+
+        $request->validate([
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $subscription->update([
+            'status'           => 'cancelled',
+            'rejection_reason' => $request->rejection_reason,
+        ]);
+
+        return back()->with('success', "Payment #{$subscription->id} rejected. Business has been notified.");
     }
 
     public function cancelPayment(Request $request, \App\Models\BusinessSubscription $subscription)

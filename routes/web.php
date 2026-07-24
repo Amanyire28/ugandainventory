@@ -28,6 +28,7 @@ use App\Http\Controllers\{
     CashierProfileController
 };
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\SubscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -205,6 +206,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // ========================================
     // ✅ BUSINESS SETTINGS (CONSOLIDATED - Admin/Owner only)
     // ========================================
+    // ========================================
+    // SUBSCRIPTION & BILLING (Owner only)
+    // ========================================
+    Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::post('/subscription/pay', [SubscriptionController::class, 'submit'])->name('subscription.pay');
+
     Route::prefix('settings')->name('settings.')->group(function () {
 
         // Main settings page

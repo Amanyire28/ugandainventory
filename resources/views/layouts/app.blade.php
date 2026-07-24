@@ -512,6 +512,14 @@
                 @endif
 
                 @if(auth()->user()->isOwner())
+                <a href="{{ route('subscription.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only {{ request()->routeIs('subscription.*') ? 'bg-indigo-700' : '' }}">
+                    <i class="fas fa-credit-card text-lg flex-shrink-0"></i>
+                    <span class="sidebar-text">Subscription</span>
+                    @php $pendingCount = \App\Models\BusinessSubscription::where('business_id', auth()->user()->business_id)->where('status','pending')->count(); @endphp
+                    @if($pendingCount)
+                    <span class="ml-auto bg-amber-400 text-amber-900 text-xs font-bold px-1.5 py-0.5 rounded-full sidebar-text">{{ $pendingCount }}</span>
+                    @endif
+                </a>
                 <a href="{{ route('settings.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
                     <i class="fas fa-cog text-lg flex-shrink-0"></i>
                     <span class="sidebar-text">Settings</span>

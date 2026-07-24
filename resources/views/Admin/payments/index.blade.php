@@ -216,6 +216,100 @@
   </div>
 </div>
 
+<!-- ── Awaiting Approval (submitted by businesses) ──────── -->
+@if($pendingFromBusinesses->count() > 0)
+<div style="background: rgba(245,158,11,.06); border: 2px solid var(--warning); border-radius: 14px; padding: 20px 24px; margin-bottom: 28px;">
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+    <i class="fas fa-bell" style="color:var(--warning); font-size:18px;"></i>
+    <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--text);">
+      Awaiting Approval — {{ $pendingFromBusinesses->count() }} payment{{ $pendingFromBusinesses->count() > 1 ? 's' : '' }} from businesses
+    </h3>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:14px;">
+    @foreach($pendingFromBusinesses as $p)
+    <div style="background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:18px 20px;">
+      <div style="display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start;">
+        {{-- Proof image thumbnail --}}
+        @if($p->proof_image)
+        <a href="{{ asset('storage/'.$p->proof_image) }}" target="_blank"
+           style="flex-shrink:0; display:block; width:80px; height:80px; border-radius:8px; overflow:hidden; border:2px solid var(--border);">
+          <img src="{{ asset('storage/'.$p->proof_image) }}" alt="Proof" style="width:100%;height:100%;object-fit:cover;">
+        </a>
+        @else
+        <div style="flex-shrink:0; width:80px; height:80px; border-radius:8px; background:var(--border); display:flex; align-items:center; justify-content:center; font-size:24px; color:var(--muted);">
+          <i class="fas fa-image"></i>
+        </div>
+        @endif
+        {{-- Info --}}
+        <div style="flex:1; min-width:180px;">
+          <div style="font-weight:700; font-size:15px; color:var(--text);">{{ $p->business->name ?? '—' }}</div>
+          <div style="font-size:12px; color:var(--muted); margin-top:2px;">{{ $p->business->email ?? '' }}</div>
+          <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:10px;">
+            <span style="font-size:13px;"><strong style="color:var(--text);">Package:</strong> <span style="color:var(--primary); font-weight:600; text-transform:capitalize;">{{ $p->package_slug }}</span></span>
+            <span style="font-size:13px;"><strong style="color:var(--text);">Amount:</strong> {{ $p->currency }} {{ number_format($p->amount) }}</span>
+            <span style="font-size:13px;"><strong style="color:var(--text);">Method:</strong> {{ $p->payment_method }}</span>
+            @if($p->reference)
+            <span style="font-size:12px; color:var(--muted);">Ref: {{ $p->reference }}</span>
+            @endif
+          </div>
+          @if($p->period_start && $p->period_end)
+          <div style="font-size:12px; color:var(--muted); margin-top:4px;">Period: {{ $p->period_start->format('M d, Y') }} – {{ $p->period_end->format('M d, Y') }}</div>
+          @endif
+          @if($p->notes)
+          <div style="font-size:12px; color:var(--muted); margin-top:4px; font-style:italic;">{{ $p->notes }}</div>
+          @endif
+          @if($p->submittedByUser)
+          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Submitted by: {{ $p->submittedByUser->name }} · {{ $p->created_at->diffForHumans() }}</div>
+          @endif
+        </div>
+        {{-- Actions --}}
+        <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
+          <form method="POST" action="{{ route('admin.payments.approve', $p->id) }}">
+            @csrf @method('PATCH')
+            <button type="submit" class="action-btn verify" style="width:120px; justify-content:center; padding:8px 12px;"
+              onclick="return confirm('Approve this payment and activate the business subscription?')">
+              <i class="fas fa-check"></i> Approve
+            </button>
+          </form>
+          <button type="button" class="action-btn cancel" style="width:120px; justify-content:center; padding:8px 12px;"
+            onclick="openRejectModal({{ $p->id }})">
+            <i class="fas fa-times"></i> Reject
+          </button>
+          @if($p->proof_image)
+          <a href="{{ asset('storage/'.$p->proof_image) }}" target="_blank"
+            style="font-size:11px; color:var(--info); text-align:center; text-decoration:none;">
+            <i class="fas fa-expand-alt"></i> Full image
+          </a>
+          @endif
+        </div>
+      </div>
+    </div>
+    @endforeach
+  </div>
+</div>
+@endif
+
+<!-- Rejection modal (shared) -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box" style="max-width:440px;">
+    <h3><i class="fas fa-times-circle" style="color:var(--danger);margin-right:8px;"></i>Reject Payment</h3>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:18px;">Please provide a reason so the business knows why their payment was rejected.</p>
+    <form id="rejectForm" method="POST" action="">
+      @csrf @method('PATCH')
+      <div class="form-group">
+        <label>Rejection Reason *</label>
+        <textarea name="rejection_reason" rows="3" required placeholder="e.g. Wrong amount, could not verify transaction…"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" onclick="document.getElementById('rejectModal').classList.remove('open')">Cancel</button>
+        <button type="submit" style="padding:10px 20px; background:var(--danger); color:#fff; border:none; border-radius:8px; font-weight:600; cursor:pointer;">
+          <i class="fas fa-times"></i> Reject Payment
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Revenue by package -->
 @if($packageRevenue->count() > 0)
 <div class="section-label">Revenue by Package (paid)</div>
@@ -450,9 +544,22 @@
 </div>
 
 <script>
-  // Close modal when clicking the backdrop
+  // Close addPaymentModal on backdrop click
   document.getElementById('addPaymentModal').addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('open');
   });
+
+  // Close rejectModal on backdrop click
+  document.getElementById('rejectModal').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+
+  // Open reject modal and set correct form action
+  function openRejectModal(paymentId) {
+    const modal = document.getElementById('rejectModal');
+    const form  = document.getElementById('rejectForm');
+    form.action = '/admin/payments/' + paymentId + '/reject';
+    modal.classList.add('open');
+  }
 </script>
 @endsection

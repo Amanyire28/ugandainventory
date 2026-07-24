@@ -67,5 +67,7 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::get('/payments', [AdminController::class, 'paymentsManagement'])->name('payments.index');
     Route::post('/payments/record', [AdminController::class, 'recordPayment'])->name('payments.record');
     Route::patch('/payments/{subscription}/verify', [AdminController::class, 'verifyPayment'])->name('payments.verify');
+    Route::patch('/payments/{subscription}/approve', [AdminController::class, 'approvePayment'])->name('payments.approve');
+    Route::patch('/payments/{subscription}/reject', [AdminController::class, 'rejectPayment'])->name('payments.reject');
     Route::patch('/payments/{subscription}/cancel', [AdminController::class, 'cancelPayment'])->name('payments.cancel');
 });

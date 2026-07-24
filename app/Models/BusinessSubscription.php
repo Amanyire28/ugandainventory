@@ -16,6 +16,10 @@ class BusinessSubscription extends Model
         'payment_method',
         'reference',
         'notes',
+        'proof_image',
+        'submitted_by',
+        'rejection_reason',
+        'submitted_by_user_id',
         'period_start',
         'period_end',
         'paid_at',
@@ -44,6 +48,11 @@ class BusinessSubscription extends Model
         return $this->belongsTo(Admin::class, 'recorded_by');
     }
 
+    public function submittedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by_user_id');
+    }
+
     public function scopePaid($query)
     {
         return $query->where('status', 'paid');
@@ -64,5 +73,11 @@ class BusinessSubscription extends Model
             'cancelled' => 'gray',
             default     => 'gray',
         };
+    }
+
+    public function getProofImageUrlAttribute(): ?string
+    {
+        if (!$this->proof_image) return null;
+        return asset('storage/' . $this->proof_image);
     }
 }
