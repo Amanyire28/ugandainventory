@@ -216,9 +216,11 @@
 
     /* Main content */
     .main{
-      max-width:1400px;
-      margin:0 auto;
-      padding:24px;
+      max-width: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 24px;
+      transition: opacity 0.25s ease-in-out;
     }
 
     /* Alert Messages */
@@ -264,19 +266,42 @@
       opacity: 1;
     }
 
+    /* Loading progress bar */
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--link));
+      z-index: 99999;
+      width: 0;
+      transition: width 0.35s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
     /* Desktop enhancements */
     @media (min-width:  1024px){
       .sidebar{
-        position:sticky;
-        top:64px; inset:auto; height:calc(100vh - 64px);
-        transform:none;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        bottom: 0;
+        width: 280px;
+        height: calc(100vh - 64px);
+        transform: none;
+        box-shadow: 1px 0 5px rgba(0,0,0,0.04);
+        z-index: 60;
       }
       .overlay{ display:none; }
       .layout{
-        display:grid; grid-template-columns:280px 1fr;
-        align-items:start;
+        display: block;
+        padding-left: 280px; /* Shift content area away from fixed sidebar */
+        min-height: calc(100vh - 64px);
       }
-      .main{ padding:28px; }
+      .main{
+        padding: 32px;
+      }
       .topbar .menu-btn{ display:none; }
     }
 
@@ -298,6 +323,7 @@
   </style>
 </head>
 <body>
+  <div class="loading-bar" id="ajaxLoadingBar"></div>
   <div class="app">
     <!-- Topbar -->
     <header class="topbar" role="banner">
@@ -405,6 +431,7 @@
       const sidebar = document.getElementById('adminSidebar');
       const overlay = document.getElementById('sidebarOverlay');
       const toggle = document.getElementById('menuToggle');
+      const loadingBar = document.getElementById('ajaxLoadingBar');
 
       function openSidebar(){
         sidebar.classList.add('open');
@@ -449,6 +476,130 @@
       }
       window. addEventListener('resize', syncOnResize);
       syncOnResize();
+
+      // ==========================================
+      // AJAX/PJAX NAVIGATION ENGINE
+      // ==========================================
+      function showProgress() {
+        loadingBar.style.opacity = '1';
+        loadingBar.style.width = '75%';
+      }
+
+      function hideProgress() {
+        loadingBar.style.width = '100%';
+        setTimeout(() => {
+          loadingBar.style.opacity = '0';
+          setTimeout(() => {
+            loadingBar.style.width = '0';
+          }, 300);
+        }, 150);
+      }
+
+      function updateActiveSidebar(url) {
+        const path = new URL(url).pathname;
+        const navLinks = sidebar.querySelectorAll('.nav a');
+        navLinks.forEach(link => {
+          if (!link.href) return;
+          const linkPath = new URL(link.href).pathname;
+          // Check exact match or sub-paths (except base admin route)
+          if (linkPath === path || (linkPath !== '/admin' && path.startsWith(linkPath))) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }
+
+      function loadAdminPage(url, push = true) {
+        showProgress();
+        const mainContent = document.querySelector('main.main');
+        mainContent.style.opacity = '0.5';
+
+        fetch(url)
+          .then(res => {
+            if (!res.ok) throw new Error('Response failed');
+            return res.text();
+          })
+          .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // 1. Update page title
+            document.title = doc.title || 'Admin Panel';
+
+            // 2. Replace content
+            const incomingMain = doc.querySelector('main.main');
+            if (incomingMain) {
+              mainContent.innerHTML = incomingMain.innerHTML;
+            }
+
+            // 3. Push History State
+            if (push) {
+              history.pushState({ url: url }, document.title, url);
+            }
+
+            // 4. Sync Sidebar active link
+            updateActiveSidebar(url);
+
+            // 5. Extract and evaluate script tags in loaded content
+            const scripts = doc.querySelectorAll('main.main script, script');
+            scripts.forEach(script => {
+              if (!script.src && script.innerHTML.trim() !== '') {
+                // Skip duplicating global framework layout setup scripts
+                if (script.innerHTML.includes('syncOnResize') || script.innerHTML.includes('loadAdminPage') || script.innerHTML.includes('ajaxLoadingBar')) {
+                  return;
+                }
+                const newScript = document.createElement('script');
+                newScript.appendChild(document.createTextNode(script.innerHTML));
+                document.body.appendChild(newScript);
+                newScript.parentNode.removeChild(newScript);
+              }
+            });
+
+            mainContent.style.opacity = '1';
+            hideProgress();
+          })
+          .catch(err => {
+            console.error('AJAX Nav Error:', err);
+            hideProgress();
+            window.location.href = url; // Fallback redirect on error
+          });
+      }
+
+      // Intercept click events
+      document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        // Skip empty hashes, action buttons, dynamic links
+        if (href.startsWith('#') || href.startsWith('javascript:') || link.getAttribute('target') === '_blank') {
+          return;
+        }
+
+        // Limit routes to internal admin panel, bypass logout actions
+        if (href.includes('logout') || !href.startsWith(window.location.origin + '/admin')) {
+          return;
+        }
+
+        e.preventDefault();
+        loadAdminPage(link.href);
+      });
+
+      // Handle history popstate events (browser back/forward)
+      window.addEventListener('popstate', (e) => {
+        if (e.state && e.state.url) {
+          loadAdminPage(e.state.url, false);
+        } else {
+          loadAdminPage(window.location.href, false);
+        }
+      });
+
+      // Init current state
+      history.replaceState({ url: window.location.href }, document.title, window.location.href);
+
     })();
   </script>
 </body>
