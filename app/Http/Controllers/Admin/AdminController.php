@@ -611,7 +611,7 @@ public function updateUser(Request $request, User $user)
         
         // Dynamic stats
         $totalSales = Sale::where('business_id', $business->id)->count();
-        $totalRevenue = Sale::where('business_id', $business->id)->sum('grand_total');
+        $totalRevenue = Sale::where('business_id', $business->id)->sum('total');
         $totalInvoices = Invoice::where('business_id', $business->id)->count();
         $totalPayments = Payment::where('business_id', $business->id)->count();
 

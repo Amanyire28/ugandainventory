@@ -291,8 +291,8 @@
         <tbody>
           @forelse($recentSales as $sale)
             <tr>
-              <td style="font-weight: 600; font-family: monospace;">#{{ $sale->invoice_number }}</td>
-              <td>UGX {{ number_format($sale->grand_total) }}</td>
+              <td style="font-weight: 600; font-family: monospace;">#{{ $sale->sale_number }}</td>
+              <td>UGX {{ number_format($sale->total) }}</td>
               <td>
                 <span class="badge" style="background: rgba(16, 185, 129, 0.1); color: var(--success); font-weight: 600; font-size: 11px; padding: 2px 8px; border-radius: 4px;">
                   Paid
