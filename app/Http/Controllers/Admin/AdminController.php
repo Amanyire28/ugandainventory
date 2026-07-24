@@ -469,8 +469,21 @@ public function updateUser(Request $request, User $user)
             'subscription_expires_at' => ['nullable', 'date'],
         ]);
 
+        // Normalize plan value to valid database ENUM options
+        $plan = strtolower($data['subscription_plan']);
+        if ($plan === 'free trial' || $plan === 'trial') {
+            $plan = 'trial';
+        } elseif ($plan === 'basic') {
+            $plan = 'basic';
+        } elseif ($plan === 'premium') {
+            $plan = 'premium';
+        } else {
+            // Map 'enterprise' or any fallback to 'standard'
+            $plan = 'standard';
+        }
+
         $business->update([
-            'subscription_plan' => $data['subscription_plan'],
+            'subscription_plan' => $plan,
             'subscription_expires_at' => $data['subscription_expires_at'] ? \Carbon\Carbon::parse($data['subscription_expires_at']) : null,
         ]);
 
