@@ -20,57 +20,85 @@ class LoginController extends Controller
     }
 
     /**
-     * Handle login request (with 2FA handoff)
+     * Handle login request for both administrators and regular users
      */
-    public function login(Request $request)
-    {
-        // Validate the login credentials
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
-
-        // Fetch user record by email
-        $user = \App\Models\User::where('email', $request->email)->first();
-
-        // Block deactivated users
-        if ($user && !$user->is_active) {
-            throw ValidationException::withMessages([
-                'email' => ['Your account has been deactivated. Please contact the administrator.'],
-            ]);
-        }
-
-        // Attempt authentication
-        if (Auth::attempt(
-            ['email' => $request->email, 'password' => $request->password],
-            $request->boolean('remember')
-        )) {
-            // Regenerate session to prevent fixation
-            $request->session()->regenerate();
-
-            // Authenticated user
-            $user = Auth::user();
-
-            // Optional: update last login timestamp if column exists
-            try {
-                $user->update(['last_login_at' => now()]);
-            } catch (\Throwable $e) {
-                // Column may not exist; ignore
-            }
-
-            // Always bypass 2FA
-            session(['two_factor_verified' => true]);
-
-            // Proceed with role-based redirect
-            return $this->redirectBasedOnRole($user)
-                ->with('success', "Welcome back, {$user->name}!");
-        }
-
-        // If authentication failed
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials do not match our records.'],
-        ]);
-    }
+     public function login(Request $request)
+     {
+         // Validate the login credentials
+         $credentials = $request->validate([
+             'email'    => ['required', 'email'],
+             'password' => ['required', 'string'],
+         ]);
+ 
+         // 1. Check if the user is a System Admin (in admins table)
+         $admin = \App\Models\Admin::where('email', $request->email)->first();
+         if ($admin) {
+             // Block deactivated admins
+             if (!$admin->is_active) {
+                 throw ValidationException::withMessages([
+                     'email' => ['This administrator account has been deactivated.'],
+                 ]);
+             }
+ 
+             // Attempt authentication for the admin guard
+             if (Auth::guard('admin')->attempt(
+                 ['email' => $request->email, 'password' => $request->password],
+                 $request->boolean('remember')
+             )) {
+                 $request->session()->regenerate();
+                 
+                 // Set verification status
+                 session(['two_factor_verified' => true]);
+ 
+                 try {
+                     $admin->update(['last_login_at' => now()]);
+                 } catch (\Throwable $e) {}
+ 
+                 return redirect()->route('admin.dashboard')
+                     ->with('success', "Welcome back, Admin {$admin->name}! 🛡️");
+             }
+         }
+ 
+         // 2. Otherwise, attempt authentication as a regular tenant user (in users table)
+         $user = \App\Models\User::where('email', $request->email)->first();
+ 
+         // Block deactivated users
+         if ($user && !$user->is_active) {
+             throw ValidationException::withMessages([
+                 'email' => ['Your account has been deactivated. Please contact the administrator.'],
+             ]);
+         }
+ 
+         if (Auth::attempt(
+             ['email' => $request->email, 'password' => $request->password],
+             $request->boolean('remember')
+         )) {
+             // Regenerate session to prevent fixation
+             $request->session()->regenerate();
+ 
+             // Authenticated user
+             $user = Auth::user();
+ 
+             // Optional: update last login timestamp if column exists
+             try {
+                 $user->update(['last_login_at' => now()]);
+             } catch (\Throwable $e) {
+                 // Column may not exist; ignore
+             }
+ 
+             // Always bypass 2FA
+             session(['two_factor_verified' => true]);
+ 
+             // Proceed with role-based redirect
+             return $this->redirectBasedOnRole($user)
+                 ->with('success', "Welcome back, {$user->name}!");
+         }
+ 
+         // If authentication failed
+         throw ValidationException::withMessages([
+             'email' => ['The provided credentials do not match our records.'],
+         ]);
+     }
 
     /**
      * Redirect user based on their role

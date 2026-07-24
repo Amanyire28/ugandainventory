@@ -11,8 +11,9 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     // ========================================
     Route::get('/setup', [AdminController::class, 'showSetup'])->name('setup.show');
     Route::post('/setup', [AdminController::class, 'storeSetup'])->name('setup.store');
-    Route::get('/login', [AdminController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AdminController::class, 'login'])->name('login.attempt');
+    Route::get('/login', function () {
+        return redirect()->route('login');
+    })->name('login');
 
     // ========================================
     // 2FA (After login, before dashboard)
