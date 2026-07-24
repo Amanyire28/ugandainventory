@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Auth\{LoginController, RegisterController};
+use App\Http\Controllers\Auth\{LoginController, RegisterController, TwoFactorController};
 use App\Http\Controllers\{
     DashboardController,
     Admin\AdminController,
@@ -58,7 +58,7 @@ Route::middleware('guest')->group(function () {
 | AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'tenant'])->group(function () {
 
     // ========================================
     // LOGOUT
@@ -272,7 +272,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-});
+
 
  // Cashier Invoices (CREDIT/INVOICE)
 Route::get('/cashier/invoices', [CashierInvoiceController::class, 'index'])->name('cashier.invoices.index');
@@ -282,10 +282,9 @@ Route::get('/cashier/invoices/{id}', [CashierInvoiceController::class, 'show'])-
 Route::get('/cashier/invoices/{id}/print', [CashierInvoiceController::class, 'print'])->name('cashier.invoices.print');
 Route::post('/cashier/invoices/{id}/mark-paid', [CashierInvoiceController::class, 'markPaid'])->name('cashier.invoices.markPaid');
 Route::delete('/cashier/invoices/{id}', [CashierInvoiceController::class, 'destroy'])->name('cashier.invoices.destroy');
-// ========================================
-// EXPENSES ROUTES (as in your file)
-// ========================================
-Route::middleware(['auth'])->group(function () {
+    // ========================================
+    // EXPENSES ROUTES (as in your file)
+    // ========================================
     // Owner/Manager (full privileges)
     Route::get('/expenses/create', [ExpenseController::class, 'create'])->name('expenses.create');
     Route::post('/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
@@ -306,16 +305,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/today', [ExpenseController::class, 'today'])->name('today');
         });
     });
-});
+    // End expenses routes
 
-use App\Http\Controllers\Auth\TwoFactorController;
 
-// Place this inside your existing Route::middleware(['auth'])->group(...)
-Route::middleware(['auth'])->group(function () {
+
+
+    // Place this inside your existing Route::middleware(['auth', 'tenant'])->group(...)
     Route::get('/auth/2fa', [TwoFactorController::class, 'show'])->name('auth.twofactor.show');
     Route::post('/auth/2fa/verify', [TwoFactorController::class, 'verify'])->name('auth.twofactor.verify');
     Route::post('/auth/2fa/resend', [TwoFactorController::class, 'resend'])->name('auth.twofactor.resend');
-});
+    // End 2FA routes
 
 // ========================================
 // INVOICES (NEW - for credit sales/invoice printing)
@@ -363,6 +362,8 @@ Route::get('/test-invoice-customers', function () {
 
 Route::get('/invoices/creditors', [InvoiceController::class, 'creditors'])  ->name('invoices.creditors');
   
+
+}); // End of main auth & tenant middleware group
 
 // Include admin routes
 require __DIR__ . '/admin.php';

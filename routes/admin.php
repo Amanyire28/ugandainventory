@@ -33,4 +33,11 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::patch('/users/{user}/email', [AdminController::class, 'updateUserEmail'])->name('users.email.update');
     Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
     Route::patch('/users/{user}', [AdminController::class, 'updateUser'])->name('users.update');
+
+    // ========================================
+    // BUSINESSES (TENANTS) MANAGEMENT
+    // ========================================
+    Route::get('/businesses', [AdminController::class, 'businesses'])->name('businesses.index');
+    Route::patch('/businesses/{business}/toggle', [AdminController::class, 'toggleBusinessActive'])->name('businesses.toggle');
+    Route::put('/businesses/{business}/subscription', [AdminController::class, 'updateBusinessSubscription'])->name('businesses.subscription.update');
 });

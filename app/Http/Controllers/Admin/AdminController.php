@@ -391,4 +391,89 @@ public function updateUser(Request $request, User $user)
 
         return back()->with('success', 'Profile updated.');
     }
+
+    // ========================================
+    // BUSINESSES (TENANTS) MANAGEMENT
+    // ========================================
+    public function businesses(Request $request)
+    {
+        // ✅ PROTECT THIS ROUTE
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $query = Business::with(['owner', 'businessCategory']);
+
+        // Search filter (business name, email, or phone)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->where('business_category_id', $request->category_id);
+        }
+
+        // Plan filter
+        if ($request->filled('plan')) {
+            $query->where('subscription_plan', $request->plan);
+        }
+
+        $businesses = $query->latest()->paginate(20);
+        $categories = \App\Models\BusinessCategory::all();
+
+        return view('admin.businesses.index', compact('businesses', 'categories'));
+    }
+
+    public function toggleBusinessActive(Business $business)
+    {
+        // ✅ PROTECT THIS ROUTE
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $business->update(['is_active' => !$business->is_active]);
+
+        return back()->with('success', 
+            $business->is_active ? 'Business account activated successfully.' : 'Business account suspended successfully.');
+    }
+
+    public function updateBusinessSubscription(Request $request, Business $business)
+    {
+        // ✅ PROTECT THIS ROUTE
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $data = $request->validate([
+            'subscription_plan' => ['required', 'string', 'max:255'],
+            'subscription_expires_at' => ['nullable', 'date'],
+        ]);
+
+        $business->update([
+            'subscription_plan' => $data['subscription_plan'],
+            'subscription_expires_at' => $data['subscription_expires_at'] ? \Carbon\Carbon::parse($data['subscription_expires_at']) : null,
+        ]);
+
+        return back()->with('success', 'Business subscription updated successfully.');
+    }
 }

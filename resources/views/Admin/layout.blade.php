@@ -332,7 +332,7 @@
             <i class="fas fa-users"></i>
             <span>Users</span>
           </a>
-          <a href="#" >
+          <a href="{{ route('admin.businesses.index') }}" class="@if(request()->routeIs('admin.businesses.*')) active @endif">
             <i class="fas fa-building"></i>
             <span>Businesses</span>
           </a>
