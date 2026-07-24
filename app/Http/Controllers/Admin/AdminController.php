@@ -613,7 +613,9 @@ public function updateUser(Request $request, User $user)
         $totalSales = Sale::where('business_id', $business->id)->count();
         $totalRevenue = Sale::where('business_id', $business->id)->sum('total');
         $totalInvoices = Invoice::where('business_id', $business->id)->count();
-        $totalPayments = Payment::where('business_id', $business->id)->count();
+        $totalPayments = Payment::whereIn('invoice_id', function($q) use ($business) {
+            $q->select('id')->from('invoices')->where('business_id', $business->id);
+        })->count();
 
         // Parsed activity logs from storage/logs/activity.log
         $activityLogs = [];
@@ -666,7 +668,9 @@ public function updateUser(Request $request, User $user)
         // Delete sales, invoices, stock adjust session and related data for this tenant
         DB::transaction(function() use ($business) {
             // Delete payments & invoice items
-            DB::table('payments')->where('business_id', $business->id)->delete();
+            DB::table('payments')->whereIn('invoice_id', function($q) use ($business) {
+                $q->select('id')->from('invoices')->where('business_id', $business->id);
+            })->delete();
             DB::table('invoice_items')->whereIn('invoice_id', function($q) use ($business) {
                 $q->select('id')->from('invoices')->where('business_id', $business->id);
             })->delete();
