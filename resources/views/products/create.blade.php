@@ -84,7 +84,7 @@
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">Fill in details to register a single item in inventory.</p>
             </div>
-            <a href="{{ route('products.bulk-create') }}" class="px-4 py-2.5 shadow-md transition flex items-center gap-2 text-xs" style="background-color: #059669 !important; color: #ffffff !important; font-weight: 800 !important; border-radius: 10px !important; text-decoration: none !important;">
+            <a href="{{ route('products.bulk-create') }}" class="px-4 py-2.5 shadow-md transition flex items-center gap-2 text-xs" style="background-color: #4f46e5 !important; color: #ffffff !important; font-weight: 800 !important; border-radius: 10px !important; text-decoration: none !important;">
                 <i class="fas fa-layer-group text-yellow-300 text-sm"></i> Switch to Bulk Multiple Addition →
             </a>
         </div>

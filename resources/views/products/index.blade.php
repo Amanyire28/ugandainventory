@@ -106,7 +106,7 @@
                 <i class="fas fa-plus mr-2 text-yellow-300"></i>
                 Add Product
             </a>
-            <a href="{{ route('products.bulk-create') }}" class="px-4 py-2 shadow-md transition flex items-center text-sm" style="background-color: #059669 !important; color: #ffffff !important; font-weight: 800 !important; border-radius: 10px !important; text-decoration: none !important;">
+            <a href="{{ route('products.bulk-create') }}" class="px-4 py-2 shadow-md transition flex items-center text-sm" style="background-color: #4f46e5 !important; color: #ffffff !important; font-weight: 800 !important; border-radius: 10px !important; text-decoration: none !important;">
                 <i class="fas fa-layer-group text-yellow-300 mr-2"></i>
                 Bulk Add Products
             </a>
