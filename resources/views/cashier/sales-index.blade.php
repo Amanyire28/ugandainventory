@@ -102,12 +102,18 @@
                             {{ $sale->items->count() }} items
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="text-lg font-bold text-green-600">UGX {{ number_format($sale->total, 0) }}</span>
+                            <span class="text-lg font-bold {{ $sale->isVoided() ? 'line-through text-red-500' : 'text-green-600' }}">UGX {{ number_format($sale->total, 0) }}</span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                                {{ ucfirst($sale->payment_status) }}
-                            </span>
+                            @if($sale->isVoided())
+                                <span class="px-2.5 py-1 text-xs font-black rounded-full bg-red-100 text-red-800 border border-red-300">
+                                    <i class="fas fa-ban mr-1"></i> VOIDED
+                                </span>
+                            @else
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    {{ ucfirst($sale->payment_status) }}
+                                </span>
+                            @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <a href="{{ route('sales.show', $sale->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">

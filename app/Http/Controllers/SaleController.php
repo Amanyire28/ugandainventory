@@ -25,8 +25,11 @@ class SaleController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        // ✅ CALCULATE STATS BEFORE PAGINATION
-        $statsQuery = Sale::where('business_id', $businessId);
+        // ✅ CALCULATE STATS BEFORE PAGINATION (Excluding voided sales from revenue)
+        $statsQuery = Sale::where('business_id', $businessId)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '!=', 'voided');
+            });
         
         if ($userRole === 'cashier') {
             $statsQuery->where('user_id', $user->id);
@@ -46,6 +49,47 @@ class SaleController extends Controller
         }
 
         return view('sales.index', compact('sales', 'totalSales', 'totalRevenue', 'todaySales', 'todayRevenue'));
+    }
+
+    /**
+     * Void / Reverse a sale transaction.
+     * Restores stock back to inventory and adjusts revenue.
+     */
+    public function voidSale(Request $request, Sale $sale)
+    {
+        $user = Auth::user();
+
+        if ($sale->business_id !== $user->business_id) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        if ($sale->isVoided()) {
+            return back()->with('error', 'This sale transaction has already been voided.');
+        }
+
+        $validated = $request->validate([
+            'void_reason' => 'required|string|min:3|max:500',
+        ]);
+
+        DB::transaction(function () use ($sale, $validated, $user) {
+            // 1. Mark Sale as Voided
+            $sale->update([
+                'status'      => 'voided',
+                'void_reason' => $validated['void_reason'],
+                'voided_at'   => now(),
+                'voided_by'   => $user->id,
+            ]);
+
+            // 2. Restock Product Quantities Back to Inventory
+            $sale->load('items.product');
+            foreach ($sale->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('quantity', $item->quantity);
+                }
+            }
+        });
+
+        return back()->with('success', "Sale #{$sale->sale_number} has been voided successfully. Items have been restored to inventory.");
     }
 
     /**

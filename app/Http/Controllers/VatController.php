@@ -48,8 +48,11 @@ class VatController extends Controller
         // 2. Fetch Detailed Ledger Transactions (Sales, Invoices, Purchases, Expenses)
         $ledgerEntries = collect();
 
-        // Sales (VAT Output / Credit) - only sales with tax_amount > 0
+        // Sales (VAT Output / Credit) - only completed sales with tax_amount > 0
         $sales = Sale::where('business_id', $businessId)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '!=', 'voided');
+            })
             ->where('tax_amount', '>', 0)
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->with('customer')
@@ -198,6 +201,9 @@ class VatController extends Controller
         $ledgerEntries = collect();
 
         $sales = Sale::where('business_id', $businessId)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '!=', 'voided');
+            })
             ->where('tax_amount', '>', 0)
             ->whereBetween('sale_date', [$startDate, $endDate])
             ->with('customer')

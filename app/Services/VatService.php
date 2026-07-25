@@ -28,8 +28,11 @@ class VatService
         $business = Business::find($businessId);
         $taxRate  = $business->tax_rate ?? 18.0;
 
-        // 1. VAT Output (Sales with tax_amount > 0)
+        // 1. VAT Output (Sales with tax_amount > 0, excluding voided sales)
         $salesQuery = Sale::where('business_id', $businessId)
+            ->where(function($q) {
+                $q->whereNull('status')->orWhere('status', '!=', 'voided');
+            })
             ->where('tax_amount', '>', 0)
             ->whereBetween('sale_date', [$start, $end]);
 

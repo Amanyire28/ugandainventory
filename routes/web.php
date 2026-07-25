@@ -122,6 +122,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
         Route::get('/export/weekly', [SaleController::class, 'exportWeekly'])->name('export.weekly');
         Route::get('/export/monthly', [SaleController::class, 'exportMonthly'])->name('export.monthly');
         Route::get('/{sale}', [SaleController::class, 'show'])->name('show');
+        Route::post('/{sale}/void', [SaleController::class, 'voidSale'])->name('void');
     });
 
     // ========================================

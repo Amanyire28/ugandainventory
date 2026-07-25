@@ -23,11 +23,16 @@ class Sale extends Model
         'total',
         'payment_status',
         'payment_method',
+        'status',
+        'void_reason',
+        'voided_at',
+        'voided_by',
         'notes',
     ];
 
     protected $casts = [
         'sale_date' => 'datetime',
+        'voided_at' => 'datetime',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'discount_amount' => 'decimal:2',
@@ -53,6 +58,16 @@ class Sale extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    public function isVoided(): bool
+    {
+        return $this->status === 'voided';
     }
 
     public function items(): HasMany
