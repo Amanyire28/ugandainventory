@@ -7,10 +7,94 @@
 @endsection
 
 @section('content')
+<style>
+    .excel-table-header {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        font-size: 11px !important;
+        letter-spacing: 0.5px !important;
+        padding: 10px 8px !important;
+        border: 1px solid #334155 !important;
+    }
+    .excel-btn-primary {
+        background-color: #059669 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    .excel-btn-indigo {
+        background-color: #4f46e5 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    .excel-btn-purple {
+        background-color: #7c3aed !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+    .excel-btn-slate {
+        background-color: #334155 !important;
+        color: #ffffff !important;
+        font-weight: 800 !important;
+        border: none !important;
+        padding: 8px 16px !important;
+        border-radius: 8px !important;
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        font-size: 12px !important;
+    }
+    .excel-cell-input {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 6px 8px !important;
+        width: 100% !important;
+        outline: none !important;
+        border-radius: 4px !important;
+    }
+    .excel-cell-input:focus {
+        background-color: #fef08a !important; /* Bright Yellow focus */
+        border: 2px solid #059669 !important;
+        color: #000000 !important;
+    }
+</style>
+
 <div class="w-full">
     <div class="bg-white rounded-2xl shadow-xl p-4 md:p-6 border border-slate-300 space-y-4">
         
-        <!-- Header & Navigation -->
+        <!-- Top Header & Navigation Buttons -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 pb-3 border-b border-slate-200">
             <div>
                 <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
@@ -21,10 +105,10 @@
                 </p>
             </div>
             <div class="flex items-center gap-2">
-                <a href="{{ route('products.create') }}" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-lg text-xs shadow transition flex items-center gap-1.5">
+                <a href="{{ route('products.create') }}" class="excel-btn-indigo" style="text-decoration: none;">
                     <i class="fas fa-plus text-yellow-300"></i> Single Product Form
                 </a>
-                <a href="{{ route('products.index') }}" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-extrabold rounded-lg text-xs shadow transition flex items-center gap-1.5">
+                <a href="{{ route('products.index') }}" class="excel-btn-slate" style="text-decoration: none;">
                     <i class="fas fa-arrow-left"></i> Products List
                 </a>
             </div>
@@ -48,29 +132,29 @@
         @endif
 
         <!-- Spreadsheet Toolbar -->
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 bg-slate-900 p-3 rounded-xl shadow">
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 p-3 rounded-xl shadow" style="background-color: #0f172a; border: 1px solid #334155;">
             <div class="flex flex-wrap items-center gap-2">
-                <button type="button" onclick="addRows(1)" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded text-xs shadow flex items-center gap-1">
+                <button type="button" onclick="addRows(1)" class="excel-btn-primary">
                     <i class="fas fa-plus"></i> +1 Row
                 </button>
-                <button type="button" onclick="addRows(5)" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded text-xs shadow flex items-center gap-1">
+                <button type="button" onclick="addRows(5)" class="excel-btn-indigo">
                     <i class="fas fa-plus"></i> +5 Rows
                 </button>
-                <button type="button" onclick="addRows(10)" class="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-extrabold rounded text-xs shadow flex items-center gap-1">
+                <button type="button" onclick="addRows(10)" class="excel-btn-purple">
                     <i class="fas fa-plus"></i> +10 Rows
                 </button>
-                <button type="button" onclick="clearEmptyRows()" class="px-3.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-extrabold rounded text-xs shadow flex items-center gap-1 ml-2">
+                <button type="button" onclick="clearEmptyRows()" class="excel-btn-slate" style="margin-left: 8px;">
                     <i class="fas fa-eraser text-yellow-300"></i> Clear Empty
                 </button>
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="text-xs text-white font-bold hidden sm:block">
-                    Total: <span id="summaryTotalItems" class="text-emerald-400 font-extrabold text-sm">0</span> items | 
-                    Selling Value: <span id="summaryTotalSelling" class="text-emerald-400 font-extrabold text-sm">UGX 0</span>
+                <div class="text-xs font-bold hidden sm:block" style="color: #ffffff;">
+                    Total: <span id="summaryTotalItems" style="color: #34d399; font-weight: 900; font-size: 14px;">0</span> items | 
+                    Selling Value: <span id="summaryTotalSelling" style="color: #34d399; font-weight: 900; font-size: 14px;">UGX 0</span>
                 </div>
 
-                <button type="submit" form="excelProductForm" class="px-6 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-lg shadow-lg transition flex items-center gap-2 text-xs">
+                <button type="submit" form="excelProductForm" class="excel-btn-primary" style="padding: 10px 24px; font-size: 13px;">
                     <i class="fas fa-save text-yellow-300 text-sm"></i>
                     <span>Save All Products</span>
                 </button>
@@ -81,24 +165,24 @@
             @csrf
 
             <!-- Excel Grid Table -->
-            <div class="overflow-x-auto border-2 border-slate-300 shadow rounded-lg max-h-[70vh] overflow-y-auto">
-                <table class="w-full border-collapse border border-slate-300 text-xs bg-white font-sans">
-                    <thead class="bg-slate-900 text-white sticky top-0 z-10 select-none">
-                        <tr class="divide-x divide-slate-700">
-                            <th class="p-2 text-center w-10 font-black bg-slate-950">#</th>
-                            <th class="p-2 text-left font-black min-w-[220px]">Product Name <span class="text-red-400">*</span></th>
-                            <th class="p-2 text-left font-black min-w-[160px]">Category</th>
-                            <th class="p-2 text-left font-black w-32">SKU</th>
-                            <th class="p-2 text-left font-black w-36">Barcode</th>
-                            <th class="p-2 text-right font-black w-32">Cost Price (UGX) <span class="text-red-400">*</span></th>
-                            <th class="p-2 text-right font-black w-32">Selling Price (UGX) <span class="text-red-400">*</span></th>
-                            <th class="p-2 text-right font-black w-24">Stock Qty <span class="text-red-400">*</span></th>
-                            <th class="p-2 text-left font-black w-24">Unit <span class="text-red-400">*</span></th>
-                            <th class="p-2 text-center font-black w-20">VAT 18%</th>
-                            <th class="p-2 text-center font-black w-10 bg-slate-950"></th>
+            <div class="overflow-x-auto shadow rounded-lg max-h-[70vh] overflow-y-auto" style="border: 2px solid #cbd5e1;">
+                <table class="w-full border-collapse text-xs font-sans" style="background-color: #ffffff;">
+                    <thead class="sticky top-0 z-10 select-none">
+                        <tr>
+                            <th class="excel-table-header text-center w-10" style="background-color: #020617 !important;">#</th>
+                            <th class="excel-table-header text-left min-w-[220px]">Product Name <span style="color: #ef4444;">*</span></th>
+                            <th class="excel-table-header text-left min-w-[160px]">Category</th>
+                            <th class="excel-table-header text-left w-32">SKU</th>
+                            <th class="excel-table-header text-left w-36">Barcode</th>
+                            <th class="excel-table-header text-right w-32">Cost Price (UGX) <span style="color: #ef4444;">*</span></th>
+                            <th class="excel-table-header text-right w-32">Selling Price (UGX) <span style="color: #ef4444;">*</span></th>
+                            <th class="excel-table-header text-right w-24">Stock Qty <span style="color: #ef4444;">*</span></th>
+                            <th class="excel-table-header text-left w-24">Unit <span style="color: #ef4444;">*</span></th>
+                            <th class="excel-table-header text-center w-20">VAT 18%</th>
+                            <th class="excel-table-header text-center w-10" style="background-color: #020617 !important;"></th>
                         </tr>
                     </thead>
-                    <tbody id="excelGridBody" class="divide-y divide-slate-300">
+                    <tbody id="excelGridBody">
                         <!-- Spreadsheet rows dynamically rendered -->
                     </tbody>
                 </table>
@@ -112,10 +196,10 @@
                 </div>
 
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <button type="button" onclick="addRows(1)" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 border border-slate-400 font-extrabold rounded-lg text-xs text-slate-900 transition flex items-center gap-1.5">
-                        <i class="fas fa-plus text-emerald-700"></i> Add Row
+                    <button type="button" onclick="addRows(1)" class="excel-btn-slate">
+                        <i class="fas fa-plus text-emerald-400"></i> Add Row
                     </button>
-                    <button type="submit" class="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-lg shadow-lg transition flex items-center justify-center gap-2 text-xs flex-1 sm:flex-none">
+                    <button type="submit" class="excel-btn-primary" style="padding: 10px 28px; font-size: 13px;">
                         <i class="fas fa-check-circle text-yellow-300 text-sm"></i>
                         <span>Save All Products</span>
                     </button>
@@ -140,72 +224,72 @@ function createRowHTML(index) {
     });
 
     return `
-        <tr id="row_${index}" class="divide-x divide-slate-300 hover:bg-emerald-50 transition">
-            <td class="p-1 text-center font-black text-slate-700 bg-slate-200 select-none row-number">${index + 1}</td>
+        <tr id="row_${index}" style="border-bottom: 1px solid #cbd5e1;">
+            <td style="padding: 4px; text-align: center; font-weight: 900; color: #334155; background-color: #e2e8f0; border-right: 1px solid #cbd5e1;" class="row-number select-none">${index + 1}</td>
             
             <!-- col 0: Product Name -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="text" name="products[${index}][name]" required
                        data-row="${index}" data-col="0"
                        placeholder="Product Name"
                        oninput="calculateSummaries()"
-                       class="excel-cell w-full px-2.5 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs font-bold text-slate-900 outline-none">
+                       class="excel-cell excel-cell-input">
             </td>
 
             <!-- col 1: Category -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <select name="products[${index}][category_id]" 
                         data-row="${index}" data-col="1"
-                        class="excel-cell w-full px-2 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs font-bold text-slate-900 outline-none cursor-pointer">
+                        class="excel-cell excel-cell-input">
                     ${categoryOptionsHTML}
                 </select>
             </td>
 
             <!-- col 2: SKU -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="text" name="products[${index}][sku]" 
                        data-row="${index}" data-col="2"
                        placeholder="Auto SKU" 
-                       class="excel-cell w-full px-2.5 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs font-mono font-bold text-slate-700 outline-none">
+                       class="excel-cell excel-cell-input" style="font-family: monospace;">
             </td>
 
             <!-- col 3: Barcode -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="text" name="products[${index}][barcode]" 
                        data-row="${index}" data-col="3"
                        placeholder="Barcode" 
-                       class="excel-cell w-full px-2.5 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs font-mono font-bold text-indigo-900 outline-none">
+                       class="excel-cell excel-cell-input" style="font-family: monospace; color: #312e81 !important;">
             </td>
 
             <!-- col 4: Cost Price -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="number" name="products[${index}][cost_price]" step="any" min="0" required value="0"
                        data-row="${index}" data-col="4"
                        oninput="calculateSummaries()"
-                       class="excel-cell w-full px-2.5 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs text-right font-black text-slate-900 outline-none">
+                       class="excel-cell excel-cell-input" style="text-align: right;">
             </td>
 
             <!-- col 5: Selling Price -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="number" name="products[${index}][selling_price]" step="any" min="0" required value="0"
                        data-row="${index}" data-col="5"
                        oninput="calculateSummaries()"
-                       class="excel-cell w-full px-2.5 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs text-right font-black text-emerald-900 outline-none">
+                       class="excel-cell excel-cell-input" style="text-align: right; color: #065f46 !important; font-weight: 900;">
             </td>
 
             <!-- col 6: Stock Qty -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <input type="number" name="products[${index}][quantity]" step="any" min="0" required value="1"
                        data-row="${index}" data-col="6"
                        oninput="calculateSummaries()"
-                       class="excel-cell w-full px-2 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs text-right font-black text-slate-900 outline-none">
+                       class="excel-cell excel-cell-input" style="text-align: right; font-weight: 900;">
             </td>
 
             <!-- col 7: Unit -->
-            <td class="p-0">
+            <td style="padding: 2px; border-right: 1px solid #cbd5e1;">
                 <select name="products[${index}][unit]" 
                         data-row="${index}" data-col="7"
-                        class="excel-cell w-full px-2 py-2 bg-white border-0 focus:bg-yellow-100 focus:ring-2 focus:ring-emerald-600 text-xs font-bold text-slate-900 outline-none cursor-pointer">
+                        class="excel-cell excel-cell-input">
                     <option value="pcs">pcs</option>
                     <option value="kg">kg</option>
                     <option value="ltr">ltr</option>
@@ -217,16 +301,16 @@ function createRowHTML(index) {
             </td>
 
             <!-- col 8: VAT Toggle -->
-            <td class="p-1.5 text-center bg-slate-100">
+            <td style="padding: 4px; text-align: center; background-color: #f1f5f9; border-right: 1px solid #cbd5e1;">
                 <input type="checkbox" name="products[${index}][requires_vat]" value="1" checked 
                        data-row="${index}" data-col="8"
-                       class="excel-cell w-4 h-4 text-emerald-600 rounded border-slate-400 focus:ring-emerald-600 cursor-pointer">
+                       class="excel-cell" style="width: 18px; height: 18px; cursor: pointer; accent-color: #059669;">
             </td>
 
             <!-- Action -->
-            <td class="p-1.5 text-center bg-slate-100">
-                <button type="button" onclick="removeRow(${index})" class="text-slate-500 hover:text-red-700 transition">
-                    <i class="fas fa-trash-alt text-xs"></i>
+            <td style="padding: 4px; text-align: center; background-color: #f1f5f9;">
+                <button type="button" onclick="removeRow(${index})" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 14px;">
+                    <i class="fas fa-trash-alt"></i>
                 </button>
             </td>
         </tr>
