@@ -362,6 +362,7 @@ class StaffController extends Controller
 
         try {
             $staffName = $staff->name;
+            $staff->update(['is_active' => false]);
             $staff->delete();
 
             return redirect()

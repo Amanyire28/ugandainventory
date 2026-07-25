@@ -170,9 +170,9 @@ class Business extends Model
     /**
      * Get the owner (User) of this business
      */
-    public function owner(): BelongsTo
+    public function owner()
     {
-        return $this->belongsTo(User::class, 'owner_id');
+        return $this->hasOne(User::class)->where('is_owner', true);
     }
 
     /**
@@ -290,12 +290,12 @@ class Business extends Model
     }
 
     /**
-     * Check if subscription is still active
+     * Check if subscription is active and confirmed
      */
     public function isSubscriptionActive(): bool
     {
         if (!$this->subscription_expires_at) {
-            return true;
+            return false;
         }
 
         return $this->subscription_expires_at->isFuture();

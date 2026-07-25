@@ -135,11 +135,23 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is a system admin
+     */
+    public function isAdmin(): bool
+    {
+        if (isset($this->is_admin) && $this->is_admin) {
+            return true;
+        }
+
+        return $this->role && strtolower($this->role->name) === 'admin';
+    }
+
+    /**
      * Get role display name
      */
     public function getRoleName(): string
     {
-        return $this->role->display_name;
+        return $this->role ? $this->role->display_name : 'User';
     }
 
     // ========================================
@@ -307,7 +319,7 @@ class User extends Authenticatable
      */
     public function getStatusColorAttribute(): string
     {
-        if (!$this->is_active) {
+        if (!$this->is_active || ($this->business && !$this->business->is_active)) {
             return 'red';
         }
 
@@ -331,6 +343,10 @@ class User extends Authenticatable
             return 'Inactive';
         }
 
+        if ($this->business && !$this->business->is_active) {
+            return 'Business Suspended';
+        }
+
         if ($this->loggedInToday()) {
             return 'Active Today';
         }
@@ -351,7 +367,13 @@ class User extends Authenticatable
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereDoesntHave('business')
+                  ->orWhereHas('business', function ($b) {
+                      $b->where('is_active', true);
+                  });
+            });
     }
 
     /**
@@ -359,7 +381,12 @@ class User extends Authenticatable
      */
     public function scopeInactive($query)
     {
-        return $query->where('is_active', false);
+        return $query->where(function ($q) {
+            $q->where('is_active', false)
+              ->orWhereHas('business', function ($b) {
+                  $b->where('is_active', false);
+              });
+        });
     }
 
     /**

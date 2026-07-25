@@ -19,39 +19,54 @@ class CheckSubscription
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Check if user is authenticated
         if (!Auth::check()) {
             return redirect()->route('login');
         }
 
         $user = Auth::user();
+
+        // System Admins always pass through
+        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
+            return $next($request);
+        }
+
         $business = $user->business;
 
-        // Check if business exists
         if (!$business) {
             Auth::logout();
-            return redirect()->route('login')
-                ->with('error', 'Business not found.');
+            return redirect()->route('login')->with('error', 'Business not found.');
         }
 
-        // Check if subscription has expired
-        if ($business->subscription_expires_at && $business->subscription_expires_at->isPast()) {
-            // Log subscription expiry
-            Log::info('Subscription expired access attempt', [
-                'business_id' => $business->id,
-                'business_name' => $business->name,
-                'expired_at' => $business->subscription_expires_at,
-                'subscription_plan' => $business->subscription_plan,
-            ]);
+        // Check if subscription is active and confirmed by admin
+        if (!$business->isSubscriptionActive()) {
+            $currentRoute = $request->route()?->getName();
 
-            // Redirect to subscription page or show error
-            return redirect()->route('subscription.expired')
-                ->with('error', 'Your subscription has expired on ' . $business->subscription_expires_at->format('M d, Y') . '. Please renew to continue using the system.');
-        }
+            // Routes accessible even when subscription is unconfirmed / expired
+            $allowedRoutes = [
+                'dashboard',
+                'dashboard.annual',
+                'dashboard.annual.export',
+                'subscription.index',
+                'subscription.pay',
+                'profile.edit',
+                'profile.update',
+                'profile.password.update',
+                'profile.destroy',
+                'owner.profile.edit',
+                'owner.profile.update',
+                'owner.profile.avatar',
+                'owner.profile.update_email',
+                'owner.profile.update_password',
+                'owner.profile.update_photo',
+                'owner.profile.delete_photo',
+                'owner.profile.destroy',
+                'logout',
+            ];
 
-        // Check if subscription is expiring soon (within 7 days)
-        if ($business->subscription_expires_at && $business->subscription_expires_at->diffInDays(now()) <= 7) {
-            session()->flash('warning', 'Your subscription expires in ' . $business->subscription_expires_at->diffInDays(now()) . ' days. Please renew soon.');
+            if (!in_array($currentRoute, $allowedRoutes)) {
+                return redirect()->route('subscription.index')
+                    ->with('error', '🔒 Features Locked: Operational features (POS, Invoicing, Inventory, Sales, Reports) require an active subscription confirmed by the Admin. Payment is optional at registration, but you must submit subscription payment below for Admin confirmation to unlock all features.');
+            }
         }
 
         return $next($request);

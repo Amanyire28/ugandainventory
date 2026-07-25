@@ -13,12 +13,14 @@ class Expense extends Model
         'spent_by',
         'purpose',
         'amount',
+        'vat_amount',
         'date_spent',
         'notes',
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
+        'amount'     => 'decimal:2',
+        'vat_amount' => 'decimal:2',
         'date_spent' => 'date',
     ];
 

@@ -18,10 +18,9 @@ class POSController extends Controller
         $businessId = $user->business_id;
         $userRole = $user->role->name;
 
-        // Get active products with stock
+        // Get all active products for the business
         $products = Product::where('business_id', $businessId)
             ->where('is_active', true)
-            ->where('quantity', '>', 0)
             ->with('category')
             ->orderBy('name')
             ->get();

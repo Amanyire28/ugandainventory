@@ -16,6 +16,9 @@ use App\Models\Package;
 use App\Models\Sale;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\BusinessCategory;
+use App\Models\Location;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -144,9 +147,11 @@ class AdminController extends Controller
         // ========================================
         $stats = [
             'total_users' => User::count(),
-            'active_users' => User:: where('is_active', true)->count(),
-            'inactive_users' => User::where('is_active', false)->count(),
-            'total_businesses' => Business:: count(),
+            'active_users' => User::active()->count(),
+            'inactive_users' => User::inactive()->count(),
+            'total_businesses' => Business::count(),
+            'active_businesses' => Business::where('is_active', true)->count(),
+            'inactive_businesses' => Business::where('is_active', false)->count(),
             'total_admins' => Admin::count(),
             'admins_active' => Admin::where('is_active', true)->count(),
         ];
@@ -263,7 +268,11 @@ public function users(Request $request)
 
     // Status filter
     if ($request->filled('status')) {
-        $query->where('is_active', $request->status === 'active');
+        if ($request->status === 'active') {
+            $query->active();
+        } elseif ($request->status === 'inactive') {
+            $query->inactive();
+        }
     }
 
     // Role filter
@@ -274,8 +283,47 @@ public function users(Request $request)
     // Order by business_id to assist grouping visually
     $users = $query->orderBy('business_id', 'asc')->latest()->paginate(50);
     $roles = Role::all();
+    $businesses = Business::orderBy('name')->get();
 
-    return view('admin.users.index', compact('users', 'roles'));
+    return view('admin.users.index', compact('users', 'roles', 'businesses'));
+}
+
+public function storeUser(Request $request)
+{
+    // ✅ PROTECT THIS ROUTE
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('admin.login');
+    }
+    if (session('two_factor_verified') !== true) {
+        return redirect()->route('admin.auth.twofactor.show');
+    }
+
+    $data = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+        'phone' => ['nullable', 'string', 'max:20'],
+        'business_id' => ['nullable', 'exists:businesses,id'],
+        'role_id' => ['required', 'exists:roles,id'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
+        'is_active' => ['nullable', 'boolean'],
+    ]);
+
+    $role = Role::find($data['role_id']);
+    $isOwner = ($role && strtolower($role->name) === 'owner');
+
+    User::create([
+        'name' => $data['name'],
+        'email' => $data['email'],
+        'phone' => $data['phone'] ?? '',
+        'business_id' => $data['business_id'] ?? null,
+        'role_id' => $data['role_id'],
+        'password' => Hash::make($data['password']),
+        'is_owner' => $isOwner,
+        'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
+        'email_verified_at' => now(),
+    ]);
+
+    return back()->with('success', "User '{$data['name']}' created successfully.");
 }
    
 
@@ -441,9 +489,89 @@ public function updateUser(Request $request, User $user)
         }
 
         $businesses = $query->latest()->paginate(20);
-        $categories = \App\Models\BusinessCategory::all();
+        $categories = BusinessCategory::all();
+        $packages = Package::where('is_active', true)->get();
 
-        return view('admin.businesses.index', compact('businesses', 'categories'));
+        return view('admin.businesses.index', compact('businesses', 'categories', 'packages'));
+    }
+
+    public function storeBusiness(Request $request)
+    {
+        // ✅ PROTECT THIS ROUTE
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+        if (session('two_factor_verified') !== true) {
+            return redirect()->route('admin.auth.twofactor.show');
+        }
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'business_category_id' => ['required', 'exists:business_categories,id'],
+            'email' => ['required', 'email', 'max:255', 'unique:businesses,email', 'unique:users,email'],
+            'phone' => ['required', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:500'],
+            'subscription_plan' => ['required', 'string', 'max:100'],
+            'subscription_duration_days' => ['nullable', 'integer', 'min:1'],
+            'owner_name' => ['required', 'string', 'max:255'],
+            'owner_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $slug = Str::slug($data['name']);
+            $originalSlug = $slug;
+            $counter = 1;
+
+            while (Business::where('slug', $slug)->exists()) {
+                $slug = $originalSlug . '-' . $counter;
+                $counter++;
+            }
+
+            $durationDays = (int) ($data['subscription_duration_days'] ?? 30);
+            $expiresAt = now()->addDays($durationDays);
+
+            $business = Business::create([
+                'name' => $data['name'],
+                'slug' => $slug,
+                'business_category_id' => $data['business_category_id'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'address' => $data['address'] ?? null,
+                'is_active' => true,
+                'subscription_plan' => strtolower($data['subscription_plan']),
+                'subscription_expires_at' => $expiresAt,
+            ]);
+
+            Location::create([
+                'business_id' => $business->id,
+                'name' => 'Main Location',
+                'is_main' => true,
+                'is_active' => true,
+            ]);
+
+            $ownerRole = Role::where('name', 'owner')->first() ?? Role::first();
+
+            $owner = User::create([
+                'business_id' => $business->id,
+                'role_id' => $ownerRole->id,
+                'name' => $data['owner_name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($data['owner_password']),
+                'is_owner' => true,
+                'is_active' => true,
+                'email_verified_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return back()->with('success', "Business '{$business->name}' and Owner account created successfully.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Failed to create business: ' . $e->getMessage());
+        }
     }
 
     public function toggleBusinessActive(Business $business)

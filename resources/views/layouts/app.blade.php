@@ -357,6 +357,12 @@
                     </a>
                 @endif
 
+                <!-- VAT Management & Accounting (Independent Sidebar Link) -->
+                <a href="{{ route('vat.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('vat.*') ? 'bg-indigo-800 border-l-4 border-yellow-400' : 'hover:bg-indigo-800' }} text-yellow-300 font-semibold sidebar-icon-only">
+                    <i class="fas fa-calculator text-lg flex-shrink-0 text-yellow-400"></i>
+                    <span class="sidebar-text">VAT Management</span>
+                </a>
+
                 <!-- Inventory Accordion -->
                 @if(auth()->user()->business->hasFeature('inventory'))
                     <div class="accordion-group">
@@ -1052,5 +1058,6 @@
         document.getElementById('upgradeModal').classList.remove('flex');
     }
 </script>
+@stack('scripts')
 </body>
 </html>

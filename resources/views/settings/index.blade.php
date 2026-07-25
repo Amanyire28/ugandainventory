@@ -864,8 +864,11 @@
 
                                     <!-- Tax Calculation Preview -->
                                     <div class="bg-indigo-50 border-2 border-indigo-200 rounded-lg p-5">
-                                        <h4 class="font-bold text-indigo-900 mb-3">
-                                            <i class="fas fa-calculator mr-2"></i>Tax Calculation Preview
+                                        <h4 class="font-bold text-indigo-900 mb-3 flex items-center justify-between">
+                                            <span><i class="fas fa-calculator mr-2"></i>Tax Calculation & Compliance</span>
+                                            <a href="{{ route('vat.index') }}" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-bold transition inline-flex items-center gap-1">
+                                                <i class="fas fa-calculator"></i> VAT Management
+                                            </a>
                                         </h4>
                                         <div class="space-y-2 text-sm">
                                             <div class="flex justify-between">

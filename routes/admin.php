@@ -30,6 +30,7 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
     Route::patch('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
     Route::get('/users', [AdminController::class, 'users'])->name('users.index');
+    Route::post('/users', [AdminController::class, 'storeUser'])->name('users.store');
     Route::patch('/users/{user}/toggle', [AdminController::class, 'toggleUserActive'])->name('users.toggle');
     Route::patch('/users/{user}/email', [AdminController::class, 'updateUserEmail'])->name('users.email.update');
     Route::post('/logout', [AdminController::class, 'logout'])->name('logout');
@@ -39,6 +40,7 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     // BUSINESSES (TENANTS) MANAGEMENT
     // ========================================
     Route::get('/businesses', [AdminController::class, 'businesses'])->name('businesses.index');
+    Route::post('/businesses', [AdminController::class, 'storeBusiness'])->name('businesses.store');
     Route::patch('/businesses/{business}/toggle', [AdminController::class, 'toggleBusinessActive'])->name('businesses.toggle');
     Route::put('/businesses/{business}/subscription', [AdminController::class, 'updateBusinessSubscription'])->name('businesses.subscription.update');
 

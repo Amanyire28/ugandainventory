@@ -475,4 +475,34 @@ class ReportController extends Controller
 
         return $html;
     }
+
+    /**
+     * VAT Return & Compliance Report
+     */
+    public function vat(Request $request)
+    {
+        $user       = Auth::user();
+        $businessId = $user->business_id;
+
+        $period = $request->get('period', 'month');
+
+        $startDate = match ($period) {
+            'today'   => now()->startOfDay(),
+            'week'    => now()->startOfWeek(),
+            'month'   => now()->startOfMonth(),
+            'quarter' => now()->startOfQuarter(),
+            'year'    => now()->startOfYear(),
+            'custom'  => $request->filled('start_date') ? Carbon::parse($request->start_date)->startOfDay() : now()->startOfMonth(),
+            default   => now()->startOfMonth(),
+        };
+
+        $endDate = match ($period) {
+            'custom'  => $request->filled('end_date') ? Carbon::parse($request->end_date)->endOfDay() : now()->endOfDay(),
+            default   => now()->endOfDay(),
+        };
+
+        $vatSummary = \App\Services\VatService::calculateVatSummary($businessId, $startDate, $endDate);
+
+        return view('reports.vat', compact('vatSummary', 'period', 'startDate', 'endDate'));
+    }
 }

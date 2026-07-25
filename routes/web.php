@@ -37,8 +37,9 @@ use App\Http\Controllers\SubscriptionController;
 */
 
 Route::get('/', function () {
-    $businessCategories = \App\Models\BusinessCategory::all();
-    return view('welcome', compact('businessCategories'));
+    $businessCategories = \App\Models\BusinessCategory::where('is_active', true)->orderBy('name')->get();
+    $packages           = \App\Models\Package::where('is_active', true)->orderBy('price')->get();
+    return view('welcome', compact('businessCategories', 'packages'));
 })->name('welcome');
 
 /*
@@ -59,7 +60,7 @@ Route::middleware('guest')->group(function () {
 | AUTHENTICATED ROUTES
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'tenant'])->group(function () {
+Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
 
     // ========================================
     // LOGOUT
@@ -129,6 +130,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::prefix('products')->name('products.')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('index');
         Route::get('/create', [ProductController::class, 'create'])->name('create');
+        Route::get('/bulk-create', [ProductController::class, 'bulkCreate'])->name('bulk-create');
+        Route::post('/bulk-store', [ProductController::class, 'bulkStore'])->name('bulk-store');
         Route::post('/', [ProductController::class, 'store'])->name('store');
         Route::get('/expired', [ProductController::class, 'expired'])->name('expired');
         Route::get('/expiring-soon', [ProductController::class, 'expiringSoon'])->name('expiring-soon');
@@ -206,6 +209,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // ========================================
     // ✅ BUSINESS SETTINGS (CONSOLIDATED - Admin/Owner only)
     // ========================================
+    // VAT MANAGEMENT & ACCOUNTING LEDGER
+    // ========================================
+    Route::get('/vat', [\App\Http\Controllers\VatController::class, 'index'])->name('vat.index');
+
     // ========================================
     // SUBSCRIPTION & BILLING (Owner only)
     // ========================================

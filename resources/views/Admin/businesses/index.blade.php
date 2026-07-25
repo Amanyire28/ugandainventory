@@ -321,9 +321,14 @@
   }
 </style>
 
-<div class="page-header">
-  <h1 class="page-title">Businesses Management</h1>
-  <p class="page-subtitle">Manage registered businesses, active statuses, and subscription plans.</p>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+  <div>
+    <h1 class="page-title">Businesses Management</h1>
+    <p class="page-subtitle">Manage registered businesses, active statuses, and subscription plans.</p>
+  </div>
+  <button class="btn btn-primary" onclick="openAddBusinessModal()">
+    <i class="fas fa-plus"></i> Add New Business
+  </button>
 </div>
 
 <!-- Filters Section -->
@@ -518,6 +523,101 @@
   </div>
 </div>
 
+<!-- ============================================
+     ADD BUSINESS MODAL
+     ============================================ -->
+<div id="addBusinessModal" class="modal">
+  <div class="modal-content" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Business</h2>
+      <button class="modal-close" onclick="closeAddBusinessModal()">✕</button>
+    </div>
+    <form action="{{ route('admin.businesses.store') }}" method="POST">
+      @csrf
+      <div class="modal-body">
+        <div style="font-weight: 700; margin-bottom: 12px; color: var(--primary); font-size: 14px;">
+          <i class="fas fa-building" style="margin-right: 6px;"></i> Business Details
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="addBusinessName">Business Name <span style="color:var(--danger);">*</span></label>
+          <input type="text" name="name" id="addBusinessName" class="form-input" placeholder="e.g. Acme Supermarket" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addCategory">Business Category <span style="color:var(--danger);">*</span></label>
+          <select name="business_category_id" id="addCategory" class="form-select" required>
+            <option value="">Select Category</option>
+            @foreach($categories as $cat)
+              <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addBusinessEmail">Business Email <span style="color:var(--danger);">*</span></label>
+          <input type="email" name="email" id="addBusinessEmail" class="form-input" placeholder="e.g. info@acme.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addBusinessPhone">Phone Number <span style="color:var(--danger);">*</span></label>
+          <input type="text" name="phone" id="addBusinessPhone" class="form-input" placeholder="e.g. +256 700 000 000" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addBusinessAddress">Address</label>
+          <input type="text" name="address" id="addBusinessAddress" class="form-input" placeholder="e.g. Plot 12 Kampala Rd">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addPlan">Subscription Plan <span style="color:var(--danger);">*</span></label>
+          <select name="subscription_plan" id="addPlan" class="form-select" required>
+            <option value="trial">Free Trial</option>
+            @foreach($packages as $pkg)
+              <option value="{{ $pkg->slug }}">{{ $pkg->name }} ({{ number_format($pkg->price) }} UGX)</option>
+            @endforeach
+            @if(!count($packages))
+              <option value="basic">Basic</option>
+              <option value="standard">Standard</option>
+              <option value="premium">Premium</option>
+            @endif
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addDuration">Subscription Duration (Days)</label>
+          <input type="number" name="subscription_duration_days" id="addDuration" class="form-input" value="30" min="1" placeholder="30">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+        <div style="font-weight: 700; margin-bottom: 12px; color: var(--primary); font-size: 14px;">
+          <i class="fas fa-user-shield" style="margin-right: 6px;"></i> Business Owner Credentials
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addOwnerName">Owner Full Name <span style="color:var(--danger);">*</span></label>
+          <input type="text" name="owner_name" id="addOwnerName" class="form-input" placeholder="e.g. Jane Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addOwnerPassword">Owner Password <span style="color:var(--danger);">*</span></label>
+          <input type="password" name="owner_password" id="addOwnerPassword" class="form-input" placeholder="Minimum 8 characters" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="addOwnerPasswordConfirm">Confirm Owner Password <span style="color:var(--danger);">*</span></label>
+          <input type="password" name="owner_password_confirmation" id="addOwnerPasswordConfirm" class="form-input" placeholder="Repeat password" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeAddBusinessModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Create Business</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   function openSubscriptionModal(businessId, businessName, currentPlan, currentExpiry) {
     document.getElementById('editBusinessName').textContent = businessName;
@@ -531,10 +631,18 @@
     document.getElementById('subscriptionModal').classList.remove('show');
   }
 
+  function openAddBusinessModal() {
+    document.getElementById('addBusinessModal').classList.add('show');
+  }
+  function closeAddBusinessModal() {
+    document.getElementById('addBusinessModal').classList.remove('show');
+  }
+
   // Close modals on escape key
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
       closeSubscriptionModal();
+      closeAddBusinessModal();
     }
   });
 
@@ -542,6 +650,11 @@
   document.getElementById('subscriptionModal').addEventListener('click', function(e) {
     if (e.target === this) {
       closeSubscriptionModal();
+    }
+  });
+  document.getElementById('addBusinessModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeAddBusinessModal();
     }
   });
 </script>

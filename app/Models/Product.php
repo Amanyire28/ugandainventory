@@ -21,6 +21,7 @@ class Product extends Model
         'unit',
         'cost_price',
         'selling_price',
+        'requires_vat',
         'reorder_level',
         'quantity',              // ✅ ADDED
         'opening_stock',         // ✅ ADDED - Initial stock value
@@ -35,15 +36,16 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'cost_price' => 'decimal:2',
+        'cost_price'    => 'decimal:2',
         'selling_price' => 'decimal:2',
-        'quantity' => 'decimal:2',    // ✅ ADDED
+        'quantity'      => 'decimal:2',    // ✅ ADDED
         'opening_stock' => 'decimal:2',  // ✅ ADDED
-        'has_variants' => 'boolean',
-        'is_active' => 'boolean',
-        'track_expiry' => 'boolean',
+        'requires_vat'  => 'boolean',
+        'has_variants'  => 'boolean',
+        'is_active'     => 'boolean',
+        'track_expiry'   => 'boolean',
         'manufacture_date' => 'date',
-        'expiry_date' => 'date',
+        'expiry_date'   => 'date',
     ];
 
     // ========================================

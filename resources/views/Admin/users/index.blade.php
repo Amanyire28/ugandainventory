@@ -390,9 +390,14 @@
 </style>
 
 <!-- Page Header -->
-<div class="page-header">
-  <h1 class="page-title">Users Management</h1>
-  <p class="page-subtitle">Manage and monitor all registered users in the system</p>
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+  <div>
+    <h1 class="page-title">Users Management</h1>
+    <p class="page-subtitle">Manage and monitor all registered users in the system</p>
+  </div>
+  <button class="btn btn-primary" onclick="openAddUserModal()">
+    <i class="fas fa-user-plus"></i> Add New User
+  </button>
 </div>
 
 <!-- Filters Section -->
@@ -489,13 +494,16 @@
                 </span>
               </td>
               <td>
-                @if($user->is_active)
+                @php
+                  $isUserActive = $user->is_active && ($user->business ? $user->business->is_active : true);
+                @endphp
+                @if($isUserActive)
                   <span class="badge badge-success status-badge">
                     <i class="fas fa-circle"></i> Active
                   </span>
                 @else
-                  <span class="badge badge-danger status-badge">
-                    <i class="fas fa-circle"></i> Inactive
+                  <span class="badge badge-danger status-badge" title="{{ !$user->is_active ? 'User Deactivated' : 'Business Suspended' }}">
+                    <i class="fas fa-circle"></i> Inactive {{ !$user->is_active ? '' : '(Business Suspended)' }}
                   </span>
                 @endif
               </td>
@@ -640,6 +648,81 @@
   </div>
 </div>
 
+<!-- ============================================
+     ADD USER MODAL
+     ============================================ -->
+<div id="addUserModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Add New User</h2>
+      <button class="modal-close" onclick="closeAddUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <form action="{{ route('admin.users.store') }}" method="POST">
+        @csrf
+
+        <div class="form-group">
+          <label class="form-label">Full Name <span style="color:var(--danger);">*</span></label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. John Doe" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address <span style="color:var(--danger);">*</span></label>
+          <input type="email" name="email" class="form-control" placeholder="e.g. john@example.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Phone Number</label>
+          <input type="text" name="phone" class="form-control" placeholder="e.g. +256 700 000 000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Assign to Business</label>
+          <select name="business_id" class="form-control">
+            <option value="">No Business (System Admin / Independent)</option>
+            @foreach($businesses as $b)
+              <option value="{{ $b->id }}">{{ $b->name }}</option>
+            @endforeach
+          </select>
+          <div class="form-text">Select the business this user belongs to</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">User Role <span style="color:var(--danger);">*</span></label>
+          <select name="role_id" class="form-control" required>
+            <option value="">Select a role</option>
+            @foreach($roles as $role)
+              <option value="{{ $role->id }}">{{ $role->name }}</option>
+            @endforeach
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password <span style="color:var(--danger);">*</span></label>
+          <input type="password" name="password" class="form-control" placeholder="Minimum 8 characters" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Confirm Password <span style="color:var(--danger);">*</span></label>
+          <input type="password" name="password_confirmation" class="form-control" placeholder="Repeat password" required>
+        </div>
+
+        <div class="form-group" style="display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" name="is_active" id="addUserIsActive" value="1" checked style="width:18px; height:18px;">
+          <label for="addUserIsActive" class="form-label" style="margin-bottom:0; cursor:pointer;">Set Account Active</label>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddUserModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create User
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
   const allUsersData = @json($users->items());
   let pendingAction = null;
@@ -690,7 +773,7 @@
 
       // Match status
       let matchesStatus = !statusValue || 
-        (statusValue === 'active' && statusBadge.includes('active')) || 
+        (statusValue === 'active' && statusBadge.includes('active') && !statusBadge.includes('inactive')) || 
         (statusValue === 'inactive' && statusBadge.includes('inactive'));
 
       // Match role
@@ -928,12 +1011,20 @@
     setTimeout(() => alertDiv.remove(), 5000);
   }
 
+  function openAddUserModal(){
+    document.getElementById('addUserModal').classList.add('show');
+  }
+  function closeAddUserModal(){
+    document.getElementById('addUserModal').classList.remove('show');
+  }
+
   // Close modals on escape
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
       closeViewModal();
       closeEditModal();
       closeConfirmModal();
+      closeAddUserModal();
     }
   });
 </script>

@@ -23,24 +23,39 @@
             id: {{ $product->id }},
             name: '{{ addslashes($product->name) }}',
             sku: '{{ addslashes($product->sku ?? "") }}',
+            barcode: '{{ addslashes($product->barcode ?? "") }}',
             price: {{ $product->selling_price }},
             stock: {{ $product->quantity }},
-            unit: '{{ addslashes($product->unit) }}'
+            unit: '{{ addslashes($product->unit) }}',
+            requiresVat: {{ ($product->requires_vat ?? true) ? 'true' : 'false' }}
         },
         @endforeach
     ];
 </script>
 
+<!-- HTML5 QRCode & Quagga 1D Barcode Scanner Libraries -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-hidden">
     <!-- LEFT SIDE: Selected Products Table -->
     <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4">
-        <!-- Search Field -->
+        <!-- Search Field & Camera Scanner Trigger -->
         <div class="bg-white rounded-xl shadow-lg p-4 flex-shrink-0">
-            <div class="relative w-full">
-                <input type="text" id="productSearch" autocomplete="off" placeholder="Type product name, SKU or scan barcode..." class="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
-                <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
-                <!-- Autocomplete Dropdown -->
-                <div id="searchResultsDropdown" class="hidden absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto animate-fadeIn"></div>
+            <div class="flex items-center gap-3">
+                <div class="relative flex-1">
+                    <input type="text" id="productSearch" autocomplete="off" placeholder="Type product name, SKU or scan barcode (USB scanner ready)..." class="w-full px-4 py-3 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 font-medium">
+                    <i class="fas fa-search absolute left-3 top-4 text-gray-400"></i>
+                    <!-- Autocomplete Dropdown -->
+                    <div id="searchResultsDropdown" class="hidden absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-60 overflow-y-auto animate-fadeIn"></div>
+                </div>
+
+                <!-- Camera Barcode Scanner Button -->
+                <button type="button" onclick="openCameraScanner()" 
+                        class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-lg shadow transition flex items-center gap-2 shrink-0">
+                    <i class="fas fa-camera text-base text-yellow-300"></i>
+                    <span class="hidden sm:inline">Scan Camera</span>
+                </button>
             </div>
         </div>
 
@@ -195,9 +210,332 @@
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full" id="receiptContent"></div>
 </div>
 
+<!-- Camera Barcode Scanner Modal -->
+<div id="cameraScannerModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
+        <div class="bg-indigo-900 text-white px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-camera text-yellow-400 text-xl"></i>
+                <h3 class="font-extrabold text-lg">Camera Barcode Scanner</h3>
+            </div>
+            <button type="button" onclick="closeCameraScanner()" class="text-white hover:text-yellow-400 text-xl transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 text-center">
+            <!-- Camera Device Selector -->
+            <div id="cameraSelectContainer" class="hidden text-left mb-2">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Select Camera Device:</label>
+                <select id="cameraSelectDropdown" onchange="switchCamera(this.value)" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-indigo-500"></select>
+            </div>
+
+            <div id="cameraViewfinder" class="w-full h-64 bg-slate-900 rounded-xl overflow-hidden relative border-2 border-indigo-500 shadow-inner"></div>
+            
+            <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-left space-y-1">
+                <p class="text-xs text-indigo-900 font-bold flex items-center gap-1.5">
+                    <i class="fas fa-lightbulb text-yellow-500"></i> Scanning Tips for Webcams:
+                </p>
+                <ul class="text-[11px] text-indigo-800 space-y-0.5 list-disc list-inside">
+                    <li>Hold barcode 15–20 cm away in good lighting (avoid glare/reflections).</li>
+                    <li>Align horizontal barcode lines clearly inside the scan frame box.</li>
+                    <li>For handheld USB barcode guns or typing, scan directly into the search bar.</li>
+                </ul>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t flex flex-col sm:flex-row justify-between items-center gap-3">
+            <span class="text-xs text-gray-700 font-extrabold flex items-center gap-1.5" id="camScanStatus">
+                <i class="fas fa-circle-notch fa-spin text-indigo-600"></i> Initializing camera…
+            </span>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+                <input type="text" id="modalTestBarcode" placeholder="Or type test barcode & press Enter…" 
+                       onkeydown="if(event.key==='Enter'){ handleScannedBarcode(this.value); closeCameraScanner(); }" 
+                       class="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-mono flex-1 sm:w-56 focus:ring-2 focus:ring-indigo-500">
+                <button type="button" onclick="closeCameraScanner()" class="px-4 py-1.5 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300 text-xs shrink-0">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
 let cart = [];
+let html5QrcodeScanner = null;
+let currentCameraId = null;
+let frameScanCounter = 0;
+
+// Audio Beep Feedback
+function playBeepSound() {
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 987.77; // B5 tone
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.12);
+    } catch(e) {}
+}
+
+function getScannerConfig() {
+    const config = {
+        fps: 15,
+        qrbox: { width: 260, height: 140 }
+    };
+
+    if (window.Html5QrcodeSupportedFormats) {
+        try {
+            config.formatsToSupport = [
+                Html5QrcodeSupportedFormats.EAN_13,
+                Html5QrcodeSupportedFormats.EAN_8,
+                Html5QrcodeSupportedFormats.UPC_A,
+                Html5QrcodeSupportedFormats.UPC_E,
+                Html5QrcodeSupportedFormats.CODE_128,
+                Html5QrcodeSupportedFormats.CODE_39,
+                Html5QrcodeSupportedFormats.QR_CODE
+            ];
+        } catch(e) {}
+    }
+    return config;
+}
+
+let isQuaggaRunning = false;
+
+function openCameraScanner() {
+    const modal = document.getElementById('cameraScannerModal');
+    modal.classList.remove('hidden');
+    
+    const statusEl = document.getElementById('camScanStatus');
+    statusEl.innerHTML = '<i class="fas fa-circle-notch fa-spin text-indigo-600"></i> Requesting webcam permission…';
+    frameScanCounter = 0;
+
+    setTimeout(() => {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.stop().catch(() => {}).finally(() => {
+                html5QrcodeScanner = null;
+                initAndStartCamera(statusEl);
+            });
+        } else {
+            initAndStartCamera(statusEl);
+        }
+    }, 150);
+}
+
+function initAndStartCamera(statusEl) {
+    try {
+        html5QrcodeScanner = new Html5Qrcode("cameraViewfinder");
+        const config = getScannerConfig();
+
+        Html5Qrcode.getCameras().then(devices => {
+            if (devices && devices.length > 0) {
+                const dropdown = document.getElementById('cameraSelectDropdown');
+                const container = document.getElementById('cameraSelectContainer');
+                dropdown.innerHTML = '';
+                
+                devices.forEach((dev, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = dev.id;
+                    opt.textContent = dev.label || (`Camera ${idx + 1}`);
+                    dropdown.appendChild(opt);
+                });
+
+                if (devices.length > 1) {
+                    container.classList.remove('hidden');
+                }
+
+                currentCameraId = devices[0].id;
+                dropdown.value = currentCameraId;
+
+                html5QrcodeScanner.start(
+                    currentCameraId,
+                    config,
+                    onCameraScanSuccess,
+                    onCameraScanFailure
+                ).then(() => {
+                    statusEl.innerHTML = '<i class="fas fa-video text-emerald-500"></i> Camera active. Point barcode at laser frame…';
+                    startQuaggaScanner(statusEl, currentCameraId);
+                }).catch(err => {
+                    console.error('Camera start error:', err);
+                    statusEl.innerHTML = '⚠️ Camera start error: ' + (err.message || err);
+                    startQuaggaScanner(statusEl, null);
+                });
+            } else {
+                statusEl.innerHTML = '⚠️ No webcam device detected on this computer.';
+            }
+        }).catch(err => {
+            console.error('getCameras error:', err);
+            html5QrcodeScanner.start(
+                { facingMode: "user" },
+                config,
+                onCameraScanSuccess,
+                onCameraScanFailure
+            ).then(() => {
+                statusEl.innerHTML = '<i class="fas fa-video text-emerald-500"></i> Camera active. Point barcode at laser frame…';
+                startQuaggaScanner(statusEl, null);
+            }).catch(err2 => {
+                statusEl.innerHTML = '⚠️ Camera blocked or insecure origin. Note: Webcams require http://localhost or HTTPS.';
+            });
+        });
+    } catch(e) {
+        console.error('openCameraScanner exception:', e);
+        statusEl.innerHTML = '⚠️ Camera init error: ' + e.message;
+    }
+}
+
+function startQuaggaScanner(statusEl, deviceId) {
+    if (typeof Quagga === 'undefined' || isQuaggaRunning) return;
+
+    const constraints = deviceId ? { deviceId: { exact: deviceId } } : { facingMode: "environment" };
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#cameraViewfinder'),
+            constraints: {
+                ...constraints,
+                width: { min: 640, ideal: 1280 },
+                height: { min: 480, ideal: 720 }
+            }
+        },
+        decoder: {
+            readers: [
+                "ean_reader",
+                "ean_8_reader",
+                "upc_reader",
+                "upc_e_reader",
+                "code_128_reader",
+                "code_39_reader"
+            ]
+        },
+        locate: true,
+        numOfWorkers: 2
+    }, function(err) {
+        if (err) return;
+        Quagga.start();
+        isQuaggaRunning = true;
+    });
+
+    Quagga.onDetected(function(result) {
+        if (result && result.codeResult && result.codeResult.code) {
+            const code = result.codeResult.code.trim();
+            if (code && code.length >= 3) {
+                playBeepSound();
+                handleScannedBarcode(code);
+                closeCameraScanner();
+            }
+        }
+    });
+}
+
+function onCameraScanSuccess(decodedText, decodedResult) {
+    playBeepSound();
+    handleScannedBarcode(decodedText);
+    closeCameraScanner();
+}
+
+function onCameraScanFailure(error) {
+    frameScanCounter++;
+    const statusEl = document.getElementById('camScanStatus');
+    if (statusEl && frameScanCounter % 8 === 0) {
+        statusEl.innerHTML = `<span class="text-emerald-700 font-extrabold flex items-center gap-1.5"><i class="fas fa-satellite-dish text-emerald-600 fa-pulse"></i> Scanning 1D Barcode Feed (Frame #${frameScanCounter})… Hold barcode steady</span>`;
+    }
+}
+
+function closeCameraScanner() {
+    if (isQuaggaRunning && typeof Quagga !== 'undefined') {
+        try { Quagga.stop(); } catch(e) {}
+        isQuaggaRunning = false;
+    }
+    if (html5QrcodeScanner) {
+        html5QrcodeScanner.stop().catch(() => {}).finally(() => {
+            document.getElementById('cameraScannerModal').classList.add('hidden');
+        });
+    } else {
+        document.getElementById('cameraScannerModal').classList.add('hidden');
+    }
+}
+
+function showScanToast(message, type = 'success') {
+    let toast = document.getElementById('posScanToast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'posScanToast';
+        document.body.appendChild(toast);
+    }
+
+    if (type === 'success') {
+        toast.className = 'fixed top-5 right-5 z-50 px-5 py-3.5 rounded-xl shadow-2xl font-extrabold text-sm transition-all duration-300 flex items-center gap-3 bg-emerald-600 text-white border border-emerald-400';
+    } else {
+        toast.className = 'fixed top-5 right-5 z-50 px-5 py-3.5 rounded-xl shadow-2xl font-extrabold text-sm transition-all duration-300 flex items-center gap-3 bg-red-600 text-white border border-red-400';
+    }
+
+    toast.innerHTML = message;
+    toast.style.display = 'flex';
+
+    setTimeout(() => {
+        toast.style.display = 'none';
+    }, 4000);
+}
+
+// Handle Scanned Barcode (from Camera, USB/Bluetooth Scanner Gun, or Search Field)
+function handleScannedBarcode(barcode) {
+    const cleanBarcode = barcode.trim().toLowerCase();
+    if (!cleanBarcode) return;
+
+    const matchedProduct = allProducts.find(p => 
+        (p.barcode && p.barcode.trim().toLowerCase() === cleanBarcode) ||
+        (p.sku && p.sku.trim().toLowerCase() === cleanBarcode) ||
+        (p.name && p.name.trim().toLowerCase() === cleanBarcode)
+    );
+
+    if (matchedProduct) {
+        playBeepSound();
+        addToCart(matchedProduct.id, matchedProduct.name, matchedProduct.price, matchedProduct.unit, matchedProduct.stock, matchedProduct.requiresVat);
+        if (document.getElementById('productSearch')) {
+            document.getElementById('productSearch').value = '';
+        }
+        showScanToast(`<i class="fas fa-check-circle text-lg"></i> Product "${matchedProduct.name}" added to cart for checkout!`, 'success');
+    } else {
+        showScanToast(`<i class="fas fa-exclamation-triangle text-lg"></i> ⚠️ No product record found in database matching barcode/SKU: "${barcode}"`, 'error');
+    }
+}
+
+// External Hardware USB / Bluetooth Scanner HID Keyboard Buffer Listener
+let hardwareBarcodeBuffer = '';
+let lastKeyTime = 0;
+
+document.addEventListener('keydown', function(e) {
+    const currentTime = new Date().getTime();
+    const activeEl = document.activeElement;
+    
+    // Allow standard typing in form inputs other than productSearch
+    if (activeEl && activeEl.tagName === 'INPUT' && activeEl.id !== 'productSearch' && activeEl.type !== 'button') {
+        return;
+    }
+
+    if (currentTime - lastKeyTime > 80) {
+        hardwareBarcodeBuffer = '';
+    }
+    lastKeyTime = currentTime;
+
+    if (e.key === 'Enter') {
+        if (hardwareBarcodeBuffer.length >= 3) {
+            e.preventDefault();
+            playBeepSound();
+            handleScannedBarcode(hardwareBarcodeBuffer);
+            hardwareBarcodeBuffer = '';
+            if (document.getElementById('productSearch')) {
+                document.getElementById('productSearch').value = '';
+            }
+        }
+    } else if (e.key.length === 1) {
+        hardwareBarcodeBuffer += e.key;
+    }
+});
 
 function toggleCustomerFields() {
     const option = document.querySelector('input[name="customer_option"]:checked').value;
@@ -227,7 +565,7 @@ function togglePaymentType() {
     calculateChange();
 }
 
-function addToCart(id, name, price, unit, maxStock) {
+function addToCart(id, name, price, unit, maxStock, requiresVat = true) {
     if (maxStock <= 0) {
         alert('Cannot add! Product is out of stock.');
         return;
@@ -240,7 +578,7 @@ function addToCart(id, name, price, unit, maxStock) {
         }
         existingItem.quantity++;
     } else {
-        cart.push({id, name, price, quantity: 1, unit, maxStock});
+        cart.push({id, name, price, quantity: 1, unit, maxStock, requiresVat});
     }
     renderCart();
     updateTotals();
@@ -299,11 +637,17 @@ function renderCart() {
     if (checkoutBtn) checkoutBtn.disabled = false;
     let html = '';
     cart.forEach(item => {
+        const itemVat = item.requiresVat ? (item.price * item.quantity * 0.18) : 0;
+        const vatBadge = item.requiresVat 
+            ? `<span class="inline-flex items-center gap-1 mt-1 text-[11px] bg-amber-100 text-amber-900 border border-amber-300 font-extrabold px-2 py-0.5 rounded-full"><i class="fas fa-percent text-[10px]"></i> VAT (18%): +UGX ${itemVat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` 
+            : `<span class="inline-flex items-center gap-1 mt-1 text-[11px] bg-gray-100 text-gray-600 border border-gray-200 font-semibold px-2 py-0.5 rounded-full">Exempt / No VAT</span>`;
+
         html += `
             <tr class="hover:bg-gray-50 transition">
                 <td class="px-4 py-3 font-semibold text-gray-900">
-                    ${item.name}
-                    <span class="text-xs text-gray-500 block font-mono">Max Stock: ${item.maxStock} ${item.unit}</span>
+                    <div>${item.name}</div>
+                    ${vatBadge}
+                    <span class="text-xs text-gray-500 block font-mono mt-0.5">Max Stock: ${item.maxStock} ${item.unit}</span>
                 </td>
                 <td class="px-4 py-3 text-right text-gray-800 font-medium">
                     UGX ${item.price.toLocaleString()}
@@ -344,16 +688,21 @@ function renderCart() {
 function updateTotals() {
     const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
-    let tax = 0;
-    const addTax = document.getElementById('addTaxCheckbox').checked;
-    if (addTax) {
-        const taxableAmount = subtotal - discount;
+    
+    // Automatically calculate VAT for products with requiresVat = true
+    const autoItemVat = cart.reduce((sum, item) => sum + (item.requiresVat ? (item.price * item.quantity * 0.18) : 0), 0);
+    const manualAddTax = document.getElementById('addTaxCheckbox').checked;
+    
+    let tax = autoItemVat;
+    if (manualAddTax && autoItemVat === 0) {
+        const taxableAmount = Math.max(0, subtotal - discount);
         tax = taxableAmount * 0.18;
     }
+    
     const total = subtotal - discount + tax;
     document.getElementById('subtotalAmount').textContent = subtotal.toLocaleString();
-    document.getElementById('taxAmount').textContent = tax.toLocaleString();
-    document.getElementById('totalAmount').textContent = total.toLocaleString();
+    document.getElementById('taxAmount').textContent = tax.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    document.getElementById('totalAmount').textContent = total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
     calculateChange();
 }
 
@@ -642,11 +991,12 @@ searchInput.addEventListener('input', function() {
 
     const matches = allProducts.filter(p => 
         p.name.toLowerCase().includes(query) || 
-        p.sku.toLowerCase().includes(query)
+        p.sku.toLowerCase().includes(query) ||
+        (p.barcode && p.barcode.toLowerCase().includes(query))
     );
 
     if (matches.length === 0) {
-        dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm text-center">No products found</div>';
+        dropdown.innerHTML = '<div class="p-3 text-red-500 text-sm font-semibold text-center"><i class="fas fa-exclamation-circle mr-1"></i> No matching product found in database</div>';
         dropdown.classList.remove('hidden');
         return;
     }
@@ -660,6 +1010,7 @@ searchInput.addEventListener('input', function() {
                 <div>
                     <span class="font-semibold text-gray-900">${p.name}</span>
                     <span class="text-xs text-gray-500 font-mono ml-2">SKU: ${p.sku || 'N/A'}</span>
+                    ${p.barcode ? `<span class="text-xs text-indigo-600 font-mono ml-2 font-bold"><i class="fas fa-qrcode text-[10px] mr-0.5"></i>${p.barcode}</span>` : ''}
                 </div>
                 <div class="text-right">
                     <span class="font-bold text-gray-950">UGX ${p.price.toLocaleString()}</span>
@@ -679,7 +1030,7 @@ dropdown.addEventListener('click', function(e) {
         const id = parseInt(item.dataset.id);
         const product = allProducts.find(p => p.id === id);
         if (product) {
-            addToCart(product.id, product.name, product.price, product.unit, product.stock);
+            addToCart(product.id, product.name, product.price, product.unit, product.stock, product.requiresVat);
             searchInput.value = '';
             dropdown.classList.add('hidden');
             dropdown.innerHTML = '';
@@ -706,10 +1057,12 @@ document.addEventListener('keydown', function(e) {
                 e.preventDefault();
                 activeSearchIndex = (activeSearchIndex + 1) % items.length;
                 highlightSearchItem(items);
+                return;
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault();
                 activeSearchIndex = (activeSearchIndex - 1 + items.length) % items.length;
                 highlightSearchItem(items);
+                return;
             } else if (e.key === 'Enter') {
                 e.preventDefault();
                 const activeItem = items[activeSearchIndex];
@@ -717,11 +1070,12 @@ document.addEventListener('keydown', function(e) {
                     const id = parseInt(activeItem.dataset.id);
                     const product = allProducts.find(p => p.id === id);
                     if (product) {
-                        addToCart(product.id, product.name, product.price, product.unit, product.stock);
+                        addToCart(product.id, product.name, product.price, product.unit, product.stock, product.requiresVat);
                         searchInput.value = '';
                         dropdown.classList.add('hidden');
                         dropdown.innerHTML = '';
                         searchInput.focus();
+                        return;
                     }
                 }
             } else if (e.key === 'Escape') {
@@ -730,7 +1084,18 @@ document.addEventListener('keydown', function(e) {
                 dropdown.classList.add('hidden');
                 dropdown.innerHTML = '';
                 searchInput.focus();
+                return;
             }
+        }
+    }
+
+    // Direct Enter key press inside search box when no items or dropdown active
+    if (isSearchFocused && e.key === 'Enter') {
+        const query = searchInput.value.trim();
+        if (query) {
+            e.preventDefault();
+            dropdown.classList.add('hidden');
+            handleScannedBarcode(query);
             return;
         }
     }

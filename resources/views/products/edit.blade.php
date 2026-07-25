@@ -9,42 +9,91 @@
 @section('content')
 
 <script>
-    // Define functions immediately so they're available for inline handlers
     function toggleCategoryInput(option) {
         const existingDiv = document.getElementById('existingCategoryDiv');
         const newDiv = document.getElementById('newCategoryDiv');
         const categorySelect = document.getElementById('category_id');
         const newCategoryInput = document.getElementById('new_category_name');
 
+        if (!existingDiv || !newDiv) return;
+
         if (option === 'existing') {
             existingDiv.style.display = 'block';
             newDiv.style.display = 'none';
-            categorySelect.disabled = false;
-            newCategoryInput.disabled = true;
-            newCategoryInput.required = false;
-            newCategoryInput.value = '';
+            if (categorySelect) categorySelect.disabled = false;
+            if (newCategoryInput) {
+                newCategoryInput.disabled = true;
+                newCategoryInput.required = false;
+            }
         } else {
             existingDiv.style.display = 'none';
             newDiv.style.display = 'block';
-            categorySelect.disabled = true;
-            categorySelect.value = '';
-            newCategoryInput.disabled = false;
-            newCategoryInput.required = true;
-            setTimeout(() => newCategoryInput.focus(), 100);
+            if (categorySelect) categorySelect.disabled = true;
+            if (newCategoryInput) {
+                newCategoryInput.disabled = false;
+                newCategoryInput.required = true;
+                setTimeout(() => newCategoryInput.focus(), 100);
+            }
         }
     }
 
     function toggleExpiryFields(checkbox) {
         const expiryFields = document.getElementById('expiryFields');
-        if (checkbox.checked) {
-            expiryFields.style.display = 'block';
-        } else {
-            expiryFields.style.display = 'none';
-        }
+        if (!expiryFields) return;
+        expiryFields.style.display = checkbox.checked ? 'block' : 'none';
     }
+
+    function updateVatCalculation() {
+        const sellingInput = document.getElementById('sellingPriceInput');
+        const vatToggle = document.getElementById('requiresVatToggle');
+        const vatBox = document.getElementById('vatCalculationBox');
+        if (!sellingInput || !vatToggle || !vatBox) return;
+
+        const priceInput = parseFloat(sellingInput.value) || 0;
+        const requiresVat = vatToggle.checked;
+        
+        if (!requiresVat) {
+            vatBox.style.opacity = '0.5';
+            document.getElementById('previewExclVat').innerText = 'UGX 0';
+            document.getElementById('previewVatAmount').innerText = 'UGX 0';
+            document.getElementById('previewInclVat').innerText = 'UGX 0';
+            return;
+        }
+
+        vatBox.style.opacity = '1';
+        const vatRate = 0.18;
+        const vatAmount = priceInput * vatRate;
+        const total = priceInput + vatAmount;
+
+        document.getElementById('previewExclVat').innerText = 'UGX ' + priceInput.toLocaleString();
+        document.getElementById('previewVatAmount').innerText = 'UGX ' + vatAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        document.getElementById('previewInclVat').innerText = 'UGX ' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateVatCalculation();
+    });
 </script>
-<div class="max-w-4xl mx-auto">
+
+<div class="max-w-7xl mx-auto w-full">
     <div class="bg-white rounded-xl shadow-lg p-6">
+        
+        <!-- Display Validation Errors -->
+        @if ($errors->any())
+            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <div class="flex items-start">
+                    <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
+                    <div>
+                        <h3 class="font-semibold text-red-800 mb-2">Validation Errors</h3>
+                        <ul class="list-disc list-inside space-y-1 text-red-700 text-sm">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        @endif
         
         <form method="POST" action="{{ route('products.update', $product) }}" enctype="multipart/form-data">
             @csrf
@@ -76,10 +125,11 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-qrcode text-indigo-600 mr-1"></i>
-                        Barcode (Optional)
+                        Barcode / ISBN
                     </label>
                     <input type="text" name="barcode" value="{{ old('barcode', $product->barcode) }}"
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 font-mono"
+                           placeholder="Scan or type barcode">
                 </div>
 
                 <!-- Category Section -->
@@ -186,8 +236,42 @@
                         <i class="fas fa-tag text-green-600 mr-1"></i>
                         Selling Price (UGX) <span class="text-red-500">*</span>
                     </label>
-                    <input type="number" name="selling_price" value="{{ old('selling_price', $product->selling_price) }}" required min="0" step="0.01"
+                    <input type="number" name="selling_price" id="sellingPriceInput" value="{{ old('selling_price', $product->selling_price) }}" required min="0" step="0.01" oninput="updateVatCalculation()"
                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <!-- ✅ VAT TOGGLE & CALCULATION PREVIEW -->
+                <div class="md:col-span-2 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg">
+                                <i class="fas fa-percent"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-extrabold text-gray-900 text-base">VAT Configuration</h4>
+                                <p class="text-xs text-gray-600 font-medium">Select if this product is subject to Value Added Tax (VAT)</p>
+                            </div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" name="requires_vat" id="requiresVatToggle" value="1" {{ old('requires_vat', $product->requires_vat ?? true) ? 'checked' : '' }} onchange="updateVatCalculation()" class="sr-only peer">
+                            <div class="w-14 h-7 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                        </label>
+                    </div>
+
+                    <div id="vatCalculationBox" class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-indigo-200 text-sm">
+                        <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                            <span class="text-xs text-gray-500 font-semibold uppercase block">Selling Price (Excl. VAT)</span>
+                            <span class="text-base font-extrabold text-gray-900" id="previewExclVat">UGX 0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                            <span class="text-xs text-indigo-600 font-semibold uppercase block">VAT Amount (18%)</span>
+                            <span class="text-base font-extrabold text-indigo-700" id="previewVatAmount">UGX 0</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
+                            <span class="text-xs text-emerald-600 font-semibold uppercase block">Final Total Price (Incl. VAT)</span>
+                            <span class="text-base font-extrabold text-emerald-700" id="previewInclVat">UGX 0</span>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Reorder Level -->
@@ -285,9 +369,10 @@
                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     <i class="fas fa-times mr-2"></i>Cancel
                 </a>
-                <button type="submit" 
-                        class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
-                    <i class="fas fa-save mr-2"></i>Update Product
+                <button type="submit" id="submitBtn"
+                        class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2">
+                    <i class="fas fa-save mr-2"></i>
+                    <span id="submitText">Update Product</span>
                 </button>
             </div>
         </form>
@@ -295,21 +380,32 @@
     </div>
 </div>
 
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize category display on page load
-        const checkedRadio = document.querySelector('input[name="category_option"]:checked');
-        if (checkedRadio) {
-            toggleCategoryInput(checkedRadio.value);
-        }
+<!-- HTML5 QRCode Camera Scanner Library -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-        // Initialize expiry fields
-        const trackExpiryCheckbox = document.getElementById('track_expiry');
-        if (trackExpiryCheckbox && trackExpiryCheckbox.checked) {
-            toggleExpiryFields(trackExpiryCheckbox);
-        }
-    });
-</script>
-@endpush
+<!-- Camera Barcode Scanner Modal -->
+<div id="fieldCameraScannerModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
+        <div class="bg-indigo-900 text-white px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-camera text-yellow-400 text-xl"></i>
+                <h3 class="font-extrabold text-lg">Scan Product Barcode</h3>
+            </div>
+            <button type="button" onclick="closeFieldCameraScanner()" class="text-white hover:text-yellow-400 text-xl transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="p-6 space-y-4 text-center">
+            <div id="fieldCameraViewfinder" class="w-full h-64 bg-slate-900 rounded-xl overflow-hidden relative border-2 border-indigo-500 shadow-inner"></div>
+            <p class="text-xs text-gray-600 font-semibold">Point camera at product barcode. Scanned barcode will automatically fill the form input.</p>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t flex justify-between items-center">
+            <span class="text-xs text-gray-600 font-bold" id="fieldCamScanStatus">Initializing camera…</span>
+            <button type="button" onclick="closeFieldCameraScanner()" class="px-5 py-2 bg-gray-200 text-gray-800 font-bold rounded-lg hover:bg-gray-300 text-sm">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 @endsection

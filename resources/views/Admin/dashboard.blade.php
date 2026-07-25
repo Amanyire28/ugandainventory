@@ -402,23 +402,7 @@
     </div>
   </div>
 
-  <!-- Suspended Users -->
-  <div class="stat-card rose">
-    <div class="stat-header">
-      <span class="stat-label">Inactive Users</span>
-      <div class="stat-icon-wrapper">
-        <i class="fas fa-user-minus"></i>
-      </div>
-    </div>
-    <div class="stat-body">
-      <span class="stat-number">{{ $stats['inactive_users'] }}</span>
-      <span class="stat-meta" style="color: var(--danger);">
-        <i class="fas fa-ban mr-1"></i> {{ round(($stats['inactive_users'] / max($stats['total_users'], 1)) * 100) }}% Deactivated
-      </span>
-    </div>
-  </div>
-
-  <!-- Total Businesses / Tenants -->
+  <!-- Active Businesses -->
   <div class="stat-card violet">
     <div class="stat-header">
       <span class="stat-label">Active Businesses</span>
@@ -427,38 +411,28 @@
       </div>
     </div>
     <div class="stat-body">
-      <span class="stat-number">{{ $stats['total_businesses'] }}</span>
-      <span class="stat-meta"><i class="fas fa-chart-line mr-1"></i> Registered Tenants</span>
+      <span class="stat-number">{{ $stats['active_businesses'] }}</span>
+      <span class="stat-meta" style="color: var(--success);"><i class="fas fa-arrow-up mr-1"></i> {{ round(($stats['active_businesses'] / max($stats['total_businesses'], 1)) * 100) }}% Active Ratio</span>
     </div>
   </div>
 
-  <!-- Admin Users -->
-  <div class="stat-card amber">
+  <!-- Inactive Businesses -->
+  <div class="stat-card rose">
     <div class="stat-header">
-      <span class="stat-label">System Admins</span>
+      <span class="stat-label">Inactive Businesses</span>
       <div class="stat-icon-wrapper">
-        <i class="fas fa-user-shield"></i>
+        <i class="fas fa-store-slash"></i>
       </div>
     </div>
     <div class="stat-body">
-      <span class="stat-number">{{ $stats['total_admins'] }}</span>
-      <span class="stat-meta"><i class="fas fa-circle mr-1" style="font-size: 8px; color: var(--success)"></i> {{ $stats['admins_active'] }} Active Admins</span>
+      <span class="stat-number">{{ $stats['inactive_businesses'] }}</span>
+      <span class="stat-meta" style="color: var(--danger);">
+        <i class="fas fa-ban mr-1"></i> {{ round(($stats['inactive_businesses'] / max($stats['total_businesses'], 1)) * 100) }}% Suspended
+      </span>
     </div>
   </div>
 
-  <!-- 2FA Enabled -->
-  <div class="stat-card cyan">
-    <div class="stat-header">
-      <span class="stat-label">2FA Protected</span>
-      <div class="stat-icon-wrapper">
-        <i class="fas fa-shield-alt"></i>
-      </div>
-    </div>
-    <div class="stat-body">
-      <span class="stat-number">{{ $twoFactorStats['users_2fa_enabled'] + $twoFactorStats['admins_2fa_enabled'] }}</span>
-      <span class="stat-meta" style="color: var(--info);"><i class="fas fa-lock mr-1"></i> Two-Factor Enabled</span>
-    </div>
-  </div>
+
 </div>
 
 <!-- Tables Section -->

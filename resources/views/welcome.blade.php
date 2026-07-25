@@ -634,6 +634,45 @@
                         @endif
                     </div>
 
+                    <div class="md:col-span-2">
+                        <label for="subscription_plan" class="block text-sm font-bold text-gray-800 mb-1">
+                            <i class="fas fa-crown text-amber-500 mr-1"></i> Select Subscription Plan <span class="text-red-500">*</span>
+                        </label>
+                        <select id="subscription_plan" name="subscription_plan" required onchange="updatePlanNote()"
+                                class="block w-full px-4 py-3 border border-indigo-300 bg-indigo-50/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-gray-900">
+                            <option value="">-- Choose Subscription Plan --</option>
+                            @foreach($packages ?? [] as $pkg)
+                                <option value="{{ $pkg->slug }}"
+                                        data-name="{{ $pkg->name }}"
+                                        data-price="UGX {{ number_format($pkg->price) }}"
+                                        data-desc="{{ $pkg->description ?? '' }}"
+                                        data-features="{{ !empty($pkg->features) ? implode(', ', array_map('ucfirst', $pkg->features)) : '' }}"
+                                        {{ (old('_form_type') == 'register' && old('subscription_plan') == $pkg->slug) ? 'selected' : '' }}>
+                                    {{ $pkg->name }} — UGX {{ number_format($pkg->price) }} / month
+                                </option>
+                            @endforeach
+                        </select>
+
+                        {{-- Dynamic Note Box shown when plan is selected --}}
+                        <div id="selectedPlanNote" class="hidden mt-3 p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 shadow-sm space-y-1.5">
+                            <div class="font-extrabold text-indigo-950 flex items-center justify-between text-sm">
+                                <span id="notePlanName"><i class="fas fa-crown text-amber-500 mr-1"></i> Selected Plan</span>
+                                <span id="notePlanPrice" class="text-indigo-700 font-extrabold"></span>
+                            </div>
+                            <div id="notePlanDesc" class="text-gray-700 font-medium"></div>
+                            <div id="notePlanFeatures" class="text-gray-600 font-normal"></div>
+                            <div class="text-[11px] font-semibold text-amber-800 bg-amber-100/90 px-3 py-1 rounded-lg border border-amber-200 mt-1">
+                                <i class="fas fa-info-circle mr-1 text-amber-600"></i> Payment is optional at signup. You can log in immediately; operational features unlock upon Admin payment confirmation.
+                            </div>
+                        </div>
+
+                        @if(old('_form_type') == 'register')
+                            @error('subscription_plan')
+                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+
                     <div>
                         <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
                             <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
@@ -720,6 +759,33 @@
     </div>
 
     <script>
+        function updatePlanNote() {
+            const planSelect = document.getElementById('subscription_plan');
+            const noteBox = document.getElementById('selectedPlanNote');
+            const noteName = document.getElementById('notePlanName');
+            const notePrice = document.getElementById('notePlanPrice');
+            const noteDesc = document.getElementById('notePlanDesc');
+            const noteFeatures = document.getElementById('notePlanFeatures');
+
+            if (!planSelect || !noteBox) return;
+
+            const selected = planSelect.options[planSelect.selectedIndex];
+            if (selected && selected.value) {
+                const name = selected.getAttribute('data-name');
+                const price = selected.getAttribute('data-price');
+                const desc = selected.getAttribute('data-desc');
+                const features = selected.getAttribute('data-features');
+
+                noteName.innerHTML = '<i class="fas fa-crown text-amber-500 mr-1"></i> ' + name;
+                notePrice.textContent = price + ' / month';
+                noteDesc.textContent = desc ? desc : '';
+                noteFeatures.textContent = features ? ('Included Features: ' + features) : '';
+                noteBox.classList.remove('hidden');
+            } else {
+                noteBox.classList.add('hidden');
+            }
+        }
+
         function openLoginModal(e) {
             if(e) e.preventDefault();
             document.getElementById('loginModal').classList.remove('hidden');
@@ -732,6 +798,7 @@
             if(e) e.preventDefault();
             document.getElementById('registerModal').classList.remove('hidden');
             document.getElementById('loginModal').classList.add('hidden');
+            updatePlanNote();
         }
         function closeRegisterModal() {
             document.getElementById('registerModal').classList.add('hidden');

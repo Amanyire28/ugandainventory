@@ -61,6 +61,26 @@
     </div>
   @endif
 
+  {{-- ── Features Locked Banner if Subscription Unconfirmed ── --}}
+  @if(!auth()->user()->isAdmin() && !optional(auth()->user()->business)->isSubscriptionActive())
+    <div class="reveal visible bg-amber-50 border-2 border-amber-300 text-amber-950 p-5 mb-6 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-amber-200 text-amber-900 rounded-xl flex items-center justify-center text-lg font-bold shrink-0">
+          <i class="fas fa-lock"></i>
+        </div>
+        <div>
+          <h4 class="font-extrabold text-base text-amber-950">Subscription Unconfirmed — Features Locked</h4>
+          <p class="text-xs text-amber-900 font-medium mt-0.5">
+            Your business is registered under the <strong>{{ ucfirst(optional(auth()->user()->business)->subscription_plan ?? 'selected') }}</strong> plan. Payment is optional at registration so you can access your account, but <strong>all operational features (POS, Invoicing, Sales, Stock, Reports) remain locked</strong> until your subscription payment is confirmed by the Admin.
+          </p>
+        </div>
+      </div>
+      <a href="{{ route('subscription.index') }}" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all whitespace-nowrap shrink-0">
+        <i class="fas fa-credit-card mr-1"></i> Make Payment / Select Plan
+      </a>
+    </div>
+  @endif
+
   <!-- Filters -->
   <div class="card reveal mb-6" data-delay="100">
     <div class="flex flex-wrap items-center justify-between gap-3">

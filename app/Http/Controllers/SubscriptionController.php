@@ -44,15 +44,24 @@ class SubscriptionController extends Controller
         }
 
         $data = $request->validate([
-            'package_slug'   => 'required|string|exists:packages,slug',
-            'amount'         => 'required|numeric|min:0',
-            'payment_method' => 'required|string',
-            'reference'      => 'nullable|string|max:255',
-            'notes'          => 'nullable|string|max:1000',
-            'period_start'   => 'nullable|date',
-            'period_end'     => 'nullable|date',
-            'proof_image'    => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // max 5MB
+            'package_slug'    => 'required|string|exists:packages,slug',
+            'duration_months' => 'nullable|integer|min:1|max:12',
+            'amount'          => 'required|numeric|min:0',
+            'payment_method'  => 'required|string',
+            'reference'       => 'nullable|string|max:255',
+            'notes'           => 'nullable|string|max:1000',
+            'proof_image'     => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // max 5MB
         ]);
+
+        $months = (int) ($data['duration_months'] ?? 1);
+
+        // Compute start & end dates automatically based on current subscription status & duration
+        $startDate = ($business->subscription_expires_at && $business->subscription_expires_at->isFuture()) 
+            ? $business->subscription_expires_at->copy() 
+            : now();
+
+        $periodStart = $startDate->toDateString();
+        $periodEnd   = $startDate->copy()->addMonths($months)->toDateString();
 
         // Handle proof image upload
         $proofPath = null;
@@ -61,21 +70,21 @@ class SubscriptionController extends Controller
         }
 
         BusinessSubscription::create([
-            'business_id'        => $business->id,
-            'package_slug'       => $data['package_slug'],
-            'amount'             => $data['amount'],
-            'currency'           => $business->currency ?? 'UGX',
-            'status'             => 'pending',
-            'payment_method'     => $data['payment_method'],
-            'reference'          => $data['reference'] ?? null,
-            'notes'              => $data['notes'] ?? null,
-            'proof_image'        => $proofPath,
-            'submitted_by'       => 'business',
+            'business_id'          => $business->id,
+            'package_slug'         => $data['package_slug'],
+            'amount'               => $data['amount'],
+            'currency'             => $business->currency ?? 'UGX',
+            'status'               => 'pending',
+            'payment_method'       => $data['payment_method'],
+            'reference'            => $data['reference'] ?? null,
+            'notes'                => $data['notes'] ?? null,
+            'proof_image'          => $proofPath,
+            'submitted_by'         => 'business',
             'submitted_by_user_id' => $user->id,
-            'period_start'       => $data['period_start'] ?? now()->toDateString(),
-            'period_end'         => $data['period_end'] ?? now()->addMonth()->toDateString(),
+            'period_start'         => $periodStart,
+            'period_end'           => $periodEnd,
         ]);
 
-        return back()->with('success', 'Payment submitted successfully! The admin will review and approve your payment within 24 hours.');
+        return back()->with('success', 'Payment submitted successfully! The admin will review and approve your subscription within 24 hours.');
     }
 }

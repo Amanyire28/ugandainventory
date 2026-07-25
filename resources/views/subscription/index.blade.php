@@ -4,344 +4,687 @@
 @section('page-title', 'Subscription & Billing')
 
 @section('content')
-<div class="max-w-5xl mx-auto px-4 py-6 space-y-8">
+<div class="max-w-6xl mx-auto px-4 py-6 space-y-8" style="color: #0f172a;">
 
-  {{-- Flash messages --}}
+  {{-- ── Flash Notifications ─────────────────────────────────── --}}
   @if(session('success'))
-    <div class="flex items-start gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl px-5 py-4">
-      <i class="fas fa-check-circle mt-0.5 text-emerald-500"></i>
+    <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 12px; padding: 16px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px;">
+      <i class="fas fa-check-circle" style="color: #059669; font-size: 18px;"></i>
       <div>{{ session('success') }}</div>
     </div>
   @endif
+
   @if(session('error'))
-    <div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4">
-      <i class="fas fa-exclamation-circle mt-0.5 text-red-500"></i>
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 12px; padding: 16px; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 12px;">
+      <i class="fas fa-exclamation-circle" style="color: #dc2626; font-size: 18px;"></i>
       <div>{{ session('error') }}</div>
     </div>
   @endif
+
   @if($errors->any())
-    <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4">
-      <ul class="list-disc list-inside text-sm space-y-1">
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; border-radius: 12px; padding: 16px;">
+      <div style="font-weight: 800; font-size: 14px; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-triangle-exclamation" style="color: #dc2626;"></i> Please check the form errors below:
+      </div>
+      <ul style="list-style-type: disc; padding-left: 20px; font-size: 14px;">
         @foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach
       </ul>
     </div>
   @endif
 
-  {{-- ── Current Plan Card ──────────────────────────────── --}}
-  <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-2xl p-6 text-white shadow-xl">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div>
-        <div class="text-indigo-200 text-sm font-semibold uppercase tracking-widest mb-1">Current Plan</div>
-        <h2 class="text-3xl font-extrabold capitalize">
-          {{ $business->subscription_plan ?? 'Free Trial' }}
-        </h2>
-        @if($business->subscription_expires_at)
-          @php $expires = \Carbon\Carbon::parse($business->subscription_expires_at); @endphp
-          @if($expires->isPast())
-            <div class="mt-2 inline-flex items-center gap-2 bg-red-500/30 text-red-100 px-3 py-1 rounded-full text-sm font-semibold">
-              <i class="fas fa-exclamation-triangle"></i> Expired on {{ $expires->format('M d, Y') }}
+  {{-- ── 1. Formal Dark Slate Header Card with Live Countdown ────── --}}
+  <div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #ffffff; padding: 32px; border-radius: 16px; border: 1px solid #1e293b; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; overflow: hidden;">
+    <div style="display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; position: relative; z-index: 10;">
+      
+      <!-- Left: Plan Information -->
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 600px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <span style="background: rgba(99, 102, 241, 0.25); color: #c7d2fe; padding: 4px 12px; border-radius: 9999px; font-weight: 700; font-size: 12px; border: 1px solid rgba(199, 210, 254, 0.3); text-transform: uppercase; letter-spacing: 0.05em;">
+            <i class="fas fa-building" style="color: #a5b4fc; margin-right: 4px;"></i> {{ $business->name }}
+          </span>
+          <span style="color: #cbd5e1; font-size: 12px; font-weight: 600;">Official Business Account</span>
+        </div>
+
+        <div>
+          <span style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 4px;">
+            Current Subscription Plan
+          </span>
+          <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <h1 style="color: #ffffff; font-size: 32px; font-weight: 900; margin: 0; text-transform: capitalize; letter-spacing: -0.02em;">
+              {{ $business->subscription_plan ?? 'Free Trial' }}
+            </h1>
+            @if($business->isSubscriptionActive())
+              <span style="background: rgba(16, 185, 129, 0.25); color: #6ee7b7; padding: 4px 14px; border-radius: 9999px; font-weight: 800; font-size: 12px; border: 1px solid rgba(110, 231, 183, 0.4); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #34d399;"></span> Active
+              </span>
+            @else
+              <span style="background: rgba(239, 68, 68, 0.25); color: #fca5a5; padding: 4px 14px; border-radius: 9999px; font-weight: 800; font-size: 12px; border: 1px solid rgba(252, 165, 165, 0.4); display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background-color: #f87171;"></span> Expired
+              </span>
+            @endif
+          </div>
+        </div>
+
+        <!-- Renewal Information -->
+        <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px;">
+          @if($business->subscription_expires_at)
+            @php $expires = \Carbon\Carbon::parse($business->subscription_expires_at); @endphp
+            <div style="background: rgba(30, 41, 59, 0.9); color: #f1f5f9; padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fas fa-calendar-check" style="color: #818cf8;"></i>
+              <span>Next Renewal Due: <strong style="color: #ffffff; font-weight: 800;">{{ $expires->format('M d, Y') }}</strong></span>
             </div>
           @else
-            <div class="mt-2 inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-              <i class="fas fa-calendar-alt"></i> Expires {{ $expires->format('M d, Y') }} · {{ $expires->diffForHumans() }}
+            <div style="background: rgba(30, 41, 59, 0.9); color: #f1f5f9; padding: 8px 16px; border-radius: 8px; border: 1px solid #334155; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+              <i class="fas fa-infinity" style="color: #818cf8;"></i>
+              <span style="color: #ffffff; font-weight: 800;">Lifetime Subscription (No Expiry)</span>
             </div>
           @endif
-        @else
-          <div class="mt-2 inline-flex items-center gap-2 bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">
-            <i class="fas fa-infinity"></i> No expiry set
-          </div>
-        @endif
-      </div>
-      <div class="text-right">
-        @if($business->hasFeature('pos'))
-          <div class="inline-flex items-center gap-2 bg-emerald-500 px-4 py-2 rounded-full text-sm font-bold">
-            <i class="fas fa-check-circle"></i> Active
-          </div>
-        @else
-          <div class="inline-flex items-center gap-2 bg-red-500 px-4 py-2 rounded-full text-sm font-bold">
-            <i class="fas fa-lock"></i> Limited Access
-          </div>
-        @endif
-      </div>
-    </div>
-  </div>
-
-  {{-- ── Available Packages ──────────────────────────────── --}}
-  @if($packages->count())
-  <div>
-    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">Available Packages</h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      @foreach($packages as $pkg)
-      <div class="bg-white dark:bg-gray-800 border {{ $business->subscription_plan === $pkg->slug ? 'border-indigo-500 ring-2 ring-indigo-400' : 'border-gray-200 dark:border-gray-700' }} rounded-xl p-5 shadow-sm relative">
-        @if($business->subscription_plan === $pkg->slug)
-          <div class="absolute top-3 right-3 bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">Current</div>
-        @endif
-        <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1">{{ $pkg->name }}</div>
-        <div class="text-2xl font-extrabold text-gray-900 dark:text-white">UGX {{ number_format($pkg->price) }}<span class="text-sm font-normal text-gray-500"> / {{ $pkg->billing_cycle_days }} days</span></div>
-        @if($pkg->description)
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ $pkg->description }}</p>
-        @endif
-        @if(!empty($pkg->features))
-        <ul class="mt-3 space-y-1">
-          @foreach($pkg->features as $feat)
-          <li class="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
-            <i class="fas fa-check text-emerald-500 text-xs"></i> {{ ucfirst($feat) }}
-          </li>
-          @endforeach
-        </ul>
-        @endif
-      </div>
-      @endforeach
-    </div>
-  </div>
-  @endif
-
-  {{-- ── Payment Instructions ────────────────────────────── --}}
-  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-6">
-    <h3 class="font-bold text-amber-800 dark:text-amber-200 flex items-center gap-2 mb-4 text-base">
-      <i class="fas fa-info-circle"></i> Payment Instructions
-    </h3>
-    <div class="grid sm:grid-cols-2 gap-4">
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-amber-100 dark:border-amber-700">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
-            <i class="fas fa-mobile-alt text-green-600"></i>
-          </div>
-          <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">Mobile Money</div>
         </div>
-        <div class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-wide">0978 732 0647</div>
-        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">Rebecca Sarah Kasangirwe</div>
       </div>
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-4 border border-amber-100 dark:border-amber-700">
-        <div class="flex items-center gap-3 mb-2">
-          <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center">
-            <i class="fas fa-university text-blue-600"></i>
+
+      <!-- Right: Live Remaining Countdown Timer -->
+      @if($business->subscription_expires_at)
+        @php
+          $expires = \Carbon\Carbon::parse($business->subscription_expires_at);
+          $isPast = $expires->isPast();
+        @endphp
+        <div style="background: rgba(15, 23, 42, 0.95); border: 1px solid #334155; padding: 20px; border-radius: 14px; text-align: center; min-width: 280px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
+          <div style="color: #fbbf24; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fas fa-clock" style="color: #f59e0b;"></i> Remaining Duration
           </div>
-          <div class="font-bold text-gray-800 dark:text-gray-100 text-sm">Centenary Bank</div>
+
+          @if($isPast)
+            <div style="color: #f87171; font-weight: 900; font-size: 20px; padding: 8px 0;">
+              <i class="fas fa-exclamation-circle" style="margin-right: 4px;"></i> Subscription Expired
+            </div>
+            <div style="color: #94a3b8; font-size: 12px;">Renew below to restore full business access</div>
+          @else
+            <div id="countdownTimer" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center;" data-expiry="{{ $expires->toIso8601String() }}">
+              <div style="background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px 4px;">
+                <span id="countDays" style="color: #ffffff; font-size: 24px; font-weight: 900; display: block; line-height: 1.1;">00</span>
+                <span style="color: #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase;">Days</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px 4px;">
+                <span id="countHours" style="color: #ffffff; font-size: 24px; font-weight: 900; display: block; line-height: 1.1;">00</span>
+                <span style="color: #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase;">Hours</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px 4px;">
+                <span id="countMins" style="color: #ffffff; font-size: 24px; font-weight: 900; display: block; line-height: 1.1;">00</span>
+                <span style="color: #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase;">Mins</span>
+              </div>
+              <div style="background: #020617; border: 1px solid #334155; border-radius: 8px; padding: 10px 4px;">
+                <span id="countSecs" style="color: #34d399; font-size: 24px; font-weight: 900; display: block; line-height: 1.1;">00</span>
+                <span style="color: #cbd5e1; font-size: 10px; font-weight: 700; text-transform: uppercase;">Secs</span>
+              </div>
+            </div>
+            <div style="color: #cbd5e1; font-size: 11px; margin-top: 10px; font-weight: 600;">
+              <i class="fas fa-shield-halved" style="color: #34d399; margin-right: 4px;"></i> Countdown to next billing cycle
+            </div>
+          @endif
         </div>
-        <div class="text-2xl font-extrabold text-gray-900 dark:text-white tracking-wide">3204796984</div>
-        <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">MATHEW AMANYIRE</div>
-      </div>
+      @endif
     </div>
-    <p class="text-xs text-amber-700 dark:text-amber-300 mt-3">
-      <i class="fas fa-exclamation-triangle mr-1"></i>
-      After making payment, fill the form below and attach a screenshot or photo of your payment confirmation. Your subscription will be activated once the admin approves your payment.
-    </p>
   </div>
 
-  {{-- ── Submit Payment Form ──────────────────────────────── --}}
-  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center gap-3">
-      <div class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center">
-        <i class="fas fa-paper-plane text-indigo-600 dark:text-indigo-400 text-sm"></i>
+  {{-- ── 2. Formal Subscription Payment & Renewal Form (Collapsible Accordion) ── --}}
+  <div id="paymentFormSection" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+    <div onclick="togglePaymentForm()" style="background: #0f172a; padding: 18px 24px; color: #ffffff; display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: rgba(99, 102, 241, 0.25); border: 1px solid rgba(165, 180, 252, 0.4); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #a5b4fc; font-size: 18px;">
+          <i class="fas fa-file-invoice-dollar"></i>
+        </div>
+        <div>
+          <h2 style="font-weight: 900; font-size: 18px; margin: 0; color: #ffffff; tracking-tight;">Renew or Subscribe</h2>
+          <p style="font-size: 12px; margin: 2px 0 0 0; color: #cbd5e1;">Select subscription plan and duration period</p>
+        </div>
       </div>
-      <div>
-        <h3 class="font-bold text-gray-800 dark:text-gray-100">Submit Payment</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Fill this form after making your payment</p>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 12px; background: rgba(99, 102, 241, 0.25); color: #c7d2fe; padding: 4px 12px; border-radius: 9999px; border: 1px solid rgba(199, 210, 254, 0.3); font-weight: 700;" class="hidden sm:inline-block">
+          Official Business Billing
+        </span>
+        <div style="width: 34px; height: 34px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ffffff;">
+          <i id="paymentFormArrow" class="fas fa-chevron-down" style="transition: transform 0.3s ease; font-size: 14px; transform: {{ ($errors->any() || old('package_slug')) ? 'rotate(180deg)' : 'rotate(0deg)' }};"></i>
+        </div>
       </div>
     </div>
-    <div class="p-6">
-      <form method="POST" action="{{ route('subscription.pay') }}" enctype="multipart/form-data" class="space-y-5">
+
+    <div id="paymentFormBody" style="padding: 24px 32px; display: {{ ($errors->any() || old('package_slug')) ? 'block' : 'none' }}; border-top: 1px solid #e2e8f0;">
+      <form method="POST" action="{{ route('subscription.pay') }}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 24px;">
         @csrf
-        <div class="grid sm:grid-cols-2 gap-5">
+
+        <!-- Row 1: Plan Selection & Duration -->
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Package Selector -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Package You're Paying For *</label>
-            <select name="package_slug" required
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="">Select package…</option>
+            <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+              1. Select Subscription Package <span style="color: #dc2626;">*</span>
+            </label>
+            <select name="package_slug" id="packageSelect" required
+              style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #0f172a; font-size: 14px; font-weight: 700; outline: none;">
+              <option value="">Choose a plan…</option>
               @foreach($packages as $pkg)
-                <option value="{{ $pkg->slug }}" @selected(old('package_slug') == $pkg->slug || $business->subscription_plan == $pkg->slug)>
-                  {{ $pkg->name }} — UGX {{ number_format($pkg->price) }}
+                <option value="{{ $pkg->slug }}" data-price="{{ $pkg->price }}" data-cycle="{{ $pkg->billing_cycle_days }}"
+                  @selected(old('package_slug') == $pkg->slug || $business->subscription_plan == $pkg->slug)>
+                  {{ $pkg->name }} — UGX {{ number_format($pkg->price) }} / month
                 </option>
               @endforeach
             </select>
           </div>
+
+          <!-- Subscription Duration Selector (1 to 6 Months or 1 Year) -->
           <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Amount Paid (UGX) *</label>
-            <input type="number" name="amount" min="0" step="100" placeholder="e.g. 50000"
-              value="{{ old('amount') }}" required
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-        </div>
-        <div class="grid sm:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
-            <select name="payment_method" required
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-              <option value="">Select…</option>
-              <option value="Mobile Money" @selected(old('payment_method')=='Mobile Money')>Mobile Money (MTN/Airtel)</option>
-              <option value="Bank Transfer" @selected(old('payment_method')=='Bank Transfer')>Bank Transfer (Centenary)</option>
-              <option value="Cash" @selected(old('payment_method')=='Cash')>Cash</option>
-              <option value="Other" @selected(old('payment_method')=='Other')>Other</option>
+            <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+              2. Select Subscription Period (Months) <span style="color: #dc2626;">*</span>
+            </label>
+            <select name="duration_months" id="durationSelect" required
+              style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #0f172a; font-size: 14px; font-weight: 700; outline: none;">
+              <option value="1">1 Month</option>
+              <option value="2">2 Months</option>
+              <option value="3">3 Months (Quarterly)</option>
+              <option value="4">4 Months</option>
+              <option value="5">5 Months</option>
+              <option value="6">6 Months (Half Year)</option>
+              <option value="12">12 Months (1 Year - Annual Plan)</option>
             </select>
           </div>
+        </div>
+
+        <!-- Row 2: Auto-calculated Amount & Partial Payment Checkbox -->
+        <div style="background: #f8fafc; border-radius: 12px; padding: 20px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 16px;">
+          <div class="grid md:grid-cols-2 gap-6 items-end">
+            <!-- Amount Paid (Autofilled by default) -->
+            <div>
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <label style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0;">
+                  Total Subscription Amount (UGX) <span style="color: #dc2626;">*</span>
+                </label>
+                <span id="autofillBadge" style="font-size: 11px; font-weight: 800; color: #065f46; background: #d1fae5; border: 1px solid #a7f3d0; padding: 2px 10px; border-radius: 9999px;">
+                  <i class="fas fa-calculator" style="margin-right: 4px;"></i> Auto-calculated
+                </span>
+              </div>
+              <div style="position: relative;">
+                <span style="position: absolute; left: 16px; top: 14px; color: #475569; font-weight: 900; font-size: 14px;">UGX</span>
+                <input type="number" name="amount" id="subscriptionAmount" min="0" step="100" placeholder="0"
+                  value="{{ old('amount') }}" required readonly
+                  style="width: 100%; padding-left: 56px; padding-right: 16px; padding-top: 12px; padding-bottom: 12px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f1f5f9; color: #0f172a; font-weight: 900; font-size: 20px; outline: none; cursor: not-allowed;">
+              </div>
+            </div>
+
+            <!-- Partial Payment Checkbox toggle -->
+            <div style="background: #ffffff; padding: 14px 16px; border-radius: 12px; border: 1px solid #cbd5e1; display: flex; align-items: center; gap: 12px;">
+              <input type="checkbox" id="allowPartialPayment" name="is_partial" value="1"
+                style="width: 20px; height: 20px; accent-color: #4f46e5; cursor: pointer;">
+              <label for="allowPartialPayment" style="font-size: 14px; font-weight: 800; color: #0f172a; cursor: pointer; margin: 0; user-select: none;">
+                Tick for Partial Payment
+                <span style="display: block; font-size: 12px; font-weight: 600; color: #64748b;">Check this box if you are making a partial payment</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Automated Date Preview -->
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #334155; pt-2; border-top: 1px solid #e2e8f0; padding-top: 10px;">
+            <i class="fas fa-calendar-range" style="color: #4f46e5; font-size: 16px;"></i>
+            <span>Calculated Coverage Period: <strong id="periodPreviewText" style="color: #4338ca; font-weight: 900;">Select plan & duration</strong></span>
+          </div>
+        </div>
+
+        <!-- Row 3: Payment Method & Reference -->
+        <div class="grid md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction / Reference No.</label>
-            <input type="text" name="reference" placeholder="e.g. QK12345678"
+            <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+              Payment Method <span style="color: #dc2626;">*</span>
+            </label>
+            <select name="payment_method" required
+              style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #0f172a; font-size: 14px; font-weight: 700; outline: none;">
+              <option value="">Select payment channel…</option>
+              <option value="Mobile Money" @selected(old('payment_method')=='Mobile Money')>MTN / Airtel Mobile Money (0787320647)</option>
+              <option value="Bank Transfer" @selected(old('payment_method')=='Bank Transfer')>Centenary Bank Transfer (3204796984)</option>
+              <option value="Cash" @selected(old('payment_method')=='Cash')>Direct Cash Payment</option>
+              <option value="Other" @selected(old('payment_method')=='Other')>Other Payment Channel</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+              Transaction ID / Reference Number
+            </label>
+            <input type="text" name="reference" placeholder="e.g. 248901239 or Bank Ref"
               value="{{ old('reference') }}"
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #0f172a; font-size: 14px; font-weight: 700; outline: none;">
           </div>
         </div>
-        <div class="grid sm:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Period Start</label>
-            <input type="date" name="period_start" value="{{ old('period_start', now()->toDateString()) }}"
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Period End</label>
-            <input type="date" name="period_end" value="{{ old('period_end', now()->addMonth()->toDateString()) }}"
-              class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          </div>
-        </div>
-        {{-- Proof of payment upload --}}
+
+        <!-- Row 4: Proof Upload -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-            Proof of Payment <span class="text-gray-400 font-normal">(screenshot or photo)</span>
+          <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">
+            Attach Payment Proof Screenshot / Receipt <span style="color: #64748b; font-weight: 600;">(Optional)</span>
           </label>
           <div id="dropzone"
-            class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-indigo-400 transition-colors"
+            style="border: 2px dashed #cbd5e1; border-radius: 14px; padding: 24px; text-align: center; cursor: pointer; background: #f8fafc; transition: all 0.2s ease;"
             onclick="document.getElementById('proofFile').click()">
-            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-3 block"></i>
-            <p class="text-sm text-gray-600 dark:text-gray-400">Click to upload or drag and drop</p>
-            <p class="text-xs text-gray-400 mt-1">JPG, PNG, GIF or WEBP — max 5 MB</p>
-            <div id="fileName" class="mt-2 text-sm text-indigo-600 dark:text-indigo-400 font-semibold hidden"></div>
-            <img id="previewImg" class="mx-auto mt-3 max-h-40 rounded-lg object-cover hidden" alt="Preview">
+            <i class="fas fa-cloud-arrow-up" style="font-size: 32px; color: #4f46e5; margin-bottom: 8px; display: block;"></i>
+            <p style="font-size: 14px; font-weight: 800; color: #0f172a; margin: 0;">Click to upload or drag & drop payment confirmation</p>
+            <p style="font-size: 12px; color: #64748b; margin-top: 4px;">Supports JPG, PNG, WEBP — max 5 MB</p>
+            <div id="fileName" style="margin-top: 8px; font-size: 12px; color: #4338ca; font-weight: 800; display: none;"></div>
+            <img id="previewImg" style="margin: 12px auto 0 auto; max-height: 160px; border-radius: 12px; display: none;" alt="Preview">
           </div>
-          <input type="file" id="proofFile" name="proof_image" accept="image/*" class="hidden"
-            onchange="handleFileSelect(this)">
+          <input type="file" id="proofFile" name="proof_image" accept="image/*" style="display: none;" onchange="handleFileSelect(this)">
         </div>
+
+        <!-- Row 5: Notes & Submit -->
         <div>
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Additional Notes</label>
-          <textarea name="notes" rows="2" placeholder="Any extra information for the admin…"
-            class="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none">{{ old('notes') }}</textarea>
+          <label style="display: block; font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 6px;">Additional Billing Remarks</label>
+          <textarea name="notes" rows="2" placeholder="Provide any additional payment details or reference notes for the admin…"
+            style="width: 100%; padding: 12px 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #ffffff; color: #0f172a; font-size: 14px; font-weight: 600; outline: none; resize: none;">{{ old('notes') }}</textarea>
         </div>
-        <div class="flex justify-end">
+
+        <div style="padding-top: 8px; display: flex; justify-content: flex-end;">
           <button type="submit"
-            class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow transition-all">
-            <i class="fas fa-paper-plane"></i> Submit Payment Request
+            style="background: #4f46e5; color: #ffffff; padding: 14px 32px; border-radius: 12px; font-weight: 900; font-size: 16px; border: none; cursor: pointer; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fas fa-paper-plane"></i> Submit Subscription Payment
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  {{-- ── Payment History ──────────────────────────────────── --}}
-  <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-      <h3 class="font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-        <i class="fas fa-history text-indigo-500"></i> Payment History
+  {{-- ── 3. Official Payment Instructions Card ───────────────────── --}}
+  <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 16px; padding: 24px 32px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 1px solid #fef3c7;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: rgba(245, 158, 11, 0.2); color: #92400e; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800;">
+          <i class="fas fa-credit-card"></i>
+        </div>
+        <div>
+          <h3 style="font-weight: 900; color: #0f172a; font-size: 18px; margin: 0;">Official Payment Accounts</h3>
+          <p style="font-size: 12px; color: #78350f; font-weight: 600; margin: 2px 0 0 0;">Use any of the official channels below to send your subscription payment</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <!-- Mobile Money Official Box -->
+      <div style="background: #ffffff; border-radius: 12px; padding: 20px; border: 1px solid #fde68a; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: #fef3c7; color: #92400e; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+              <i class="fas fa-mobile-screen-button"></i>
+            </div>
+            <span style="font-weight: 900; color: #0f172a; font-size: 14px;">MTN / Airtel Mobile Money</span>
+          </div>
+          <span style="font-size: 11px; font-weight: 900; color: #78350f; background: #fef3c7; padding: 2px 10px; border-radius: 9999px; border: 1px solid #fde68a;">
+            Official Line
+          </span>
+        </div>
+
+        <div style="background: #fffbeb; padding: 14px 16px; border-radius: 10px; border: 1px solid #fef3c7; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: 0.05em; font-family: monospace;" id="officialPhone">0787320647</div>
+            <div style="font-size: 12px; color: #475569; font-weight: 700; margin-top: 2px;">Account Name: <strong style="color: #0f172a;">Rebecca Sarah Kasangirwe</strong></div>
+          </div>
+          <button type="button" onclick="copyText('0787320647', 'Phone number copied!')"
+            style="background: #d97706; color: #ffffff; padding: 8px 14px; border-radius: 8px; font-weight: 800; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Bank Transfer Box -->
+      <div style="background: #ffffff; border-radius: 12px; padding: 20px; border: 1px solid #fde68a; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; background: #dbeafe; color: #1e40af; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+              <i class="fas fa-building-columns"></i>
+            </div>
+            <span style="font-weight: 900; color: #0f172a; font-size: 14px;">Centenary Bank</span>
+          </div>
+          <span style="font-size: 11px; font-weight: 900; color: #1e40af; background: #dbeafe; padding: 2px 10px; border-radius: 9999px; border: 1px solid #bfdbfe;">
+            Bank Account
+          </span>
+        </div>
+
+        <div style="background: #eff6ff; padding: 14px 16px; border-radius: 10px; border: 1px solid #dbeafe; display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <div style="font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: 0.05em; font-family: monospace;">3204796984</div>
+            <div style="font-size: 12px; color: #475569; font-weight: 700; margin-top: 2px;">Account Name: <strong style="color: #0f172a;">MATHEW AMANYIRE</strong></div>
+          </div>
+          <button type="button" onclick="copyText('3204796984', 'Account number copied!')"
+            style="background: #2563eb; color: #ffffff; padding: 8px 14px; border-radius: 8px; font-weight: 800; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            <i class="fas fa-copy"></i> Copy
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {{-- ── 4. Payment & Renewal History ────────────────────────────── --}}
+  <div style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden;">
+    <div style="padding: 16px 24px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; display: flex; align-items: center; justify-content: space-between;">
+      <h3 style="font-weight: 900; color: #0f172a; font-size: 16px; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-history" style="color: #4f46e5;"></i> Payment & Renewal History
       </h3>
+      <span style="font-size: 12px; color: #475569; font-weight: 700;">Recorded Subscriptions</span>
     </div>
+
     @if($history->count())
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50 dark:bg-gray-700/50">
-          <tr>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Package</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Method</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Ref</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Period</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
-            <th class="px-5 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Proof</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-          @foreach($history as $p)
-          <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/40 transition">
-            <td class="px-5 py-4 text-gray-600 dark:text-gray-300 whitespace-nowrap">{{ $p->created_at->format('M d, Y') }}</td>
-            <td class="px-5 py-4 font-semibold text-indigo-600 dark:text-indigo-400 capitalize">{{ $p->package_slug ?? '—' }}</td>
-            <td class="px-5 py-4 font-bold text-gray-900 dark:text-white">{{ $p->currency }} {{ number_format($p->amount) }}</td>
-            <td class="px-5 py-4 text-gray-500 dark:text-gray-400">{{ $p->payment_method ?? '—' }}</td>
-            <td class="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs">{{ $p->reference ?? '—' }}</td>
-            <td class="px-5 py-4 text-gray-500 dark:text-gray-400 text-xs whitespace-nowrap">
-              @if($p->period_start && $p->period_end)
-                {{ $p->period_start->format('M d') }} – {{ $p->period_end->format('M d, Y') }}
-              @else —
-              @endif
-            </td>
-            <td class="px-5 py-4">
-              @php
-                $cls = match($p->status) {
-                  'paid'      => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-                  'pending'   => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-                  'failed'    => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                  'cancelled' => 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-                  default     => 'bg-blue-100 text-blue-700',
-                };
-              @endphp
-              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold {{ $cls }}">
-                @if($p->status === 'paid') <i class="fas fa-check-circle"></i>
-                @elseif($p->status === 'pending') <i class="fas fa-clock"></i>
-                @elseif($p->status === 'cancelled') <i class="fas fa-times-circle"></i>
-                @else <i class="fas fa-exclamation-circle"></i>
-                @endif
-                {{ ucfirst($p->status) }}
-              </span>
-              @if($p->status === 'cancelled' && $p->rejection_reason)
-              <div class="text-xs text-red-500 mt-1">{{ $p->rejection_reason }}</div>
-              @endif
-            </td>
-            <td class="px-5 py-4">
-              @if($p->proof_image)
-                <a href="{{ asset('storage/'.$p->proof_image) }}" target="_blank"
-                  class="inline-flex items-center gap-1 text-xs text-indigo-600 dark:text-indigo-400 hover:underline">
-                  <i class="fas fa-image"></i> View
-                </a>
-              @else
-                <span class="text-gray-400 text-xs">—</span>
-              @endif
-            </td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
-    </div>
-    @if($history->hasPages())
-    <div class="px-6 py-3 border-t border-gray-100 dark:border-gray-700">{{ $history->links() }}</div>
-    @endif
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+          <thead style="background: #f1f5f9; color: #334155; font-size: 11px; text-transform: uppercase; font-weight: 900; letter-spacing: 0.05em; border-bottom: 1px solid #cbd5e1;">
+            <tr>
+              <th style="padding: 14px 20px;">Submission Date</th>
+              <th style="padding: 14px 20px;">Package</th>
+              <th style="padding: 14px 20px;">Amount</th>
+              <th style="padding: 14px 20px;">Payment Method</th>
+              <th style="padding: 14px 20px;">Reference ID</th>
+              <th style="padding: 14px 20px;">Subscription Period</th>
+              <th style="padding: 14px 20px;">Status</th>
+              <th style="padding: 14px 20px;">Proof</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach($history as $p)
+              <tr style="border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 16px 20px; font-weight: 700; color: #1e293b; white-space: nowrap;">
+                  {{ $p->created_at->format('M d, Y') }}
+                  <span style="display: block; font-size: 11px; color: #64748b; font-weight: 500;">{{ $p->created_at->format('h:i A') }}</span>
+                </td>
+                <td style="padding: 16px 20px; font-weight: 900; color: #4338ca; text-transform: capitalize;">
+                  {{ $p->package_slug ?? '—' }}
+                </td>
+                <td style="padding: 16px 20px; font-weight: 900; color: #0f172a; white-space: nowrap;">
+                  {{ $p->currency }} {{ number_format($p->amount) }}
+                </td>
+                <td style="padding: 16px 20px; color: #334155; font-weight: 700;">
+                  {{ $p->payment_method ?? '—' }}
+                </td>
+                <td style="padding: 16px 20px; color: #475569; font-family: monospace; font-size: 12px; font-weight: 700;">
+                  {{ $p->reference ?? '—' }}
+                </td>
+                <td style="padding: 16px 20px; font-size: 12px; font-weight: 700; color: #334155; white-space: nowrap;">
+                  @if($p->period_start && $p->period_end)
+                    {{ $p->period_start->format('M d, Y') }} — {{ $p->period_end->format('M d, Y') }}
+                  @else —
+                  @endif
+                </td>
+                <td style="padding: 16px 20px;">
+                  @php
+                    $cls = match($p->status) {
+                      'paid'      => 'background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0;',
+                      'pending'   => 'background: #fef3c7; color: #78350f; border: 1px solid #fde68a;',
+                      'failed'    => 'background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;',
+                      'cancelled' => 'background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;',
+                      default     => 'background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe;',
+                    };
+                  @endphp
+                  <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 900; {{ $cls }}">
+                    @if($p->status === 'paid') <i class="fas fa-check-circle" style="color: #059669;"></i>
+                    @elseif($p->status === 'pending') <i class="fas fa-clock" style="color: #d97706;"></i>
+                    @elseif($p->status === 'cancelled') <i class="fas fa-times-circle" style="color: #dc2626;"></i>
+                    @else <i class="fas fa-circle"></i>
+                    @endif
+                    {{ ucfirst($p->status) }}
+                  </span>
+                  @if($p->status === 'cancelled' && $p->rejection_reason)
+                    <div style="font-size: 11px; color: #dc2626; margin-top: 4px; font-weight: 700;">{{ $p->rejection_reason }}</div>
+                  @endif
+                </td>
+                <td style="padding: 16px 20px;">
+                  @if($p->proof_image)
+                    <a href="{{ asset('storage/'.$p->proof_image) }}" target="_blank"
+                      style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px; font-size: 12px; font-weight: 900; color: #4338ca; background: #e0e7ff; border-radius: 8px; text-decoration: none; border: 1px solid #c7d2fe;">
+                      <i class="fas fa-image"></i> View
+                    </a>
+                  @else
+                    <span style="color: #94a3b8; font-size: 12px;">—</span>
+                  @endif
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+      @if($history->hasPages())
+        <div style="padding: 12px 24px; border-top: 1px solid #e2e8f0;">{{ $history->links() }}</div>
+      @endif
     @else
-    <div class="py-14 text-center text-gray-400">
-      <i class="fas fa-receipt text-4xl block mb-3 opacity-30"></i>
-      <p>No payment records yet.</p>
-    </div>
+      <div style="padding: 48px; text-align: center; color: #64748b;">
+        <i class="fas fa-receipt" style="font-size: 36px; display: block; margin-bottom: 8px; opacity: 0.4;"></i>
+        <p style="font-size: 14px; font-weight: 700; color: #334155; margin: 0;">No previous subscription payment requests found.</p>
+      </div>
     @endif
   </div>
 
+  {{-- ── 5. Available Subscription Packages (Placed AFTER all others) ─ --}}
+  @if($packages->count())
+    <div id="availablePlansSection" style="padding-top: 16px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+        <div>
+          <h2 style="font-size: 24px; font-weight: 900; color: #0f172a; margin: 0; tracking-tight;">Available Subscription Plans</h2>
+          <p style="font-size: 14px; color: #475569; font-weight: 600; margin: 4px 0 0 0;">Explore all feature tiers available for your business</p>
+        </div>
+        <span style="font-size: 12px; color: #4338ca; font-weight: 900; background: #e0e7ff; padding: 6px 14px; border-radius: 9999px; border: 1px solid #c7d2fe;">
+          {{ $packages->count() }} Packages Available
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach($packages as $pkg)
+          @php $isCurrent = ($business->subscription_plan === $pkg->slug); @endphp
+          <div style="background: #ffffff; border: {{ $isCurrent ? '2px solid #4f46e5' : '1px solid #cbd5e1' }}; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+            @if($isCurrent)
+              <div style="position: absolute; top: -12px; right: 16px; background: #4f46e5; color: #ffffff; font-size: 11px; font-weight: 900; padding: 2px 12px; border-radius: 9999px; box-shadow: 0 2px 4px rgba(0,0,0,0.15);">
+                Current Plan
+              </div>
+            @endif
+
+            <div>
+              <div style="font-size: 12px; font-weight: 900; color: #4338ca; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">{{ $pkg->name }}</div>
+              <div style="display: flex; align-items: baseline; gap: 4px; margin: 8px 0 12px 0;">
+                <span style="font-size: 28px; font-weight: 900; color: #0f172a;">UGX {{ number_format($pkg->price) }}</span>
+                <span style="font-size: 12px; font-weight: 700; color: #64748b;">/ month</span>
+              </div>
+
+              @if($pkg->description)
+                <p style="font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 16px; line-height: 1.5;">{{ $pkg->description }}</p>
+              @endif
+
+              <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 16px 0;">
+
+              <div style="font-size: 12px; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Included Features:</div>
+              @if(!empty($pkg->features))
+                <ul style="list-style: none; padding: 0; margin: 0 0 24px 0; display: flex; flex-direction: column; gap: 8px;">
+                  @foreach($pkg->features as $feat)
+                    <li style="font-size: 12px; color: #334155; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                      <i class="fas fa-check-circle" style="color: #059669;"></i> {{ ucfirst($feat) }}
+                    </li>
+                  @endforeach
+                </ul>
+              @endif
+            </div>
+
+            <div>
+              <button type="button" onclick="selectPlan('{{ $pkg->slug }}')"
+                style="width: 100%; padding: 12px; text-align: center; font-weight: 900; font-size: 14px; border-radius: 12px; border: none; cursor: pointer; {{ $isCurrent ? 'background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe;' : 'background: #4f46e5; color: #ffffff;' }}">
+                <i class="fas fa-check" style="margin-right: 4px;"></i> {{ $isCurrent ? 'Current Plan Selected' : 'Select Plan & Pay' }}
+              </button>
+            </div>
+          </div>
+        @endforeach
+      </div>
+    </div>
+  @endif
+
 </div>
 
+{{-- ── JavaScript Logic for Live Countdown, Autofill & Duration ────── --}}
 <script>
+document.addEventListener('DOMContentLoaded', function () {
+  const pkgSelect = document.getElementById('packageSelect');
+  const durationSelect = document.getElementById('durationSelect');
+  const amountInput = document.getElementById('subscriptionAmount');
+  const partialCheckbox = document.getElementById('allowPartialPayment');
+  const autofillBadge = document.getElementById('autofillBadge');
+  const periodPreviewText = document.getElementById('periodPreviewText');
+
+  // Package prices mapping
+  const packagesMap = {
+    @foreach($packages as $pkg)
+      "{{ $pkg->slug }}": {{ $pkg->price }},
+    @endforeach
+  };
+
+  function calculateAmountAndPeriod() {
+    const selectedSlug = pkgSelect.value;
+    const months = parseInt(durationSelect.value) || 1;
+    const pricePerMonth = packagesMap[selectedSlug] || 0;
+
+    // 1. Calculate price if not manually editing partial payment
+    if (!partialCheckbox.checked) {
+      const totalPrice = pricePerMonth * months;
+      amountInput.value = totalPrice;
+      amountInput.readOnly = true;
+      amountInput.style.backgroundColor = '#f1f5f9';
+      amountInput.style.cursor = 'not-allowed';
+      if (autofillBadge) autofillBadge.style.display = 'inline-flex';
+    }
+
+    // 2. Calculate period preview
+    if (selectedSlug && pricePerMonth > 0) {
+      const today = new Date();
+      const endDate = new Date();
+      endDate.setMonth(today.getMonth() + months);
+
+      const options = { day: 'numeric', month: 'short', year: 'numeric' };
+      const startStr = today.toLocaleDateString('en-GB', options);
+      const endStr = endDate.toLocaleDateString('en-GB', options);
+      const durationLabel = months === 12 ? '1 Year' : (months + (months === 1 ? ' Month' : ' Months'));
+
+      periodPreviewText.textContent = `${startStr} to ${endStr} (${durationLabel})`;
+    } else {
+      periodPreviewText.textContent = 'Select a package to preview period';
+    }
+  }
+
+  // Handle Partial Payment toggle
+  partialCheckbox.addEventListener('change', function () {
+    if (this.checked) {
+      amountInput.readOnly = false;
+      amountInput.style.backgroundColor = '#ffffff';
+      amountInput.style.cursor = 'text';
+      amountInput.focus();
+      if (autofillBadge) autofillBadge.style.display = 'none';
+    } else {
+      calculateAmountAndPeriod();
+    }
+  });
+
+  pkgSelect.addEventListener('change', calculateAmountAndPeriod);
+  durationSelect.addEventListener('change', calculateAmountAndPeriod);
+
+  // Initial calculation on page load
+  calculateAmountAndPeriod();
+
+  // Live Countdown Timer logic
+  const timerContainer = document.getElementById('countdownTimer');
+  if (timerContainer) {
+    const expiryDateStr = timerContainer.getAttribute('data-expiry');
+    const expiryTime = new Date(expiryDateStr).getTime();
+
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const distance = expiryTime - now;
+
+      if (distance <= 0) {
+        timerContainer.innerHTML = '<div style="grid-column: span 4; color: #f87171; font-weight: 900; font-size: 16px;">Subscription Expired</div>';
+        return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      document.getElementById('countDays').textContent = String(days).padStart(2, '0');
+      document.getElementById('countHours').textContent = String(hours).padStart(2, '0');
+      document.getElementById('countMins').textContent = String(minutes).padStart(2, '0');
+      document.getElementById('countSecs').textContent = String(seconds).padStart(2, '0');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+  }
+});
+
+// Toggle Collapsible Payment Form Accordion
+function togglePaymentForm(forceOpen = false) {
+  const formBody = document.getElementById('paymentFormBody');
+  const arrow = document.getElementById('paymentFormArrow');
+  if (!formBody) return;
+
+  if (forceOpen || formBody.style.display === 'none' || formBody.style.display === '') {
+    formBody.style.display = 'block';
+    if (arrow) arrow.style.transform = 'rotate(180deg)';
+  } else {
+    formBody.style.display = 'none';
+    if (arrow) arrow.style.transform = 'rotate(0deg)';
+  }
+}
+
+// Select package from available plans cards below
+function selectPlan(slug) {
+  togglePaymentForm(true); // Automatically expand the form
+  const pkgSelect = document.getElementById('packageSelect');
+  if (pkgSelect) {
+    pkgSelect.value = slug;
+    pkgSelect.dispatchEvent(new Event('change'));
+  }
+  const formSection = document.getElementById('paymentFormSection');
+  if (formSection) {
+    formSection.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// Copy to clipboard helper
+function copyText(text, message) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert(message);
+  }).catch(() => {
+    prompt('Copy number:', text);
+  });
+}
+
 function handleFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
   const nameEl = document.getElementById('fileName');
   const preview = document.getElementById('previewImg');
   nameEl.textContent = file.name;
-  nameEl.classList.remove('hidden');
+  nameEl.style.display = 'block';
   const reader = new FileReader();
   reader.onload = e => {
     preview.src = e.target.result;
-    preview.classList.remove('hidden');
+    preview.style.display = 'block';
   };
   reader.readAsDataURL(file);
 }
-// Drag and drop
+
+// Drag & drop support
 const dz = document.getElementById('dropzone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('border-indigo-400'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('border-indigo-400'));
-dz.addEventListener('drop', e => {
-  e.preventDefault();
-  dz.classList.remove('border-indigo-400');
-  const file = e.dataTransfer.files[0];
-  if (file && file.type.startsWith('image/')) {
-    const input = document.getElementById('proofFile');
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    input.files = dt.files;
-    handleFileSelect(input);
-  }
-});
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = '#4f46e5'; });
+  dz.addEventListener('dragleave', () => dz.style.borderColor = '#cbd5e1');
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.style.borderColor = '#cbd5e1';
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const input = document.getElementById('proofFile');
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      handleFileSelect(input);
+    }
+  });
+}
 </script>
 @endsection
