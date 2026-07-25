@@ -166,4 +166,131 @@ class VatController extends Controller
             'endDate'
         ));
     }
+
+    /**
+     * Download the VAT Statement & Accounting Ledger in PDF format.
+     */
+    public function downloadPdf(Request $request)
+    {
+        $user       = Auth::user();
+        $businessId = $user->business_id;
+        $business   = $user->business;
+
+        $period = $request->get('period', 'month');
+
+        $startDate = match ($period) {
+            'today'   => now()->startOfDay(),
+            'week'    => now()->startOfWeek(),
+            'month'   => now()->startOfMonth(),
+            'quarter' => now()->startOfQuarter(),
+            'year'    => now()->startOfYear(),
+            'custom'  => $request->filled('start_date') ? Carbon::parse($request->start_date)->startOfDay() : now()->startOfMonth(),
+            default   => now()->startOfMonth(),
+        };
+
+        $endDate = match ($period) {
+            'custom' => $request->filled('end_date') ? Carbon::parse($request->end_date)->endOfDay() : now()->endOfDay(),
+            default  => now()->endOfDay(),
+        };
+
+        $vatSummary = VatService::calculateVatSummary($businessId, $startDate, $endDate);
+
+        $ledgerEntries = collect();
+
+        $sales = Sale::where('business_id', $businessId)
+            ->where('tax_amount', '>', 0)
+            ->whereBetween('sale_date', [$startDate, $endDate])
+            ->with('customer')
+            ->get();
+
+        foreach ($sales as $sale) {
+            $ledgerEntries->push([
+                'date'     => $sale->sale_date ?? $sale->created_at,
+                'ref'      => 'SALE #' . $sale->sale_number,
+                'type'     => 'Sales (Output)',
+                'side'     => 'credit',
+                'party'    => $sale->customer->name ?? 'Walk-in Customer',
+                'subtotal' => (float) $sale->subtotal,
+                'vat_in'   => 0.00,
+                'vat_out'  => (float) $sale->tax_amount,
+                'total'    => (float) $sale->total,
+            ]);
+        }
+
+        $invoices = Invoice::where('business_id', $businessId)
+            ->where('tax_amount', '>', 0)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with('customer')
+            ->get();
+
+        foreach ($invoices as $inv) {
+            $ledgerEntries->push([
+                'date'     => $inv->created_at,
+                'ref'      => 'INV #' . $inv->invoice_number,
+                'type'     => 'Invoice (Output)',
+                'side'     => 'credit',
+                'party'    => $inv->customer->name ?? 'Customer Invoice',
+                'subtotal' => (float) $inv->subtotal,
+                'vat_in'   => 0.00,
+                'vat_out'  => (float) $inv->tax_amount,
+                'total'    => (float) $inv->total,
+            ]);
+        }
+
+        $purchases = Purchase::where('business_id', $businessId)
+            ->where('tax_amount', '>', 0)
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->with('supplier')
+            ->get();
+
+        foreach ($purchases as $pur) {
+            $ledgerEntries->push([
+                'date'     => $pur->created_at,
+                'ref'      => 'PUR #' . $pur->purchase_number,
+                'type'     => 'Purchase (Input)',
+                'side'     => 'debit',
+                'party'    => $pur->supplier->name ?? 'Supplier Purchase',
+                'subtotal' => (float) $pur->subtotal,
+                'vat_in'   => (float) $pur->tax_amount,
+                'vat_out'  => 0.00,
+                'total'    => (float) $pur->total,
+            ]);
+        }
+
+        $expenses = Expense::forBusiness($businessId)
+            ->where('vat_amount', '>', 0)
+            ->whereBetween('date_spent', [$startDate, $endDate])
+            ->get();
+
+        foreach ($expenses as $exp) {
+            if ($exp->vat_amount > 0) {
+                $ledgerEntries->push([
+                    'date'     => $exp->date_spent,
+                    'ref'      => 'EXP #' . $exp->id,
+                    'type'     => 'Expense (Input)',
+                    'side'     => 'debit',
+                    'party'    => $exp->purpose ?? 'Business Expense',
+                    'subtotal' => (float) ($exp->amount - $exp->vat_amount),
+                    'vat_in'   => (float) $exp->vat_amount,
+                    'vat_out'  => 0.00,
+                    'total'    => (float) $exp->amount,
+                ]);
+            }
+        }
+
+        $ledgerEntries = $ledgerEntries->sortBy('date')->values();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('vat.pdf', compact(
+            'business',
+            'vatSummary',
+            'ledgerEntries',
+            'period',
+            'startDate',
+            'endDate'
+        ));
+
+        $fileName = 'VAT_Statement_' . \Illuminate\Support\Str::slug($business->name) . '_' . now()->format('Ymd_His') . '.pdf';
+
+        return $pdf->download($fileName);
+    }
 }

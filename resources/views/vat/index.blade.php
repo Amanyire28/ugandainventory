@@ -52,10 +52,10 @@
           <i class="fas fa-search mr-1 text-[11px]"></i> Update View
         </button>
 
-        <button type="button" onclick="window.print()"
-          style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
-          <i class="fas fa-print text-blue-600 text-xs"></i> Print Statement
-        </button>
+        <a href="{{ route('vat.download-pdf', request()->query()) }}"
+          style="background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 12px; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+          <i class="fas fa-file-pdf text-red-600 text-xs"></i> Download PDF Statement
+        </a>
       </div>
     </form>
   </div>

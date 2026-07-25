@@ -212,6 +212,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     // VAT MANAGEMENT & ACCOUNTING LEDGER
     // ========================================
     Route::get('/vat', [\App\Http\Controllers\VatController::class, 'index'])->name('vat.index');
+    Route::get('/vat/pdf', [\App\Http\Controllers\VatController::class, 'downloadPdf'])->name('vat.download-pdf');
 
     // ========================================
     // SUBSCRIPTION & BILLING (Owner only)
