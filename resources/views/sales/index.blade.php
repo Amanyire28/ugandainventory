@@ -95,11 +95,18 @@
                             </span>
                         @endif
                     </td>
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 flex items-center gap-2">
                         <a href="{{ route('sales.show', $sale) }}" 
-                           class="text-indigo-600 hover:text-indigo-800" title="View Details">
-                            <i class="fas fa-eye"></i>
+                           class="px-2.5 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded text-xs transition flex items-center gap-1" title="View Receipt Details">
+                            <i class="fas fa-eye"></i> View
                         </a>
+                        @if(!$sale->isVoided())
+                            <button type="button" 
+                                    onclick="openVoidModalFor({{ $sale->id }}, '{{ $sale->sale_number }}')" 
+                                    class="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-extrabold rounded text-xs transition flex items-center gap-1" title="Void / Reverse Sale">
+                                <i class="fas fa-undo text-red-600"></i> Void
+                            </button>
+                        @endif
                     </td>
                 </tr>
                 @empty
@@ -119,4 +126,43 @@
         {{ $sales->links() }}
     </div>
 </div>
+
+<!-- Dynamic Void Sale Modal -->
+<div id="dynamicVoidModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 space-y-4">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-extrabold text-slate-900 text-base flex items-center gap-2">
+                <i class="fas fa-undo text-red-600"></i> Void Sale <span id="voidModalSaleNumber" class="text-indigo-600"></span>
+            </h3>
+            <button type="button" onclick="closeDynamicVoidModal()" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+        </div>
+        <form id="dynamicVoidForm" method="POST" action="">
+            @csrf
+            <div class="space-y-3">
+                <div class="p-3 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs rounded font-medium">
+                    <i class="fas fa-info-circle mr-1"></i> Voiding will reverse revenue, adjust VAT reports, and automatically restock items back into inventory.
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-800 uppercase tracking-wide mb-1">Reason for Reversal / Void *</label>
+                    <textarea name="void_reason" required rows="3" placeholder="e.g. Scanned wrong item, incorrect price, customer cancellation..." class="w-full p-2.5 text-xs font-semibold border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-red-500"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-3 border-t">
+                <button type="button" onclick="closeDynamicVoidModal()" class="px-4 py-2 bg-slate-200 text-slate-700 font-bold text-xs rounded-lg hover:bg-slate-300">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-red-600 text-white font-extrabold text-xs rounded-lg hover:bg-red-700 shadow">Confirm Void & Restock</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openVoidModalFor(saleId, saleNumber) {
+    document.getElementById('voidModalSaleNumber').textContent = '#' + saleNumber;
+    document.getElementById('dynamicVoidForm').action = '/sales/' + saleId + '/void';
+    document.getElementById('dynamicVoidModal').classList.remove('hidden');
+}
+function closeDynamicVoidModal() {
+    document.getElementById('dynamicVoidModal').classList.add('hidden');
+}
+</script>
 @endsection
