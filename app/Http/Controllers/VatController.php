@@ -138,7 +138,7 @@ class VatController extends Controller
         }
 
         // Sort ledger entries chronologically
-        $sortedLedger = $ledgerEntries->sortBy('date')->values();
+        $ledgerEntries = $ledgerEntries->sortBy('date')->values();
 
         // 3. Products Subjected to VAT
         $productsQuery = Product::where('business_id', $businessId)
@@ -158,7 +158,7 @@ class VatController extends Controller
         return view('vat.index', compact(
             'business',
             'vatSummary',
-            'sortedLedger',
+            'ledgerEntries',
             'vatProducts',
             'period',
             'tab',
