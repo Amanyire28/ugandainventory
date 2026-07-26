@@ -310,7 +310,6 @@
                                 </div>
                                 <div class="min-w-0">
                                     <h3 class="text-xl font-black text-gray-900 leading-tight truncate">{{ $pkg->name }}</h3>
-                                    <span class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
                                 </div>
                             </div>
 

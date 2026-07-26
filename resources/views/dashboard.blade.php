@@ -99,7 +99,6 @@
                 </div>
                 <div>
                   <h3 class="text-xl font-extrabold text-gray-900 leading-tight">{{ $pkg->name }}</h3>
-                  <span class="text-[11px] text-gray-500 font-bold uppercase">{{ $pkg->duration_days ?? 30 }} Days</span>
                 </div>
               </div>
 
