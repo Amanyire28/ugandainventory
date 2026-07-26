@@ -437,103 +437,107 @@
     <!-- Subscriptions & Pricing Section -->
     <section id="subscriptions" class="py-24 bg-gradient-to-b from-gray-50 to-indigo-50/50 border-t border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-12">
+            <div class="text-center max-w-3xl mx-auto mb-16">
                 <span class="px-4 py-1.5 bg-indigo-100 text-indigo-700 font-extrabold rounded-full text-xs tracking-wider uppercase inline-block mb-3">
                     <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscription Packages
                 </span>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Choose the Right Plan for Your Business</h2>
-                <p class="text-lg text-gray-600 mb-8">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
-
-                <!-- Billing Cycle Toggle Buttons -->
-                <div class="inline-flex items-center justify-center p-1.5 bg-white rounded-2xl border border-gray-200 shadow-md">
-                    <button type="button" id="btnMonthlyBilling" onclick="setBillingCycle('monthly')" class="px-6 py-2.5 rounded-xl font-extrabold text-sm transition-all bg-indigo-600 text-white shadow-sm">
-                        Monthly Billing
-                    </button>
-                    <button type="button" id="btnAnnualBilling" onclick="setBillingCycle('annual')" class="px-6 py-2.5 rounded-xl font-extrabold text-sm transition-all text-gray-600 hover:text-indigo-600 flex items-center">
-                        <i class="fas fa-calendar-alt text-emerald-500 mr-2"></i> Annual Billing
-                        <span class="ml-2 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[11px] font-black rounded-full border border-emerald-200">
-                            2 Months FREE
-                        </span>
-                    </button>
-                </div>
+                <p class="text-lg text-gray-600">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 @foreach($packages ?? [] as $pkg)
-                    <div class="bg-white rounded-3xl p-8 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between relative overflow-hidden {{ $loop->iteration == 2 ? 'border-indigo-600 ring-4 ring-indigo-100' : 'border-gray-100' }}">
+                    <div class="bg-white rounded-3xl p-7 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between relative overflow-hidden group {{ $loop->iteration == 2 ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-gray-100' }}">
                         @if($loop->iteration == 2)
-                            <div class="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold uppercase tracking-wider py-1.5 px-6 rounded-bl-2xl shadow-md">
-                                <i class="fas fa-star text-amber-300 mr-1"></i> Most Popular
+                            <div class="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-black uppercase tracking-wider py-1 px-5 rounded-bl-2xl shadow-sm">
+                                <i class="fas fa-star text-amber-300 mr-1"></i> Popular
                             </div>
                         @endif
 
                         <div>
+                            <!-- Header: Crown & Plan Name -->
                             <div class="flex items-center space-x-3 mb-4">
-                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold {{ $loop->iteration == 2 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }}">
+                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold shadow-sm {{ $loop->iteration == 2 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }}">
                                     <i class="fas fa-crown"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-2xl font-black text-gray-900">{{ $pkg->name }}</h3>
-                                    <span class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
+                                    <h3 class="text-xl font-black text-gray-900 leading-tight">{{ $pkg->name }}</h3>
+                                    <span class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
                                 </div>
                             </div>
 
-                            <div class="my-6 pb-6 border-b border-gray-100 space-y-3">
-                                <!-- Monthly Price -->
-                                <div class="flex items-baseline justify-between">
+                            <!-- Per-Card Compact Billing Switch Pill -->
+                            @if($pkg->price > 0)
+                            <div class="flex items-center justify-between bg-gray-100/90 p-1 rounded-xl mb-4 text-xs font-bold border border-gray-200/80 shadow-inner">
+                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'monthly', event)" id="btn-monthly-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all bg-white text-indigo-700 shadow-sm font-black">
+                                    Monthly
+                                </button>
+                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'annual', event)" id="btn-annual-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all text-gray-600 hover:text-indigo-600 flex items-center justify-center">
+                                    Annual <span class="ml-1 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-black">Save 17%</span>
+                                </button>
+                            </div>
+                            @endif
+
+                            <!-- Dynamic Price Display Area (Compact & Space Optimized) -->
+                            <div class="my-3 pb-4 border-b border-gray-100">
+                                <!-- Monthly Price View -->
+                                <div id="price-monthly-{{ $pkg->slug }}" class="flex items-baseline justify-between">
                                     <div>
-                                        <span class="text-3xl md:text-4xl font-black text-gray-900">UGX {{ number_format($pkg->price) }}</span>
-                                        <span class="text-gray-500 font-bold text-sm"> / month</span>
+                                        <span class="text-3xl font-black text-gray-900 tracking-tight">UGX {{ number_format($pkg->price) }}</span>
+                                        <span class="text-gray-500 font-bold text-xs">/ mo</span>
                                     </div>
-                                    <span class="text-xs font-extrabold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">Monthly</span>
+                                    <span class="text-[10px] font-extrabold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">Billed Monthly</span>
                                 </div>
 
                                 @if($pkg->price > 0)
-                                <!-- Annual Price & Savings (Hidden by default, expands on Annual toggle click) -->
-                                <div class="annual-details-box hidden p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-1.5">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">
-                                            <i class="fas fa-calendar-alt text-emerald-600 mr-1"></i> Annual Billing
+                                <!-- Annual Price View (Hidden by default until Annual pill toggled) -->
+                                <div id="price-annual-{{ $pkg->slug }}" class="hidden space-y-2">
+                                    <div class="flex items-baseline justify-between">
+                                        <div>
+                                            <span class="text-3xl font-black text-indigo-950 tracking-tight">UGX {{ number_format($pkg->price * 10) }}</span>
+                                            <span class="text-indigo-600 font-bold text-xs">/ yr</span>
+                                        </div>
+                                        <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200">
+                                            2 Months FREE
                                         </span>
-                                        <span class="text-[11px] font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full shadow-sm">2 Months FREE</span>
                                     </div>
-                                    <div class="flex items-baseline justify-between pt-1">
-                                        <span class="text-xl font-black text-emerald-950">UGX {{ number_format($pkg->price * 10) }} <span class="text-xs font-bold text-emerald-700">/ year</span></span>
-                                        <span class="text-xs font-bold text-emerald-800 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
-                                    </div>
-                                    <div class="text-[11px] font-bold text-emerald-800 flex items-center pt-1.5 border-t border-emerald-200/70">
-                                        <i class="fas fa-piggy-bank text-emerald-600 mr-1.5 text-sm"></i> Save up to <span class="mx-1 font-extrabold text-emerald-950 underline decoration-emerald-400">UGX {{ number_format($pkg->price * 2) }}</span> subscribing annually!
+
+                                    <div class="flex items-center justify-between text-xs font-bold pt-1">
+                                        <span class="text-gray-400 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
+                                        <span class="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
+                                            <i class="fas fa-piggy-bank mr-1 text-emerald-600"></i> Save UGX {{ number_format($pkg->price * 2) }}
+                                        </span>
                                     </div>
                                 </div>
                                 @endif
                             </div>
 
-                            <p class="text-gray-600 text-sm mb-6 font-medium leading-relaxed">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>
+                            <p class="text-gray-600 text-xs mb-5 font-medium leading-relaxed">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>
 
-                            <div class="space-y-3 mb-8">
-                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Package Features:</p>
+                            <div class="space-y-2.5 mb-7">
+                                <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1">Package Features:</p>
                                 @if(!empty($pkg->features))
                                     @foreach($pkg->features as $feature)
-                                        <div class="flex items-center text-sm font-semibold text-gray-700">
-                                            <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i>
+                                        <div class="flex items-center text-xs font-semibold text-gray-700">
+                                            <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i>
                                             <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
                                         </div>
                                     @endforeach
                                 @else
-                                    <div class="flex items-center text-sm font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Full POS & Sales Management
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Full POS & Sales Management
                                     </div>
-                                    <div class="flex items-center text-sm font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Real-time Stock Tracking
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Real-time Stock Tracking
                                     </div>
-                                    <div class="flex items-center text-sm font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Profit & Loss Reports
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Profit & Loss Reports
                                     </div>
                                 @endif
                             </div>
                         </div>
 
-                        <button onclick="selectPackageAndRegister('{{ $pkg->slug }}', event)" class="w-full py-4 rounded-xl font-bold text-base shadow-lg transition-all flex items-center justify-center transform active:scale-95 {{ $loop->iteration == 2 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-200' }}">
+                        <button onclick="selectPackageAndRegister('{{ $pkg->slug }}', event)" class="w-full py-3.5 rounded-2xl font-black text-sm shadow-md transition-all flex items-center justify-center transform active:scale-95 {{ $loop->iteration == 2 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-200' }}">
                             <i class="fas fa-rocket mr-2"></i> Choose {{ $pkg->name }}
                         </button>
                     </div>
@@ -988,32 +992,36 @@
             });
         }
 
-        // Toggle Monthly / Annual Billing Breakdown view on Homepage cards
-        function setBillingCycle(mode) {
-            const btnMonthly = document.getElementById('btnMonthlyBilling');
-            const btnAnnual = document.getElementById('btnAnnualBilling');
-            const annualBoxes = document.querySelectorAll('.annual-details-box');
+        // Per-Card Monthly / Annual Billing Pill Switch
+        function toggleCardBilling(slug, mode, event) {
+            if (event) event.preventDefault();
+            const btnMonthly = document.getElementById('btn-monthly-' + slug);
+            const btnAnnual = document.getElementById('btn-annual-' + slug);
+            const priceMonthly = document.getElementById('price-monthly-' + slug);
+            const priceAnnual = document.getElementById('price-annual-' + slug);
 
             if (mode === 'annual') {
                 if (btnMonthly) {
-                    btnMonthly.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnMonthly.classList.remove('bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
                     btnMonthly.classList.add('text-gray-600');
                 }
                 if (btnAnnual) {
-                    btnAnnual.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnAnnual.classList.add('bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
                     btnAnnual.classList.remove('text-gray-600');
                 }
-                annualBoxes.forEach(el => el.classList.remove('hidden'));
+                if (priceMonthly) priceMonthly.classList.add('hidden');
+                if (priceAnnual) priceAnnual.classList.remove('hidden');
             } else {
                 if (btnAnnual) {
-                    btnAnnual.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnAnnual.classList.remove('bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
                     btnAnnual.classList.add('text-gray-600');
                 }
                 if (btnMonthly) {
-                    btnMonthly.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnMonthly.classList.add('bg-white', 'text-indigo-700', 'shadow-sm', 'font-black');
                     btnMonthly.classList.remove('text-gray-600');
                 }
-                annualBoxes.forEach(el => el.classList.add('hidden'));
+                if (priceAnnual) priceAnnual.classList.add('hidden');
+                if (priceMonthly) priceMonthly.classList.remove('hidden');
             }
         }
 
