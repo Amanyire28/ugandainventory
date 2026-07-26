@@ -137,6 +137,7 @@ class POSController extends Controller
 
             // Calculate totals and validate stock
             $subtotal = 0;
+            $autoVat = 0;
             foreach ($validated['items'] as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 if ($product->quantity < $item['quantity']) {
@@ -145,15 +146,20 @@ class POSController extends Controller
                         'message' => "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.",
                     ], 400);
                 }
-                $subtotal += $item['quantity'] * $item['price'];
+                $itemTotal = $item['quantity'] * $item['price'];
+                $subtotal += $itemTotal;
+
+                if ($product->requires_vat ?? true) {
+                    $autoVat += $itemTotal * 0.18;
+                }
             }
 
             $discount = $validated['discount'] ?? 0;
             
-            // Tax calculation
-            $taxAmount = 0;
-            if (isset($validated['add_tax']) && $validated['add_tax'] == true) {
-                $taxAmount = ($subtotal - $discount) * 0.18;
+            // Tax calculation (Per-item VAT or manual tax)
+            $taxAmount = $autoVat;
+            if ($taxAmount == 0 && isset($validated['add_tax']) && $validated['add_tax'] == true) {
+                $taxAmount = max(0, ($subtotal - $discount) * 0.18);
             }
             
             $total = $subtotal - $discount + $taxAmount;

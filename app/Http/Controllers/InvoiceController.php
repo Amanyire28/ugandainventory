@@ -312,6 +312,7 @@ class InvoiceController extends Controller
             ]);
 
             $subtotal = 0;
+            $autoVat  = 0;
             foreach ($validated['items'] as $item) {
                 $product = Product::find($item['product_id']);
                 if ($product && $product->quantity < $item['quantity']) {
@@ -323,21 +324,29 @@ class InvoiceController extends Controller
                 $lineTotal = $item['quantity'] * $item['price'];
                 InvoiceItem::create([
                     'invoice_id'  => $invoice->id,
-                    'description' => $product->name,
-                    'product_id'  => $product->id,
+                    'description' => $product ? $product->name : 'Item',
+                    'product_id'  => $product ? $product->id : null,
                     'quantity'    => $item['quantity'],
                     'unit_price'  => $item['price'],
                     'total'       => $lineTotal,
                     'added_by'    => $user->id
                 ]);
                 $subtotal += $lineTotal;
+
+                if ($product && ($product->requires_vat ?? true)) {
+                    $autoVat += $lineTotal * 0.18;
+                }
+
                 if ($product) {
                     $product->decrement('quantity', $item['quantity']);
                 }
             }
 
-            $discount = $request->input('discount', 0);
-            $taxAmount = $request->input('add_tax') ? max(0, ($subtotal - $discount) * 0.18) : 0;
+            $discount  = $request->input('discount', 0);
+            $taxAmount = $autoVat;
+            if ($taxAmount == 0 && $request->input('add_tax')) {
+                $taxAmount = max(0, ($subtotal - $discount) * 0.18);
+            }
             $total = $subtotal - $discount + $taxAmount;
 
             $invoice->update([
