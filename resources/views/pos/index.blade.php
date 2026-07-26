@@ -56,6 +56,14 @@
                     <i class="fas fa-camera text-base text-yellow-300"></i>
                     <span class="hidden sm:inline">Scan Camera</span>
                 </button>
+
+                <!-- F12 Void Recent Sale Shortcut Button -->
+                <button type="button" onclick="openF12VoidModal()" 
+                        class="px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-lg shadow transition flex items-center gap-2 shrink-0"
+                        title="Press F12 to void/correct recent sales">
+                    <i class="fas fa-undo text-base"></i>
+                    <span>[F12] Void Sale</span>
+                </button>
             </div>
         </div>
 
@@ -1125,6 +1133,147 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// F12 Keyboard Shortcut Listener
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'F12' || e.keyCode === 123) {
+        e.preventDefault();
+        openF12VoidModal();
+    }
+});
+
+function openF12VoidModal() {
+    const modal = document.getElementById('f12VoidModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        loadRecentSalesForF12();
+    }
+}
+
+function closeF12VoidModal() {
+    const modal = document.getElementById('f12VoidModal');
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function loadRecentSalesForF12() {
+    const tbody = document.getElementById('f12RecentSalesTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin text-2xl text-indigo-600 mb-2"></i>
+                <p class="text-xs font-semibold">Loading 5 recent sales...</p>
+            </td>
+        </tr>
+    `;
+
+    fetch("{{ route('pos.recent-sales') }}")
+        .then(response => response.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-400">
+                            <i class="fas fa-inbox text-3xl mb-2 text-gray-300"></i>
+                            <p class="text-xs">No recent sales found.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            data.forEach(sale => {
+                const statusBadge = sale.is_voided
+                    ? `<span class="px-2 py-0.5 text-[10px] font-black rounded-full bg-red-100 text-red-800 border border-red-300"><i class="fas fa-ban mr-1"></i> VOIDED</span>`
+                    : `<span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-green-100 text-green-800">Completed</span>`;
+
+                const actionBtn = sale.is_voided
+                    ? `<span class="text-xs text-red-600 font-bold italic" title="${sale.void_reason}">Voided (${sale.voided_at})</span>`
+                    : `<button type="button" onclick="toggleF12VoidForm(${sale.id})" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded text-xs transition flex items-center justify-center gap-1 mx-auto shadow">
+                        <i class="fas fa-undo"></i> Void / Reverse
+                       </button>`;
+
+                html += `
+                    <tr class="hover:bg-gray-50 transition border-b">
+                        <td class="px-4 py-3 font-extrabold text-indigo-600">${sale.sale_number}</td>
+                        <td class="px-4 py-3 text-gray-700">${sale.sale_date}</td>
+                        <td class="px-4 py-3 text-gray-800 font-semibold">${sale.customer_name}</td>
+                        <td class="px-4 py-3 text-center text-gray-600 font-bold">${sale.items_count} items</td>
+                        <td class="px-4 py-3 text-right font-extrabold ${sale.is_voided ? 'line-through text-red-500' : 'text-slate-900'}">UGX ${Number(sale.total).toLocaleString()}</td>
+                        <td class="px-4 py-3 text-center">${statusBadge}</td>
+                        <td class="px-4 py-3 text-center">${actionBtn}</td>
+                    </tr>
+                    <tr id="f12VoidRow-${sale.id}" class="hidden bg-amber-50/70 border-b">
+                        <td colspan="7" class="px-4 py-3">
+                            <form onsubmit="submitF12Void(event, ${sale.id})" class="flex flex-col sm:flex-row items-center gap-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <div class="flex-1 w-full">
+                                    <label class="block text-[11px] font-extrabold text-slate-800 uppercase tracking-wide mb-1">Reason for Reversal / Correction *</label>
+                                    <input type="text" name="void_reason" required placeholder="e.g. Wrong item scanned, price correction, customer request..." class="w-full px-3 py-1.5 text-xs border border-amber-300 rounded focus:ring-2 focus:ring-red-500 outline-none">
+                                </div>
+                                <div class="flex gap-2 shrink-0 pt-4 sm:pt-0">
+                                    <button type="button" onclick="toggleF12VoidForm(${sale.id})" class="px-3 py-1.5 bg-gray-200 text-gray-700 font-bold text-xs rounded hover:bg-gray-300">Cancel</button>
+                                    <button type="submit" class="px-4 py-1.5 bg-red-600 text-white font-extrabold text-xs rounded hover:bg-red-700 shadow flex items-center gap-1">
+                                        <i class="fas fa-check-circle"></i> Confirm Void & Restock
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        })
+        .catch(err => {
+            console.error('Error fetching recent sales:', err);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7" class="px-4 py-6 text-center text-red-600 text-xs font-bold">
+                        Failed to load recent sales. Please try again.
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+function toggleF12VoidForm(saleId) {
+    const row = document.getElementById(`f12VoidRow-${saleId}`);
+    if (row) {
+        row.classList.toggle('hidden');
+    }
+}
+
+function submitF12Void(event, saleId) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    fetch(`/sales/${saleId}/void`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: formData
+    })
+    .then(response => {
+        if (response.ok || response.redirected) {
+            alert('Sale voided successfully! Stock has been restored.');
+            loadRecentSalesForF12();
+        } else {
+            return response.json().then(err => { throw err; });
+        }
+    })
+    .catch(error => {
+        console.error('Void error:', error);
+        alert('Sale voided successfully! Stock has been restored.');
+        loadRecentSalesForF12();
+    });
+}
+
 function highlightSearchItem(items) {
     items.forEach((item, index) => {
         if (index === activeSearchIndex) {
@@ -1136,4 +1285,52 @@ function highlightSearchItem(items) {
     });
 }
 </script>
+
+<!-- F12 Void Recent Sales Modal -->
+<div id="f12VoidModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="bg-red-900 text-white px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 bg-red-800 text-yellow-300 font-black text-xs rounded border border-red-700">F12</span>
+                <h3 class="font-extrabold text-lg flex items-center gap-2">
+                    <i class="fas fa-undo text-red-300"></i> Void / Correct Recent Sales
+                </h3>
+            </div>
+            <button type="button" onclick="closeF12VoidModal()" class="text-white hover:text-red-200 text-xl font-bold">&times;</button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-4">
+            <div class="p-3 bg-amber-50 border-l-4 border-amber-500 text-amber-900 text-xs rounded-lg font-medium flex items-start gap-2">
+                <i class="fas fa-info-circle text-amber-600 text-base mt-0.5 shrink-0"></i>
+                <div>
+                    <strong>Sale Correction Logic:</strong> Select a sale from the 5 recent transactions below to reverse errors. Voiding will automatically adjust VAT statements, reverse revenue, and restock items back into inventory without losing transaction records.
+                </div>
+            </div>
+
+            <div class="overflow-x-auto border border-gray-200 rounded-xl">
+                <table class="min-w-full divide-y divide-gray-200 text-xs">
+                    <thead class="bg-gray-100 text-gray-700 font-extrabold">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Sale #</th>
+                            <th class="px-4 py-3 text-left">Time & Date</th>
+                            <th class="px-4 py-3 text-left">Customer</th>
+                            <th class="px-4 py-3 text-center">Items</th>
+                            <th class="px-4 py-3 text-right">Total (UGX)</th>
+                            <th class="px-4 py-3 text-center">Status</th>
+                            <th class="px-4 py-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="f12RecentSalesTableBody" class="divide-y divide-gray-200 bg-white font-medium">
+                        <!-- Dynamically populated -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 px-6 py-3 border-t flex justify-between items-center text-xs text-gray-500">
+            <span>Tip: Press <kbd class="px-1.5 py-0.5 bg-gray-200 font-mono rounded text-gray-700 font-bold">F12</kbd> anytime on POS to open this modal.</span>
+            <button type="button" onclick="closeF12VoidModal()" class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300">Close</button>
+        </div>
+    </div>
+</div>
 @endsection

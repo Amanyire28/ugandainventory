@@ -40,8 +40,45 @@ class POSController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Use same POS view for both owner and cashier (with proper AJAX handling)
-        return view('pos.index', compact('products', 'categories', 'customers'));
+        // Get 5 most recent sales for F12 Void modal
+        $recentSales = Sale::where('business_id', $businessId)
+            ->with(['customer', 'user', 'items.product'])
+            ->latest('sale_date')
+            ->take(5)
+            ->get();
+
+        // Use same POS view for both owner and cashier
+        return view('pos.index', compact('products', 'categories', 'customers', 'recentSales'));
+    }
+
+    /**
+     * Fetch recent 5 sales for F12 Void Modal
+     */
+    public function getRecentSales()
+    {
+        $businessId = Auth::user()->business_id;
+        $sales = Sale::where('business_id', $businessId)
+            ->with(['customer', 'user', 'items.product'])
+            ->latest('sale_date')
+            ->take(5)
+            ->get()
+            ->map(function ($sale) {
+                return [
+                    'id' => $sale->id,
+                    'sale_number' => $sale->sale_number,
+                    'sale_date' => $sale->sale_date->format('M d, Y h:i A'),
+                    'customer_name' => $sale->customer ? $sale->customer->name : 'Walk-in Customer',
+                    'cashier_name' => $sale->user ? $sale->user->name : 'Cashier',
+                    'items_count' => $sale->items->count(),
+                    'total' => $sale->total,
+                    'status' => $sale->status ?? 'completed',
+                    'is_voided' => $sale->isVoided(),
+                    'void_reason' => $sale->void_reason,
+                    'voided_at' => $sale->voided_at ? \Carbon\Carbon::parse($sale->voided_at)->format('M d, Y h:i A') : null,
+                ];
+            });
+
+        return response()->json($sales);
     }
 
     /**

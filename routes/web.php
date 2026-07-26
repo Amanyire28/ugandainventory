@@ -105,6 +105,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     Route::prefix('pos')->name('pos.')->group(function () {
         Route::get('/', [POSController::class, 'index'])->name('index');
         Route::post('/process', [POSController::class, 'process'])->name('process');
+        Route::get('/recent-sales', [POSController::class, 'getRecentSales'])->name('recent-sales');
         Route::get('/product/{id}', [POSController::class, 'getProduct'])->name('product');
         Route::get('/receipt/{id}', [POSController::class, 'receipt'])->name('receipt');
         Route::get('/print/{id}', [POSController::class, 'printReceipt'])->name('print');
