@@ -186,7 +186,7 @@
                 <div class="flex justify-between items-center py-1 border-t border-dashed">
                     <label class="flex items-center cursor-pointer font-medium text-gray-650">
                         <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 rounded">
-                        <span>Add Tax (18%)</span>
+                        <span>VAT (18%)</span>
                     </label>
                     <span class="font-bold text-gray-950 text-base">UGX <span id="taxAmount">0</span></span>
                 </div>
