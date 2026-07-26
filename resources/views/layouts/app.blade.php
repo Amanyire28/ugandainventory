@@ -373,10 +373,18 @@
                             </div>
                             <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }} space-y-1">
+                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*', 'branches.*', 'stock-transfers.*') ? '' : 'collapsed' }} space-y-1">
                             <a href="{{ route('inventory.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
                                 <i class="fas fa-boxes text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Inventory Management</span>
+                            </a>
+                            <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-amber-400' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-code-branch text-sm flex-shrink-0 text-amber-300"></i>
+                                <span class="sidebar-text text-amber-200 font-bold">Branch Management</span>
+                            </a>
+                            <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-amber-400' : 'hover:bg-indigo-800' }}">
+                                <i class="fas fa-dolly text-sm flex-shrink-0 text-amber-300"></i>
+                                <span class="sidebar-text text-amber-200 font-bold">Stock Transfers</span>
                             </a>
                             <a href="{{ route('inventory.activities') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.activities') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
                                 <i class="fas fa-history text-sm flex-shrink-0"></i>
@@ -588,16 +596,34 @@
                         @yield('page-title', 'Dashboard')
                     </h1>
                      
-                    <div class="flex items-center space-x-4">
-                        <span class="hidden md:inline text-sm text-gray-600">
+                    <div class="flex items-center space-x-3">
+                        @if(auth()->user()->isOwner() || auth()->user()->is_owner)
+                            @php
+                                $userBranches = \App\Models\Location::where('business_id', auth()->user()->business_id)->where('is_active', true)->orderByDesc('is_main')->get();
+                                $activeLocId = session('active_location_id');
+                            @endphp
+                            @if(count($userBranches) > 1)
+                                <form action="{{ route('branches.switch') }}" method="POST" class="inline-block">
+                                    @csrf
+                                    <select name="location_id" onchange="this.form.submit()" class="text-xs font-black bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm cursor-pointer">
+                                        <option value="all" {{ !$activeLocId ? 'selected' : '' }}>🏢 All Branches (Consolidated)</option>
+                                        @foreach($userBranches as $b)
+                                            <option value="{{ $b->id }}" {{ $activeLocId == $b->id ? 'selected' : '' }}>
+                                                {{ $b->is_main ? '⭐ HQ:' : '📍' }} {{ $b->name }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            @endif
+                        @endif
+
+                        <span class="hidden md:inline text-sm text-gray-600 font-medium">
                             <i class="fas fa-calendar mr-1"></i>
                             {{ now()->format('D, M d, Y') }}
                         </span>
 
-
-
-                        <a href="{{ route('pos.index') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                            <i class="fas fa-cash-register mr-1"></i>
+                        <a href="{{ route('pos.index') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold shadow-sm text-sm flex items-center">
+                            <i class="fas fa-cash-register mr-1.5"></i>
                             <span class="hidden md:inline">POS</span>
                         </a>
                     </div>

@@ -29,6 +29,8 @@ use App\Http\Controllers\{
 };
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\StockTransferController;
 
 /*
 |--------------------------------------------------------------------------
@@ -207,6 +209,13 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
         Route::delete('/{staff}', [StaffController::class, 'destroy'])->name('destroy');
         Route::patch('/{staff}/toggle-status', [StaffController::class, 'toggleStatus'])->name('toggle-status');
     });
+
+    // ========================================
+    // MULTI-BRANCH LOCATION MANAGEMENT & STOCK TRANSFERS
+    // ========================================
+    Route::post('/branches/switch', [BranchController::class, 'switchBranch'])->name('branches.switch');
+    Route::resource('branches', BranchController::class);
+    Route::resource('stock-transfers', StockTransferController::class);
 
     // ========================================
     // ✅ BUSINESS SETTINGS (CONSOLIDATED - Admin/Owner only)

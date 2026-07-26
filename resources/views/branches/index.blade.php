@@ -1,0 +1,323 @@
+@extends('layouts.app')
+
+@section('title', 'Branch & Location Management - DukaFlow')
+
+@section('content')
+<div class="space-y-6">
+    <!-- Header Title & Action -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <div>
+            <h1 class="text-2xl font-black text-gray-900 tracking-tight flex items-center">
+                <i class="fas fa-code-branch text-indigo-600 mr-3 text-2xl"></i>
+                Multi-Branch Location Management
+            </h1>
+            <p class="text-sm text-gray-500 font-medium mt-1">
+                Oversee, monitor performance, and manage all business branches within your jurisdiction.
+            </p>
+        </div>
+        <button onclick="openAddBranchModal()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all flex items-center justify-center text-sm transform active:scale-95">
+            <i class="fas fa-plus mr-2"></i> Add New Branch
+        </button>
+    </div>
+
+    <!-- Alert Messages -->
+    @if(session('success'))
+        <div class="p-4 bg-emerald-50 border-l-4 border-emerald-500 text-emerald-800 rounded-xl text-sm font-semibold shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-check-circle text-emerald-600 mr-2 text-base"></i>
+                <span>{{ session('success') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-emerald-500 hover:text-emerald-700"><i class="fas fa-times"></i></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-xl text-sm font-semibold shadow-sm flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-circle text-red-600 mr-2 text-base"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+        </div>
+    @endif
+
+    <!-- Metric Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+                <i class="fas fa-store"></i>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Branches</p>
+                <h3 class="text-2xl font-black text-gray-900">{{ count($branches) }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Main Headquarters</p>
+                <h3 class="text-lg font-black text-gray-900 truncate max-w-[150px]">
+                    {{ optional($branches->firstWhere('is_main', true))->name ?? 'None Set' }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
+                <i class="fas fa-boxes"></i>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Stock Units Across Branches</p>
+                <h3 class="text-2xl font-black text-gray-900">
+                    {{ number_format($branches->sum('total_stock_qty')) }}
+                </h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Today's Total Branch Sales</p>
+                <h3 class="text-xl font-black text-gray-900">
+                    UGX {{ number_format($branches->sum('today_sales')) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Branch List Table -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div class="p-5 border-b border-gray-100 flex items-center justify-between">
+            <h2 class="text-lg font-black text-gray-900 flex items-center">
+                <i class="fas fa-list text-indigo-600 mr-2"></i> All Active Branches & Outlets
+            </h2>
+            <span class="text-xs font-bold text-gray-400 uppercase">{{ count($branches) }} Branches Managed</span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-[11px] font-black text-gray-400 uppercase tracking-wider">
+                        <th class="py-3.5 px-6">Branch Name & Type</th>
+                        <th class="py-3.5 px-4">Contact Info</th>
+                        <th class="py-3.5 px-4">Assigned Staff</th>
+                        <th class="py-3.5 px-4">Current Stock Qty</th>
+                        <th class="py-3.5 px-4">Today's Sales</th>
+                        <th class="py-3.5 px-4">Status</th>
+                        <th class="py-3.5 px-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm font-medium">
+                    @forelse($branches as $b)
+                        <tr class="hover:bg-gray-50/80 transition-colors">
+                            <td class="py-4 px-6">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm {{ $b->is_main ? 'bg-amber-100 text-amber-700' : 'bg-indigo-50 text-indigo-600' }}">
+                                        <i class="fas {{ $b->is_main ? 'fa-crown' : 'fa-building' }}"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-black text-gray-900 flex items-center space-x-2">
+                                            <span>{{ $b->name }}</span>
+                                            @if($b->is_main)
+                                                <span class="text-[10px] font-black uppercase px-2 py-0.5 bg-amber-100 text-amber-800 rounded-md border border-amber-200">Main Branch (HQ)</span>
+                                            @endif
+                                        </div>
+                                        <span class="text-xs text-gray-400 font-normal truncate block max-w-xs">{{ $b->address ?? 'No address set' }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-4 text-xs font-semibold text-gray-700">
+                                @if($b->phone)
+                                    <div><i class="fas fa-phone text-indigo-500 mr-1"></i> {{ $b->phone }}</div>
+                                @else
+                                    <span class="text-gray-400 font-normal">N/A</span>
+                                @endif
+                            </td>
+                            <td class="py-4 px-4 text-xs font-bold text-gray-800">
+                                <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
+                                    <i class="fas fa-users mr-1 text-indigo-500"></i> {{ $b->users_count }} Staff
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 text-xs font-black text-gray-900">
+                                {{ number_format($b->total_stock_qty) }} units
+                            </td>
+                            <td class="py-4 px-4 text-xs font-black text-emerald-700">
+                                UGX {{ number_format($b->today_sales) }}
+                            </td>
+                            <td class="py-4 px-4">
+                                @if($b->is_active)
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full border border-emerald-200">Active</span>
+                                @else
+                                    <span class="text-[10px] font-black uppercase px-2.5 py-1 bg-gray-100 text-gray-600 rounded-full border border-gray-200">Inactive</span>
+                                @endif
+                            </td>
+                            <td class="py-4 px-6 text-right space-x-2">
+                                <button onclick="openEditBranchModal({{ json_encode($b) }})" class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Edit Branch">
+                                    <i class="fas fa-edit text-base"></i>
+                                </button>
+                                @if(!$b->is_main)
+                                    <form action="{{ route('branches.destroy', $b->id) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete branch {{ $b->name }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Delete Branch">
+                                            <i class="fas fa-trash-alt text-base"></i>
+                                        </button>
+                                    </form>
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="py-8 text-center text-gray-500 font-semibold">
+                                No branches found. Click <strong>Add New Branch</strong> above to create your first outlet.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Add Branch Modal -->
+<div id="addBranchModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative modal-float border border-indigo-100">
+        <button onclick="closeAddBranchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm">
+                <i class="fas fa-code-branch"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900">Add New Branch / Outlet</h2>
+            <p class="text-xs text-gray-500 mt-1 font-medium">Create a new location under your business jurisdiction.</p>
+        </div>
+
+        <form action="{{ route('branches.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-store text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="name" required class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Ntinda Shopping Center Branch">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
+                </label>
+                <input type="text" name="address" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Plot 45 Ntinda Road, Kampala">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone
+                </label>
+                <input type="text" name="phone" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="0700123456">
+            </div>
+
+            <div class="flex items-center pt-2">
+                <input type="checkbox" name="is_main" id="add_is_main" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
+                <label for="add_is_main" class="text-xs font-bold text-gray-800">
+                    Designate as Main Branch (Headquarters)
+                </label>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeAddBranchModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md">Create Branch</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Branch Modal -->
+<div id="editBranchModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative modal-float border border-indigo-100">
+        <button onclick="closeEditBranchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+
+        <div class="text-center mb-6">
+            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm">
+                <i class="fas fa-edit"></i>
+            </div>
+            <h2 class="text-2xl font-black text-gray-900">Edit Branch Details</h2>
+        </div>
+
+        <form id="editBranchForm" method="POST" class="space-y-4">
+            @csrf
+            @method('PUT')
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-store text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="name" id="edit_branch_name" required class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
+                </label>
+                <input type="text" name="address" id="edit_branch_address" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone
+                </label>
+                <input type="text" name="phone" id="edit_branch_phone" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            </div>
+
+            <div class="space-y-2 pt-2">
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_main" id="edit_is_main" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
+                    <label for="edit_is_main" class="text-xs font-bold text-gray-800">
+                        Designate as Main Branch (Headquarters)
+                    </label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
+                    <label for="edit_is_active" class="text-xs font-bold text-gray-800">
+                        Branch Active Status
+                    </label>
+                </div>
+            </div>
+
+            <div class="pt-4 flex items-center justify-end space-x-3">
+                <button type="button" onclick="closeEditBranchModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAddBranchModal() {
+        document.getElementById('addBranchModal').classList.remove('hidden');
+    }
+    function closeAddBranchModal() {
+        document.getElementById('addBranchModal').classList.add('hidden');
+    }
+    function openEditBranchModal(branch) {
+        document.getElementById('editBranchForm').action = "/branches/" + branch.id;
+        document.getElementById('edit_branch_name').value = branch.name;
+        document.getElementById('edit_branch_address').value = branch.address || '';
+        document.getElementById('edit_branch_phone').value = branch.phone || '';
+        document.getElementById('edit_is_main').checked = !!branch.is_main;
+        document.getElementById('edit_is_active').checked = !!branch.is_active;
+        document.getElementById('editBranchModal').classList.remove('hidden');
+    }
+    function closeEditBranchModal() {
+        document.getElementById('editBranchModal').classList.add('hidden');
+    }
+</script>
+@endsection

@@ -179,9 +179,12 @@ class POSController extends Controller
                 ->count() + 1;
             $saleNumber = 'SAL-' . $today . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
 
+            $locationId = session('active_location_id') ?? $user->location_id ?? \App\Models\Location::where('business_id', $businessId)->where('is_main', true)->value('id') ?? \App\Models\Location::where('business_id', $businessId)->value('id');
+
             // Create sale
             $sale = Sale::create([
                 'business_id' => $businessId,
+                'location_id' => $locationId,
                 'user_id' => $user->id,
                 'customer_id' => $customerId,
                 'sale_number' => $saleNumber,

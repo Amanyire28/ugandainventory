@@ -93,7 +93,8 @@
                     <tr>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Staff Member</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Assigned Branch</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact Info</th>
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sales (This Month)</th>
                         <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Revenue (This Month)</th>
                         <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -125,6 +126,17 @@
                                        ($member->role->name === 'cashier' ? 'fa-cash-register' : 'fa-user')) }} mr-1"></i>
                                 {{ $member->role->display_name }}
                             </span>
+                        </td>
+                        <td class="px-4 py-3 text-xs font-bold">
+                            @if($member->location)
+                                <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100 flex items-center w-fit">
+                                    <i class="fas fa-building mr-1 text-indigo-500"></i> {{ $member->location->name }}
+                                </span>
+                            @else
+                                <span class="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg flex items-center w-fit">
+                                    <i class="fas fa-globe mr-1 text-gray-400"></i> All Branches (HQ)
+                                </span>
+                            @endif
                         </td>
                         <td class="px-4 py-3">
                             <p class="text-sm text-gray-600">

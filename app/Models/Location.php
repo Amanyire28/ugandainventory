@@ -23,4 +23,39 @@ class Location extends Model
     {
         return $this->belongsTo(Business::class);
     }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+
+    public function purchases()
+    {
+        return $this->hasMany(Purchase::class);
+    }
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    public function inventories()
+    {
+        return $this->hasMany(Inventory::class);
+    }
+
+    public function transfersFrom()
+    {
+        return $this->hasMany(StockTransfer::class, 'from_location_id');
+    }
+
+    public function transfersTo()
+    {
+        return $this->hasMany(StockTransfer::class, 'to_location_id');
+    }
 }

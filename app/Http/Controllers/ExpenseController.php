@@ -436,6 +436,7 @@ class ExpenseController extends Controller
 
         $data['business_id'] = (int) $bid;
         $data['user_id'] = auth()->id();
+        $data['location_id'] = session('active_location_id') ?? $u->location_id ?? \App\Models\Location::where('business_id', $bid)->where('is_main', true)->value('id') ?? \App\Models\Location::where('business_id', $bid)->value('id');
 
         try {
             $expense = Expense::create($data);

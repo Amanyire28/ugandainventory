@@ -19,7 +19,7 @@ class StaffController extends Controller
         // Get staff with performance metrics
         $staff = User::where('business_id', $businessId)
             ->where('id', '!=', Auth::id())
-            ->with('role')
+            ->with(['role', 'location'])
             ->withCount(['sales' => function($query) {
                 $query->whereMonth('sale_date', now()->month)
                       ->whereYear('sale_date', now()->year);
@@ -30,6 +30,8 @@ class StaffController extends Controller
             }], 'total')
             ->latest()
             ->paginate(20);
+
+        $locations = \App\Models\Location::where('business_id', $businessId)->get();
 
         // Get statistics with optimized queries
         $stats = User::where('business_id', $businessId)
@@ -48,6 +50,7 @@ class StaffController extends Controller
 
         return view('staff.index', [
             'staff' => $staff,
+            'locations' => $locations,
             'totalStaff' => $stats->total_staff ?? 0,
             'activeStaff' => $stats->active_staff ?? 0,
             'adminCount' => $roleStats['admin'] ?? 0,
@@ -62,9 +65,11 @@ class StaffController extends Controller
      */
     public function create()
     {
+        $businessId = Auth::user()->business_id;
         $roles = Role::orderBy('display_name')->get();
+        $locations = \App\Models\Location::where('business_id', $businessId)->get();
         
-        return view('staff.create', compact('roles'));
+        return view('staff.create', compact('roles', 'locations'));
     }
 
     /**
@@ -87,6 +92,7 @@ class StaffController extends Controller
             'phone' => ['required', 'string', 'max:20'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'role_id' => ['required', 'exists:roles,id'],
+            'location_id' => ['nullable', 'exists:locations,id'],
         ], [
             'email.unique' => 'This email is already registered in your business.',
             'role_id.required' => 'Please select a role for the staff member.',
@@ -96,6 +102,7 @@ class StaffController extends Controller
         try {
             $user = User::create([
                 'business_id' => $businessId,
+                'location_id' => $validated['location_id'] ?? null,
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
@@ -112,7 +119,7 @@ class StaffController extends Controller
         } catch (\Exception $e) {
             return back()
                 ->withInput()
-                ->with('error', 'Failed to add staff member. Please try again.');
+                ->with('error', 'Failed to add staff member: ' . $e->getMessage());
         }
     }
 
@@ -226,12 +233,13 @@ class StaffController extends Controller
         }
 
         // Load relationships
-        $staff->load('role');
+        $staff->load(['role', 'location']);
         
-        // Get all available roles
+        // Get all available roles and locations
         $roles = Role::orderBy('display_name')->get();
+        $locations = \App\Models\Location::where('business_id', Auth::user()->business_id)->get();
 
-        return view('staff.edit', compact('staff', 'roles'));
+        return view('staff.edit', compact('staff', 'roles', 'locations'));
     }
 
     /**
@@ -274,6 +282,7 @@ class StaffController extends Controller
             ],
             'phone' => ['required', 'string', 'max:20'],
             'role_id' => ['required', 'exists:roles,id'],
+            'location_id' => ['nullable', 'exists:locations,id'],
             'is_active' => ['required', 'boolean'],
         ];
 
@@ -297,6 +306,7 @@ class StaffController extends Controller
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'role_id' => $validated['role_id'],
+                'location_id' => $validated['location_id'] ?? null,
                 'is_active' => $validated['is_active'],
             ];
 

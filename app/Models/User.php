@@ -17,6 +17,7 @@ class User extends Authenticatable
 
     protected $fillable = [
         'business_id',
+        'location_id',
         'role_id',
         'name',
         'email',
@@ -26,13 +27,12 @@ class User extends Authenticatable
         'is_active',
         'email_verified_at',
         'last_login_at',
-        // If you want to mass-assign photo (not required): 'profile_image', 'profile_image_mime', 'profile_image_updated_at',
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
-        'profile_image', // hide BLOB from JSON
+        'profile_image',
     ];
 
     protected $casts = [
@@ -51,6 +51,11 @@ class User extends Authenticatable
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
     }
 
     public function role(): BelongsTo

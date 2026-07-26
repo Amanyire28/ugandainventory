@@ -9,6 +9,7 @@ class Expense extends Model
 {
     protected $fillable = [
         'business_id',
+        'location_id',
         'user_id',
         'spent_by',
         'purpose',
@@ -62,5 +63,10 @@ class Expense extends Model
     public function business()
     {
         return $this->belongsTo(\App\Models\Business::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(\App\Models\Location::class);
     }
 }

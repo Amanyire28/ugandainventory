@@ -57,8 +57,8 @@
                     @enderror
                 </div>
 
-                <!-- ✅ Role Dropdown (FIXED) -->
-                <div class="md:col-span-2">
+                <!-- Role Dropdown -->
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">
                         <i class="fas fa-user-tag text-indigo-600 mr-1"></i>
                         Role <span class="text-red-500">*</span>
@@ -73,6 +73,26 @@
                         @endforeach
                     </select>
                     @error('role_id')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Assigned Branch Dropdown -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-building text-indigo-600 mr-1"></i>
+                        Assigned Branch / Location
+                    </label>
+                    <select name="location_id" 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('location_id') border-red-500 @enderror">
+                        <option value="">All Branches (HQ Jurisdiction)</option>
+                        @foreach($locations ?? [] as $loc)
+                            <option value="{{ $loc->id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>
+                                {{ $loc->name }} {{ $loc->is_main ? '(Main HQ)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('location_id')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
