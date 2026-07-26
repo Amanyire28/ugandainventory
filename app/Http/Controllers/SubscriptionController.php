@@ -63,28 +63,32 @@ class SubscriptionController extends Controller
         $periodStart = $startDate->toDateString();
         $periodEnd   = $startDate->copy()->addMonths($months)->toDateString();
 
-        // Handle proof image upload
-        $proofPath = null;
-        if ($request->hasFile('proof_image') && $request->file('proof_image')->isValid()) {
-            $proofPath = $request->file('proof_image')->store('payment_proofs', 'public');
+        try {
+            // Handle proof image upload
+            $proofPath = null;
+            if ($request->hasFile('proof_image') && $request->file('proof_image')->isValid()) {
+                $proofPath = $request->file('proof_image')->store('payment_proofs', 'public');
+            }
+
+            BusinessSubscription::create([
+                'business_id'          => $business->id,
+                'package_slug'         => $data['package_slug'],
+                'amount'               => $data['amount'],
+                'currency'             => $business->currency ?? 'UGX',
+                'status'               => 'pending',
+                'payment_method'       => $data['payment_method'],
+                'reference'            => $data['reference'] ?? null,
+                'notes'                => $data['notes'] ?? null,
+                'proof_image'          => $proofPath,
+                'submitted_by'         => 'business',
+                'submitted_by_user_id' => $user->id,
+                'period_start'         => $periodStart,
+                'period_end'           => $periodEnd,
+            ]);
+
+            return back()->with('success', 'Payment submitted successfully! The admin will review and approve your subscription within 24 hours.');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Failed to submit payment request: ' . $e->getMessage());
         }
-
-        BusinessSubscription::create([
-            'business_id'          => $business->id,
-            'package_slug'         => $data['package_slug'],
-            'amount'               => $data['amount'],
-            'currency'             => $business->currency ?? 'UGX',
-            'status'               => 'pending',
-            'payment_method'       => $data['payment_method'],
-            'reference'            => $data['reference'] ?? null,
-            'notes'                => $data['notes'] ?? null,
-            'proof_image'          => $proofPath,
-            'submitted_by'         => 'business',
-            'submitted_by_user_id' => $user->id,
-            'period_start'         => $periodStart,
-            'period_end'           => $periodEnd,
-        ]);
-
-        return back()->with('success', 'Payment submitted successfully! The admin will review and approve your subscription within 24 hours.');
     }
 }

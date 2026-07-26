@@ -607,32 +607,50 @@
             <!-- Main Content -->
             <main class="flex-1 overflow-y-auto p-4 md:p-6">
                 
-                <!-- Success/Error Messages -->
+                <!-- Success/Error/Info/Warning Messages -->
                 @if(session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded">
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded shadow-sm">
                     <div class="flex items-center">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        <span>{{ session('success') }}</span>
+                        <i class="fas fa-check-circle mr-2 text-lg"></i>
+                        <span class="font-medium">{{ session('success') }}</span>
                     </div>
                 </div>
                 @endif
 
                 @if(session('error'))
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm">
                     <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        <span>{{ session('error') }}</span>
+                        <i class="fas fa-exclamation-circle mr-2 text-lg"></i>
+                        <span class="font-medium">{{ session('error') }}</span>
+                    </div>
+                </div>
+                @endif
+
+                @if(session('info'))
+                <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded shadow-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle mr-2 text-lg"></i>
+                        <span class="font-medium">{{ session('info') }}</span>
+                    </div>
+                </div>
+                @endif
+
+                @if(session('warning'))
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 rounded shadow-sm">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2 text-lg"></i>
+                        <span class="font-medium">{{ session('warning') }}</span>
                     </div>
                 </div>
                 @endif
 
                 @if($errors->any())
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded">
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm">
                     <div class="flex items-start">
-                        <i class="fas fa-exclamation-circle mr-2 mt-1"></i>
+                        <i class="fas fa-exclamation-circle mr-2 mt-1 text-lg"></i>
                         <div>
-                            <p class="font-semibold">Please fix the following errors:</p>
-                            <ul class="list-disc list-inside mt-2">
+                            <p class="font-semibold">Please check your entries:</p>
+                            <ul class="list-disc list-inside mt-2 text-sm space-y-1">
                                 @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                                 @endforeach

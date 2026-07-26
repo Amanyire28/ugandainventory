@@ -70,17 +70,23 @@ class CustomerController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
-        $customer = Customer::create([
-            'business_id' => $user->business_id,
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-            'email' => $validated['email'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'is_active' => true,
-        ]);
+        try {
+            $customer = Customer::create([
+                'business_id' => $user->business_id,
+                'name' => $validated['name'],
+                'phone' => $validated['phone'],
+                'email' => $validated['email'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'is_active' => true,
+            ]);
 
-        return redirect()->route('customers.index')
-            ->with('success', "Customer '{$customer->name}' added successfully! ✅");
+            return redirect()->route('customers.index')
+                ->with('success', "Customer '{$customer->name}' added successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to add customer: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -156,10 +162,16 @@ class CustomerController extends Controller
             'address' => 'nullable|string|max:500',
         ]);
 
-        $customer->update($validated);
+        try {
+            $customer->update($validated);
 
-        return redirect()->route('customers.index')
-            ->with('success', "Customer '{$customer->name}' updated successfully! ✅");
+            return redirect()->route('customers.index')
+                ->with('success', "Customer '{$customer->name}' updated successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update customer: ' . $e->getMessage());
+        }
     }
 
     /**

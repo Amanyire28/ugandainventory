@@ -437,12 +437,16 @@ class ExpenseController extends Controller
         $data['business_id'] = (int) $bid;
         $data['user_id'] = auth()->id();
 
-        Expense::create($data);
+        try {
+            $expense = Expense::create($data);
 
-        // Redirect role-aware
-        if (optional($u->role)->name === 'cashier') {
-            return redirect()->route('cashier.expenses.create')->with('success', 'Expense recorded.');
+            // Redirect role-aware
+            if (optional($u->role)->name === 'cashier') {
+                return redirect()->route('cashier.expenses.create')->with('success', "Expense of UGX " . number_format($data['amount'], 0) . " recorded successfully! ✅");
+            }
+            return redirect()->route('expenses.create')->with('success', "Expense of UGX " . number_format($data['amount'], 0) . " recorded successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to record expense: ' . $e->getMessage());
         }
-        return redirect()->route('expenses.create')->with('success', 'Expense recorded.');
     }
 }

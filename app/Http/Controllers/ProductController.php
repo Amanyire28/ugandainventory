@@ -217,54 +217,60 @@ class ProductController extends Controller
 
         $createdCount = 0;
 
-        DB::transaction(function() use ($request, $user, &$createdCount) {
-            foreach ($request->products as $row) {
-                if (empty($row['name'])) continue;
+        try {
+            DB::transaction(function() use ($request, $user, &$createdCount) {
+                foreach ($request->products as $row) {
+                    if (empty($row['name'])) continue;
 
-                // Category Resolution
-                $categoryId = null;
-                if (!empty($row['category_id']) && is_numeric($row['category_id'])) {
-                    $categoryId = (int) $row['category_id'];
-                } elseif (!empty($row['new_category_name'])) {
-                    $catName = trim($row['new_category_name']);
-                    $category = Category::firstOrCreate(
-                        ['business_id' => $user->business_id, 'name' => $catName],
-                        ['is_active' => true]
-                    );
-                    $categoryId = $category->id;
+                    // Category Resolution
+                    $categoryId = null;
+                    if (!empty($row['category_id']) && is_numeric($row['category_id'])) {
+                        $categoryId = (int) $row['category_id'];
+                    } elseif (!empty($row['new_category_name'])) {
+                        $catName = trim($row['new_category_name']);
+                        $category = Category::firstOrCreate(
+                            ['business_id' => $user->business_id, 'name' => $catName],
+                            ['is_active' => true]
+                        );
+                        $categoryId = $category->id;
+                    }
+
+                    // SKU Generation / Formatting
+                    $sku = !empty($row['sku']) ? trim($row['sku']) : 'PROD-' . rand(100000, 999999);
+                    $existingSkuCount = Product::where('business_id', $user->business_id)->where('sku', $sku)->count();
+                    if ($existingSkuCount > 0) {
+                        $sku = 'PROD-' . rand(100000, 999999);
+                    }
+
+                    // Requires VAT boolean
+                    $requiresVat = isset($row['requires_vat']) && ($row['requires_vat'] == '1' || $row['requires_vat'] === 'on' || $row['requires_vat'] === true);
+
+                    Product::create([
+                        'business_id' => $user->business_id,
+                        'category_id' => $categoryId,
+                        'name' => trim($row['name']),
+                        'sku' => $sku,
+                        'barcode' => !empty($row['barcode']) ? trim($row['barcode']) : null,
+                        'cost_price' => $row['cost_price'] ?? 0,
+                        'selling_price' => $row['selling_price'] ?? 0,
+                        'quantity' => $row['quantity'] ?? 0,
+                        'unit' => $row['unit'] ?? 'pcs',
+                        'requires_vat' => $requiresVat,
+                        'reorder_level' => 10,
+                        'is_active' => true,
+                    ]);
+
+                    $createdCount++;
                 }
+            });
 
-                // SKU Generation / Formatting
-                $sku = !empty($row['sku']) ? trim($row['sku']) : 'PROD-' . rand(100000, 999999);
-                $existingSkuCount = Product::where('business_id', $user->business_id)->where('sku', $sku)->count();
-                if ($existingSkuCount > 0) {
-                    $sku = 'PROD-' . rand(100000, 999999);
-                }
-
-                // Requires VAT boolean
-                $requiresVat = isset($row['requires_vat']) && ($row['requires_vat'] == '1' || $row['requires_vat'] === 'on' || $row['requires_vat'] === true);
-
-                Product::create([
-                    'business_id' => $user->business_id,
-                    'category_id' => $categoryId,
-                    'name' => trim($row['name']),
-                    'sku' => $sku,
-                    'barcode' => !empty($row['barcode']) ? trim($row['barcode']) : null,
-                    'cost_price' => $row['cost_price'] ?? 0,
-                    'selling_price' => $row['selling_price'] ?? 0,
-                    'quantity' => $row['quantity'] ?? 0,
-                    'unit' => $row['unit'] ?? 'pcs',
-                    'requires_vat' => $requiresVat,
-                    'reorder_level' => 10,
-                    'is_active' => true,
-                ]);
-
-                $createdCount++;
-            }
-        });
-
-        return redirect()->route('products.index')
-            ->with('success', "🎉 Successfully added {$createdCount} products in bulk!");
+            return redirect()->route('products.index')
+                ->with('success', "🎉 Successfully added {$createdCount} products in bulk!");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "Failed to add bulk products: " . $e->getMessage());
+        }
     }
 
     /**
@@ -312,61 +318,72 @@ public function store(Request $request)
         'image' => 'nullable|image|max:2048',
     ]);
 
-    // ✅ VALIDATE CONDITIONAL CATEGORY REQUIREMENTS
-    if ($request->category_option === 'existing') {
-        if (empty($validated['category_id'])) {
-            return redirect()->back()->withErrors([
-                'category_id' => 'Please select an existing category.'
-            ])->withInput();
+    try {
+        DB::beginTransaction();
+
+        // ✅ VALIDATE CONDITIONAL CATEGORY REQUIREMENTS
+        if ($request->category_option === 'existing') {
+            if (empty($validated['category_id'])) {
+                return redirect()->back()->withErrors([
+                    'category_id' => 'Please select an existing category.'
+                ])->withInput();
+            }
+        } elseif ($request->category_option === 'new') {
+            if (empty($validated['new_category_name'])) {
+                return redirect()->back()->withErrors([
+                    'new_category_name' => 'Please enter a new category name.'
+                ])->withInput();
+            }
+            
+            // ✅ CREATE NEW CATEGORY
+            $category = Category::create([
+                'name' => $validated['new_category_name'],
+                'description' => $validated['new_category_description'] ?? null,
+                'business_id' => $user->business_id,
+            ]);
+            
+            $validated['category_id'] = $category->id;
         }
-    } elseif ($request->category_option === 'new') {
-        if (empty($validated['new_category_name'])) {
-            return redirect()->back()->withErrors([
-                'new_category_name' => 'Please enter a new category name.'
-            ])->withInput();
+
+        // ✅ SET BUSINESS ID & VAT FLAG
+        $validated['business_id']  = $user->business_id;
+        $validated['is_active']    = true;
+        $validated['requires_vat'] = $request->has('requires_vat') ? $request->boolean('requires_vat') : true;
+
+        // ✅ Handle image upload
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        // ✅ MAP QUANTITY TO OPENING_STOCK (for initial stock entry)
+        if (isset($validated['quantity']) && $validated['quantity']) {
+            $validated['opening_stock'] = $validated['quantity'];
+        } else {
+            $validated['opening_stock'] = 0;
         }
         
-        // ✅ CREATE NEW CATEGORY
-        $category = Category::create([
-            'name' => $validated['new_category_name'],
-            'description' => $validated['new_category_description'] ?? null,
-            'business_id' => $user->business_id,
-        ]);
-        
-        $validated['category_id'] = $category->id;
+        // ✅ SET QUANTITY TO OPENING_STOCK VALUE (they should be the same initially)
+        $validated['quantity'] = $validated['opening_stock'];
+
+        // ✅ REMOVE FIELDS NOT IN PRODUCT TABLE
+        unset($validated['new_category_name']);
+        unset($validated['new_category_description']);
+        unset($validated['category_option']);
+        unset($validated['track_expiry']);
+
+        // ✅ CREATE PRODUCT
+        $product = Product::create($validated);
+
+        DB::commit();
+
+        return redirect()->route('products.index')
+            ->with('success', "Product '{$product->name}' added successfully! ✅");
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return redirect()->back()
+            ->withInput()
+            ->with('error', "Failed to add product: " . $e->getMessage());
     }
-
-    // ✅ SET BUSINESS ID & VAT FLAG
-    $validated['business_id']  = $user->business_id;
-    $validated['is_active']    = true;
-    $validated['requires_vat'] = $request->has('requires_vat') ? $request->boolean('requires_vat') : true;
-
-    // ✅ Handle image upload
-    if ($request->hasFile('image')) {
-        $validated['image'] = $request->file('image')->store('products', 'public');
-    }
-
-    // ✅ MAP QUANTITY TO OPENING_STOCK (for initial stock entry)
-    if (isset($validated['quantity']) && $validated['quantity']) {
-        $validated['opening_stock'] = $validated['quantity'];
-    } else {
-        $validated['opening_stock'] = 0;
-    }
-    
-    // ✅ SET QUANTITY TO OPENING_STOCK VALUE (they should be the same initially)
-    $validated['quantity'] = $validated['opening_stock'];
-
-    // ✅ REMOVE FIELDS NOT IN PRODUCT TABLE
-    unset($validated['new_category_name']);
-    unset($validated['new_category_description']);
-    unset($validated['category_option']);
-    unset($validated['track_expiry']);
-
-    // ✅ CREATE PRODUCT
-    $product = Product::create($validated);
-
-    return redirect()->route('products.index')
-        ->with('success', "Product '{$product->name}' added successfully! ✅");
 }
 
     /**

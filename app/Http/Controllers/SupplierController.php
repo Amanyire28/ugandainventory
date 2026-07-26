@@ -43,20 +43,26 @@ class SupplierController extends Controller
             'country' => 'nullable|string|max:100',
         ]);
 
-        Supplier::create([
-            'business_id' => Auth::user()->business_id,
-            'name' => $validated['name'],
-            'contact_person' => $validated['contact_person'] ?? null,
-            'phone' => $validated['phone'],
-            'email' => $validated['email'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'city' => $validated['city'] ?? null,
-            'country' => $validated['country'] ?? 'Uganda',
-            'is_active' => true,
-        ]);
+        try {
+            Supplier::create([
+                'business_id' => Auth::user()->business_id,
+                'name' => $validated['name'],
+                'contact_person' => $validated['contact_person'] ?? null,
+                'phone' => $validated['phone'],
+                'email' => $validated['email'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'city' => $validated['city'] ?? null,
+                'country' => $validated['country'] ?? 'Uganda',
+                'is_active' => true,
+            ]);
 
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier created successfully');
+            return redirect()->route('suppliers.index')
+                ->with('success', "Supplier '{$validated['name']}' created successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to create supplier: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -91,10 +97,16 @@ class SupplierController extends Controller
             'is_active' => 'required|boolean',
         ]);
 
-        $supplier->update($validated);
+        try {
+            $supplier->update($validated);
 
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier updated successfully');
+            return redirect()->route('suppliers.index')
+                ->with('success', "Supplier '{$supplier->name}' updated successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Failed to update supplier: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -106,9 +118,15 @@ class SupplierController extends Controller
             abort(403);
         }
 
-        $supplier->delete();
+        try {
+            $name = $supplier->name;
+            $supplier->delete();
 
-        return redirect()->route('suppliers.index')
-            ->with('success', 'Supplier deleted successfully');
+            return redirect()->route('suppliers.index')
+                ->with('success', "Supplier '{$name}' deleted successfully! ✅");
+        } catch (\Exception $e) {
+            return redirect()->route('suppliers.index')
+                ->with('error', 'Failed to delete supplier: ' . $e->getMessage());
+        }
     }
 }
