@@ -76,9 +76,19 @@
             </p>
           </div>
         </div>
-        <a href="{{ route('subscription.index') }}" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all whitespace-nowrap shrink-0">
-          <i class="fas fa-credit-card mr-1"></i> Go to Billing Portal
-        </a>
+
+        <!-- Dashboard Billing Toggle Button -->
+        <div class="inline-flex items-center justify-center p-1 bg-white rounded-xl border border-amber-200 shadow-sm shrink-0">
+          <button type="button" id="dashBtnMonthly" onclick="setDashBillingCycle('monthly')" class="px-4 py-2 rounded-lg font-extrabold text-xs transition-all bg-indigo-600 text-white shadow-sm">
+            Monthly
+          </button>
+          <button type="button" id="dashBtnAnnual" onclick="setDashBillingCycle('annual')" class="px-4 py-2 rounded-lg font-extrabold text-xs transition-all text-gray-700 hover:text-indigo-600 flex items-center">
+            <i class="fas fa-calendar-alt text-emerald-600 mr-1.5"></i> Annual
+            <span class="ml-1.5 px-1.5 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-black rounded-full border border-emerald-200">
+              Save 2 Mos
+            </span>
+          </button>
+        </div>
       </div>
 
       <!-- Subscription Cards Grid -->
@@ -113,8 +123,8 @@
               </div>
 
               @if($pkg->price > 0)
-                <!-- Annual Rate & Savings -->
-                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 mb-4">
+                <!-- Annual Rate & Savings (Hidden by default, expands when Annual toggle clicked) -->
+                <div class="dash-annual-box hidden p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 mb-4">
                   <div class="flex items-center justify-between text-[11px]">
                     <span class="font-extrabold text-emerald-950 uppercase">
                       <i class="fas fa-calendar-alt text-emerald-600 mr-1"></i> Annual Billing
@@ -926,6 +936,34 @@
         }
       });
     })();
+    // Dashboard Subscription Billing Cycle Toggle
+    window.setDashBillingCycle = function(mode) {
+      const btnMonthly = document.getElementById('dashBtnMonthly');
+      const btnAnnual = document.getElementById('dashBtnAnnual');
+      const annualBoxes = document.querySelectorAll('.dash-annual-box');
+
+      if (mode === 'annual') {
+        if (btnMonthly) {
+          btnMonthly.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+          btnMonthly.classList.add('text-gray-700');
+        }
+        if (btnAnnual) {
+          btnAnnual.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+          btnAnnual.classList.remove('text-gray-700');
+        }
+        annualBoxes.forEach(el => el.classList.remove('hidden'));
+      } else {
+        if (btnAnnual) {
+          btnAnnual.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+          btnAnnual.classList.add('text-gray-700');
+        }
+        if (btnMonthly) {
+          btnMonthly.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+          btnMonthly.classList.remove('text-gray-700');
+        }
+        annualBoxes.forEach(el => el.classList.add('hidden'));
+      }
+    };
   }
   </script>
 @endsection

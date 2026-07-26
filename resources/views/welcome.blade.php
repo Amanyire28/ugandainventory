@@ -437,12 +437,25 @@
     <!-- Subscriptions & Pricing Section -->
     <section id="subscriptions" class="py-24 bg-gradient-to-b from-gray-50 to-indigo-50/50 border-t border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
+            <div class="text-center max-w-3xl mx-auto mb-12">
                 <span class="px-4 py-1.5 bg-indigo-100 text-indigo-700 font-extrabold rounded-full text-xs tracking-wider uppercase inline-block mb-3">
                     <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscription Packages
                 </span>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Choose the Right Plan for Your Business</h2>
-                <p class="text-lg text-gray-600">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
+                <p class="text-lg text-gray-600 mb-8">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
+
+                <!-- Billing Cycle Toggle Buttons -->
+                <div class="inline-flex items-center justify-center p-1.5 bg-white rounded-2xl border border-gray-200 shadow-md">
+                    <button type="button" id="btnMonthlyBilling" onclick="setBillingCycle('monthly')" class="px-6 py-2.5 rounded-xl font-extrabold text-sm transition-all bg-indigo-600 text-white shadow-sm">
+                        Monthly Billing
+                    </button>
+                    <button type="button" id="btnAnnualBilling" onclick="setBillingCycle('annual')" class="px-6 py-2.5 rounded-xl font-extrabold text-sm transition-all text-gray-600 hover:text-indigo-600 flex items-center">
+                        <i class="fas fa-calendar-alt text-emerald-500 mr-2"></i> Annual Billing
+                        <span class="ml-2 px-2.5 py-0.5 bg-emerald-100 text-emerald-800 text-[11px] font-black rounded-full border border-emerald-200">
+                            2 Months FREE
+                        </span>
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -476,8 +489,8 @@
                                 </div>
 
                                 @if($pkg->price > 0)
-                                <!-- Annual Price & Savings -->
-                                <div class="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-1.5">
+                                <!-- Annual Price & Savings (Hidden by default, expands on Annual toggle click) -->
+                                <div class="annual-details-box hidden p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-1.5">
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">
                                             <i class="fas fa-calendar-alt text-emerald-600 mr-1"></i> Annual Billing
@@ -973,6 +986,35 @@
                     console.log('SW registration failed: ', err);
                 });
             });
+        }
+
+        // Toggle Monthly / Annual Billing Breakdown view on Homepage cards
+        function setBillingCycle(mode) {
+            const btnMonthly = document.getElementById('btnMonthlyBilling');
+            const btnAnnual = document.getElementById('btnAnnualBilling');
+            const annualBoxes = document.querySelectorAll('.annual-details-box');
+
+            if (mode === 'annual') {
+                if (btnMonthly) {
+                    btnMonthly.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnMonthly.classList.add('text-gray-600');
+                }
+                if (btnAnnual) {
+                    btnAnnual.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnAnnual.classList.remove('text-gray-600');
+                }
+                annualBoxes.forEach(el => el.classList.remove('hidden'));
+            } else {
+                if (btnAnnual) {
+                    btnAnnual.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnAnnual.classList.add('text-gray-600');
+                }
+                if (btnMonthly) {
+                    btnMonthly.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+                    btnMonthly.classList.remove('text-gray-600');
+                }
+                annualBoxes.forEach(el => el.classList.add('hidden'));
+            }
         }
 
         // Select package from homepage card and open register modal
