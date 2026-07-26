@@ -109,7 +109,7 @@
                   Monthly
                 </button>
                 <button type="button" onclick="toggleDashCardBilling('{{ $pkg->slug }}', 'annual', event)" id="dash-btn-annual-{{ $pkg->slug }}" class="flex-1 py-1 rounded-lg text-center transition-all text-gray-600 hover:text-indigo-600 flex items-center justify-center">
-                  Annual <span class="ml-1 text-[9px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-black">Save 17%</span>
+                  Annual <span class="ml-1 text-[9px] bg-indigo-100 text-indigo-800 px-1.5 py-0.5 rounded-full font-black">Save 17%</span>
                 </button>
               </div>
               @endif
@@ -132,15 +132,15 @@
                       <span class="text-2xl font-black text-indigo-950 tracking-tight">UGX {{ number_format($pkg->price * 10) }}</span>
                       <span class="text-indigo-600 font-bold text-xs">/ yr</span>
                     </div>
-                    <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
+                    <span class="text-[10px] font-black text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded-md border border-indigo-200">
                       2 Months FREE
                     </span>
                   </div>
 
                   <div class="flex items-center justify-between text-xs font-bold pt-0.5">
                     <span class="text-gray-400 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
-                    <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200/80">
-                      <i class="fas fa-piggy-bank mr-1 text-emerald-600"></i> Save UGX {{ number_format($pkg->price * 2) }}
+                    <span class="text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200/80">
+                      <i class="fas fa-piggy-bank mr-1 text-indigo-600"></i> Save UGX {{ number_format($pkg->price * 2) }}
                     </span>
                   </div>
                 </div>

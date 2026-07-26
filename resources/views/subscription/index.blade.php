@@ -474,21 +474,21 @@
               </div>
 
               @if($pkg->price > 0)
-                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;">
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-                    <span style="font-size: 11px; font-weight: 800; color: #065f46; text-transform: uppercase;">
-                      <i class="fas fa-calendar-check" style="color: #059669; margin-right: 4px;"></i> Annual Billing
+                    <span style="font-size: 11px; font-weight: 800; color: #1e3a8a; text-transform: uppercase;">
+                      <i class="fas fa-calendar-check" style="color: #2563eb; margin-right: 4px;"></i> Annual Billing
                     </span>
-                    <span style="font-size: 10px; font-weight: 900; color: #ffffff; background: #059669; padding: 1px 8px; border-radius: 9999px;">
+                    <span style="font-size: 10px; font-weight: 900; color: #ffffff; background: #2563eb; padding: 1px 8px; border-radius: 9999px;">
                       2 Months FREE
                     </span>
                   </div>
                   <div style="display: flex; align-items: baseline; justify-content: space-between;">
-                    <span style="font-size: 15px; font-weight: 900; color: #064e3b;">UGX {{ number_format($pkg->price * 10) }} <span style="font-size: 11px; font-weight: 700; color: #047857;">/ year</span></span>
-                    <span style="font-size: 11px; font-weight: 700; color: #047857; text-decoration: line-through;">UGX {{ number_format($pkg->price * 12) }}</span>
+                    <span style="font-size: 15px; font-weight: 900; color: #1e3a8a;">UGX {{ number_format($pkg->price * 10) }} <span style="font-size: 11px; font-weight: 700; color: #3b82f6;">/ year</span></span>
+                    <span style="font-size: 11px; font-weight: 700; color: #64748b; text-decoration: line-through;">UGX {{ number_format($pkg->price * 12) }}</span>
                   </div>
-                  <div style="font-size: 11px; font-weight: 800; color: #047857; border-top: 1px solid #a7f3d0; padding-top: 4px; margin-top: 4px;">
-                    <i class="fas fa-piggy-bank" style="color: #059669; margin-right: 4px;"></i> Save up to <strong style="color: #064e3b; font-weight: 900;">UGX {{ number_format($pkg->price * 2) }}</strong> subscribing annually!
+                  <div style="font-size: 11px; font-weight: 800; color: #1d4ed8; border-top: 1px solid #bfdbfe; padding-top: 4px; margin-top: 4px;">
+                    <i class="fas fa-piggy-bank" style="color: #2563eb; margin-right: 4px;"></i> Save up to <strong style="color: #1e3a8a; font-weight: 900;">UGX {{ number_format($pkg->price * 2) }}</strong> subscribing annually!
                   </div>
                 </div>
               @endif
