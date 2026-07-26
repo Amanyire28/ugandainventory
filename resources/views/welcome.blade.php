@@ -465,9 +465,34 @@
                                 </div>
                             </div>
 
-                            <div class="my-6 pb-6 border-b border-gray-100">
-                                <span class="text-4xl md:text-5xl font-black text-gray-900">UGX {{ number_format($pkg->price) }}</span>
-                                <span class="text-gray-500 font-bold"> / month</span>
+                            <div class="my-6 pb-6 border-b border-gray-100 space-y-3">
+                                <!-- Monthly Price -->
+                                <div class="flex items-baseline justify-between">
+                                    <div>
+                                        <span class="text-3xl md:text-4xl font-black text-gray-900">UGX {{ number_format($pkg->price) }}</span>
+                                        <span class="text-gray-500 font-bold text-sm"> / month</span>
+                                    </div>
+                                    <span class="text-xs font-extrabold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">Monthly</span>
+                                </div>
+
+                                @if($pkg->price > 0)
+                                <!-- Annual Price & Savings -->
+                                <div class="p-3.5 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-extrabold text-emerald-950 uppercase tracking-wider">
+                                            <i class="fas fa-calendar-alt text-emerald-600 mr-1"></i> Annual Billing
+                                        </span>
+                                        <span class="text-[11px] font-black text-white bg-emerald-600 px-2.5 py-0.5 rounded-full shadow-sm">2 Months FREE</span>
+                                    </div>
+                                    <div class="flex items-baseline justify-between pt-1">
+                                        <span class="text-xl font-black text-emerald-950">UGX {{ number_format($pkg->price * 10) }} <span class="text-xs font-bold text-emerald-700">/ year</span></span>
+                                        <span class="text-xs font-bold text-emerald-800 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
+                                    </div>
+                                    <div class="text-[11px] font-bold text-emerald-800 flex items-center pt-1.5 border-t border-emerald-200/70">
+                                        <i class="fas fa-piggy-bank text-emerald-600 mr-1.5 text-sm"></i> Save up to <span class="mx-1 font-extrabold text-emerald-950 underline decoration-emerald-400">UGX {{ number_format($pkg->price * 2) }}</span> subscribing annually!
+                                    </div>
+                                </div>
+                                @endif
                             </div>
 
                             <p class="text-gray-600 text-sm mb-6 font-medium leading-relaxed">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>

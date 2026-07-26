@@ -170,13 +170,13 @@
             </label>
             <select name="duration_months" id="durationSelect" required
               style="width: 100%; padding: 12px 16px; border: 1px solid #bfdbfe; border-radius: 10px; background: #ffffff; color: #1e3a8a; font-size: 14px; font-weight: 700; outline: none;">
-              <option value="1">1 Month</option>
+              <option value="1">1 Month (Monthly Standard)</option>
               <option value="2">2 Months</option>
               <option value="3">3 Months (Quarterly)</option>
               <option value="4">4 Months</option>
               <option value="5">5 Months</option>
               <option value="6">6 Months (Half Year)</option>
-              <option value="12">12 Months (1 Year - Annual Plan)</option>
+              <option value="12">12 Months (1 Year - Pay 10 Months, 2 Months FREE! 🎉)</option>
             </select>
           </div>
         </div>
@@ -468,10 +468,30 @@
 
             <div>
               <div style="font-size: 12px; font-weight: 900; color: #2563eb; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">{{ $pkg->name }}</div>
-              <div style="display: flex; align-items: baseline; gap: 4px; margin: 8px 0 12px 0;">
+              <div style="display: flex; align-items: baseline; gap: 4px; margin: 8px 0 6px 0;">
                 <span style="font-size: 26px; font-weight: 900; color: #1e3a8a;">UGX {{ number_format($pkg->price) }}</span>
                 <span style="font-size: 12px; font-weight: 700; color: #64748b;">/ month</span>
               </div>
+
+              @if($pkg->price > 0)
+                <div style="background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                    <span style="font-size: 11px; font-weight: 800; color: #065f46; text-transform: uppercase;">
+                      <i class="fas fa-calendar-check" style="color: #059669; margin-right: 4px;"></i> Annual Billing
+                    </span>
+                    <span style="font-size: 10px; font-weight: 900; color: #ffffff; background: #059669; padding: 1px 8px; border-radius: 9999px;">
+                      2 Months FREE
+                    </span>
+                  </div>
+                  <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                    <span style="font-size: 15px; font-weight: 900; color: #064e3b;">UGX {{ number_format($pkg->price * 10) }} <span style="font-size: 11px; font-weight: 700; color: #047857;">/ year</span></span>
+                    <span style="font-size: 11px; font-weight: 700; color: #047857; text-decoration: line-through;">UGX {{ number_format($pkg->price * 12) }}</span>
+                  </div>
+                  <div style="font-size: 11px; font-weight: 800; color: #047857; border-top: 1px solid #a7f3d0; padding-top: 4px; margin-top: 4px;">
+                    <i class="fas fa-piggy-bank" style="color: #059669; margin-right: 4px;"></i> Save up to <strong style="color: #064e3b; font-weight: 900;">UGX {{ number_format($pkg->price * 2) }}</strong> subscribing annually!
+                  </div>
+                </div>
+              @endif
 
               @if($pkg->description)
                 <p style="font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 16px; line-height: 1.5;">{{ $pkg->description }}</p>
@@ -525,9 +545,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedSlug = pkgSelect.value;
     const months = parseInt(durationSelect.value) || 1;
     const pricePerMonth = packagesMap[selectedSlug] || 0;
+    
+    // Annual 2 months free discount
+    const monthsToPay = (months === 12) ? 10 : months;
 
     if (!partialCheckbox.checked) {
-      const totalPrice = pricePerMonth * months;
+      const totalPrice = pricePerMonth * monthsToPay;
       amountInput.value = totalPrice;
       amountInput.readOnly = true;
       amountInput.style.backgroundColor = '#ffffff';
@@ -540,7 +563,12 @@ document.addEventListener('DOMContentLoaded', function () {
       const futureDate = new Date();
       futureDate.setMonth(futureDate.getMonth() + months);
       const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      periodPreviewText.textContent = `${today.toLocaleDateString(undefined, options)} — ${futureDate.toLocaleDateString(undefined, options)} (${months} month${months > 1 ? 's' : ''})`;
+      let previewMsg = `${today.toLocaleDateString(undefined, options)} — ${futureDate.toLocaleDateString(undefined, options)} (${months} month${months > 1 ? 's' : ''})`;
+      if (months === 12 && pricePerMonth > 0) {
+        const savings = pricePerMonth * 2;
+        previewMsg += ` 🎉 Annual Discount Applied! (Saved UGX ${savings.toLocaleString()})`;
+      }
+      periodPreviewText.textContent = previewMsg;
     } else {
       periodPreviewText.textContent = 'Select plan & duration';
     }
