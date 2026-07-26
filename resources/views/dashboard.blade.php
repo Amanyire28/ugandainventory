@@ -121,9 +121,8 @@
                 <div id="dash-price-monthly-{{ $pkg->slug }}" class="flex items-baseline justify-between">
                   <div>
                     <span class="text-2xl font-black text-gray-900 tracking-tight">UGX {{ number_format($pkg->price) }}</span>
-                    <span class="text-gray-500 font-bold text-xs">/ mo</span>
+                    <span class="text-gray-500 font-bold text-xs">/ mon</span>
                   </div>
-                  <span class="text-[10px] font-extrabold text-gray-400 uppercase bg-gray-100 px-2 py-0.5 rounded-md">Billed Monthly</span>
                 </div>
 
                 @if($pkg->price > 0)
