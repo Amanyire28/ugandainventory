@@ -184,11 +184,8 @@
                     <input type="number" id="discountAmount" value="0" min="0" step="100" onchange="updateTotals()" class="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-right text-sm font-bold focus:ring-2 focus:ring-green-500">
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-dashed">
-                    <label class="flex items-center cursor-pointer font-medium text-gray-650">
-                        <input type="checkbox" id="addTaxCheckbox" onchange="updateTotals()" class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 rounded">
-                        <span>VAT (18%)</span>
-                    </label>
-                    <span class="font-bold text-gray-950 text-base">UGX <span id="taxAmount">0</span></span>
+                    <span class="text-gray-650 font-medium">VAT (18%):</span>
+                    <span class="font-bold text-gray-950 text-base">UGX <span id="taxAmount">0.00</span></span>
                 </div>
                 <div class="flex justify-between items-center text-lg font-extrabold text-green-600 pt-2 border-t">
                     <span>TOTAL:</span>
@@ -714,14 +711,7 @@ function updateTotals() {
     const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
     
     // Automatically calculate VAT for products with requiresVat = true
-    const autoItemVat = cart.reduce((sum, item) => sum + (item.requiresVat ? (item.price * item.quantity * 0.18) : 0), 0);
-    const manualAddTax = document.getElementById('addTaxCheckbox').checked;
-    
-    let tax = autoItemVat;
-    if (manualAddTax && autoItemVat === 0) {
-        const taxableAmount = Math.max(0, subtotal - discount);
-        tax = taxableAmount * 0.18;
-    }
+    const tax = cart.reduce((sum, item) => sum + (item.requiresVat ? (item.price * item.quantity * 0.18) : 0), 0);
     
     const total = subtotal - discount + tax;
     document.getElementById('subtotalAmount').textContent = subtotal.toLocaleString();
@@ -812,7 +802,7 @@ async function processSale() {
             price: item.price
         })),
         discount: parseFloat(document.getElementById('discountAmount').value) || 0,
-        add_tax: document.getElementById('addTaxCheckbox').checked,
+        add_tax: true,
         notes: document.getElementById('saleNotes').value || null,
         _token: '{{ csrf_token() }}',
         payment_type: paymentType
