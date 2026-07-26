@@ -305,6 +305,9 @@ class DashboardController extends Controller
             'selectedYear' => $selectedYear,
             'availableYears' => $availableYears,
 
+            // Packages
+            'packages' => \App\Models\Package::where('is_active', true)->orderBy('price')->get(),
+
             // Role
             'userRole' => $userRole,
 

@@ -61,23 +61,96 @@
     </div>
   @endif
 
-  {{-- ── Features Locked Banner if Subscription Unconfirmed ── --}}
+  {{-- ── Features Locked Banner & Subscription Cards if Subscription Unconfirmed ── --}}
   @if(!auth()->user()->isAdmin() && !optional(auth()->user()->business)->isSubscriptionActive())
-    <div class="reveal visible bg-amber-50 border-2 border-amber-300 text-amber-950 p-5 mb-6 rounded-2xl shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <div class="flex items-start gap-3">
-        <div class="w-10 h-10 bg-amber-200 text-amber-900 rounded-xl flex items-center justify-center text-lg font-bold shrink-0">
-          <i class="fas fa-lock"></i>
+    <div class="reveal visible bg-amber-50 border-2 border-amber-300 text-amber-950 p-5 mb-6 rounded-2xl shadow-md">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-5 border-b border-amber-200">
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 bg-amber-200 text-amber-900 rounded-xl flex items-center justify-center text-lg font-bold shrink-0">
+            <i class="fas fa-lock"></i>
+          </div>
+          <div>
+            <h4 class="font-extrabold text-base text-amber-950">Subscription Unconfirmed — Operational Features Locked</h4>
+            <p class="text-xs text-amber-900 font-medium mt-0.5">
+              Your business is registered under the <strong>{{ ucfirst(optional(auth()->user()->business)->subscription_plan ?? 'selected') }}</strong> plan. Please review the subscription packages below and submit your payment to unlock POS, Inventory, and Reports.
+            </p>
+          </div>
         </div>
-        <div>
-          <h4 class="font-extrabold text-base text-amber-950">Subscription Unconfirmed — Features Locked</h4>
-          <p class="text-xs text-amber-900 font-medium mt-0.5">
-            Your business is registered under the <strong>{{ ucfirst(optional(auth()->user()->business)->subscription_plan ?? 'selected') }}</strong> plan. Payment is optional at registration so you can access your account, but <strong>all operational features (POS, Invoicing, Sales, Stock, Reports) remain locked</strong> until your subscription payment is confirmed by the Admin.
-          </p>
-        </div>
+        <a href="{{ route('subscription.index') }}" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all whitespace-nowrap shrink-0">
+          <i class="fas fa-credit-card mr-1"></i> Go to Billing Portal
+        </a>
       </div>
-      <a href="{{ route('subscription.index') }}" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-md transition-all whitespace-nowrap shrink-0">
-        <i class="fas fa-credit-card mr-1"></i> Make Payment / Select Plan
-      </a>
+
+      <!-- Subscription Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @foreach($packages ?? [] as $pkg)
+          @php $isCurrent = (optional(auth()->user()->business)->subscription_plan === $pkg->slug); @endphp
+          <div class="bg-white rounded-2xl p-6 shadow-md border-2 relative flex flex-col justify-between {{ $isCurrent ? 'border-indigo-600 ring-2 ring-indigo-200' : 'border-gray-200' }}">
+            @if($isCurrent)
+              <div class="absolute -top-3 right-4 bg-indigo-600 text-white text-[11px] font-black uppercase tracking-wider py-0.5 px-3 rounded-full shadow-sm">
+                Selected Plan
+              </div>
+            @endif
+
+            <div>
+              <div class="flex items-center space-x-3 mb-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                  <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-extrabold text-gray-900">{{ $pkg->name }}</h3>
+                  <span class="text-[11px] text-gray-500 font-bold uppercase">{{ $pkg->duration_days ?? 30 }} Days</span>
+                </div>
+              </div>
+
+              <!-- Monthly Price -->
+              <div class="my-4 pb-4 border-b border-gray-100 flex items-baseline justify-between">
+                <div>
+                  <span class="text-2xl font-black text-gray-900">UGX {{ number_format($pkg->price) }}</span>
+                  <span class="text-gray-500 font-bold text-xs"> / month</span>
+                </div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase bg-gray-100 px-2 py-0.5 rounded">Monthly</span>
+              </div>
+
+              @if($pkg->price > 0)
+                <!-- Annual Rate & Savings -->
+                <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1 mb-4">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <span class="font-extrabold text-emerald-950 uppercase">
+                      <i class="fas fa-calendar-alt text-emerald-600 mr-1"></i> Annual Billing
+                    </span>
+                    <span class="font-black text-white bg-emerald-600 px-2 py-0.5 rounded-full">2 Months FREE</span>
+                  </div>
+                  <div class="flex items-baseline justify-between pt-1">
+                    <span class="text-base font-black text-emerald-950">UGX {{ number_format($pkg->price * 10) }} <span class="text-[10px] font-bold text-emerald-700">/ year</span></span>
+                    <span class="text-[11px] font-bold text-emerald-800 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
+                  </div>
+                  <div class="text-[10px] font-bold text-emerald-800 pt-1 border-t border-emerald-200/70">
+                    <i class="fas fa-piggy-bank text-emerald-600 mr-1"></i> Save up to <span class="font-black text-emerald-950">UGX {{ number_format($pkg->price * 2) }}</span> subscribing annually!
+                  </div>
+                </div>
+              @endif
+
+              <p class="text-gray-600 text-xs mb-4 font-medium">{{ $pkg->description ?? 'Full featured business package.' }}</p>
+
+              <div class="space-y-2 mb-6">
+                @if(!empty($pkg->features))
+                  @foreach($pkg->features as $feature)
+                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                      <i class="fas fa-check-circle text-green-500 mr-2 text-sm"></i>
+                      <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
+                    </div>
+                  @endforeach
+                @endif
+              </div>
+            </div>
+
+            <a href="{{ route('subscription.index') }}" class="w-full py-3 rounded-xl font-extrabold text-xs shadow-md text-center block transition-all {{ $isCurrent ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-900 text-white hover:bg-gray-800' }}">
+              <i class="fas fa-credit-card mr-1.5"></i> Select {{ $pkg->name }} & Pay
+            </a>
+          </div>
+        @endforeach
+      </div>
     </div>
   @endif
 
