@@ -72,6 +72,7 @@
     </div>
 
     <!-- Navigation -->
+    <!-- Navigation -->
     <nav class="bg-white shadow-lg fixed w-full z-[60]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -82,15 +83,9 @@
                     </div>
                     <div class="hidden md:flex items-center space-x-6">
                         <a href="#features" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">Features</a>
-                        <a href="#subscriptions" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition flex items-center">
-                            <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscriptions & Pricing
-                        </a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="#subscriptions" class="md:hidden px-2 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-lg">
-                        <i class="fas fa-crown text-amber-500 mr-1"></i> Plans
-                    </a>
                     <a href="#" id="installPwaBtn" class="px-3 sm:px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 font-bold rounded-lg transition-colors flex items-center text-sm sm:text-base shadow-sm">
                         <i class="fas fa-download sm:mr-2"></i> <span class="hidden sm:inline">Download App</span>
                     </a>
@@ -117,9 +112,12 @@
                 <p class="text-xl md:text-2xl mb-8 text-indigo-100 max-w-4xl mx-auto">
                     The all-in-one POS and Inventory Management System designed for retailers, wholesalers, supermarkets, pharmacies, hardware stores, restaurants, boutiques, and growing businesses. Sell faster, track inventory in real time, manage your business from anywhere, and make better decisions with powerful reports.
                 </p>
-                <div class="flex justify-center space-x-4">
+                <div class="flex flex-wrap justify-center gap-4">
                     <a href="#" onclick="openRegisterModal(event)" class="px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
                         Start Free Trial
+                    </a>
+                    <a href="#subscriptions" class="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-white rounded-lg font-bold text-lg shadow-xl hover-scale flex items-center">
+                        <i class="fas fa-crown text-amber-200 mr-2"></i> View Subscription Plans
                     </a>
                     <a href="#demo" class="px-8 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
                         Book a Demo
@@ -223,65 +221,179 @@
                     <p class="text-xs sm:text-base text-gray-600">Record business expenses and understand where your money goes.</p>
                 </div>
                 <!-- Feature 7 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-chart-bar"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Sales Reports</h3>
                     <p class="text-xs sm:text-base text-gray-600">View daily, weekly, monthly, and yearly sales performance.</p>
                 </div>
                 <!-- Feature 8 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-chart-pie"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Profit Analysis</h3>
                     <p class="text-xs sm:text-base text-gray-600">Know exactly how much profit your business makes.</p>
                 </div>
                 <!-- Feature 9 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-gray-200 rounded-full flex items-center justify-center text-gray-800 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-barcode"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Barcode Support</h3>
                     <p class="text-xs sm:text-base text-gray-600">Generate and scan barcodes for faster selling.</p>
                 </div>
+
+                <!-- Hidden Features (Revealed via button) -->
                 <!-- Feature 10 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-user-shield"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Multi-user Access</h3>
                     <p class="text-xs sm:text-base text-gray-600">Allow cashiers, managers, and administrators to work with different permissions.</p>
                 </div>
                 <!-- Feature 11 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-800 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-code-branch"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Multi-Branch Management</h3>
                     <p class="text-xs sm:text-base text-gray-600">Manage multiple business locations from one dashboard.</p>
                 </div>
                 <!-- Feature 12 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-red-100 rounded-full flex items-center justify-center text-red-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-exclamation-triangle"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Low Stock Alerts</h3>
                     <p class="text-xs sm:text-base text-gray-600">Receive notifications when products need restocking.</p>
                 </div>
                 <!-- Feature 13 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-undo-alt"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Returns & Refunds</h3>
                     <p class="text-xs sm:text-base text-gray-600">Handle customer returns professionally.</p>
                 </div>
                 <!-- Feature 14 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-tachometer-alt"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Dashboard Analytics</h3>
                     <p class="text-xs sm:text-base text-gray-600">See your business performance at a glance.</p>
                 </div>
                 <!-- Feature 15 -->
-                <div class="feature-card hidden md:flex bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
+                <div class="extra-feature hidden bg-gray-50 p-4 sm:p-6 rounded-xl hover-scale border border-gray-100 shadow-sm flex-col items-center text-center sm:items-start sm:text-left">
                     <div class="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center text-green-500 text-xl sm:text-2xl mb-3 sm:mb-4 shrink-0"><i class="fas fa-cloud-upload-alt"></i></div>
                     <h3 class="text-sm sm:text-xl font-bold text-gray-900 mb-1 sm:mb-2 leading-tight">Secure Cloud Backup</h3>
                     <p class="text-xs sm:text-base text-gray-600">Your data stays safe and is automatically backed up.</p>
                 </div>
             </div>
             
-            <div class="mt-10 text-center md:hidden" id="viewMoreFeaturesContainer">
-                <button onclick="document.querySelectorAll('.feature-card.hidden').forEach(el => el.classList.remove('hidden', 'md:flex')); document.getElementById('viewMoreFeaturesContainer').style.display='none';" class="text-indigo-600 font-bold border-2 border-indigo-600 rounded-full px-8 py-3 hover:bg-indigo-50 shadow-sm active:scale-95 transition-transform">
-                    View More Features
+            <div class="mt-10 text-center" id="viewMoreFeaturesContainer">
+                <button type="button" onclick="document.querySelectorAll('.extra-feature').forEach(el => { el.classList.remove('hidden'); el.classList.add('flex'); }); document.getElementById('viewMoreFeaturesContainer').style.display='none';" class="inline-flex items-center text-indigo-600 font-bold border-2 border-indigo-600 rounded-full px-8 py-3 hover:bg-indigo-50 shadow-sm active:scale-95 transition-all">
+                    View More Features <i class="fas fa-chevron-down ml-2 text-sm"></i>
                 </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Subscriptions & Pricing Section (Placed Directly After Features Section) -->
+    <section id="subscriptions" class="py-20 bg-gradient-to-b from-indigo-50/50 via-white to-gray-50 border-y border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="px-4 py-1.5 bg-indigo-100 text-indigo-700 font-extrabold rounded-full text-xs tracking-wider uppercase inline-block mb-3 shadow-sm">
+                    <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscription Packages
+                </span>
+                <h2 class="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 tracking-tight">Choose the Right Plan for Your Business</h2>
+                <p class="text-base sm:text-lg text-gray-600">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
+                @foreach($packages ?? [] as $pkg)
+                    <div class="bg-white rounded-3xl p-6 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1.5 flex flex-col justify-between relative overflow-hidden group {{ $loop->iteration == 2 ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-gray-200' }}" style="max-width: 380px; width: 100%; margin: 0 auto; min-height: 440px;">
+                        @if($loop->iteration == 2)
+                            <div class="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-black uppercase tracking-wider py-1 px-5 rounded-bl-2xl shadow-sm">
+                                <i class="fas fa-star text-amber-300 mr-1"></i> Popular
+                            </div>
+                        @endif
+
+                        <div>
+                            <!-- Header: Crown & Plan Name -->
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg font-bold shadow-sm shrink-0 {{ $loop->iteration == 2 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }}">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-xl font-black text-gray-900 leading-tight truncate">{{ $pkg->name }}</h3>
+                                    <span class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
+                                </div>
+                            </div>
+
+                            <!-- Per-Card Compact Billing Switch Pill -->
+                            @if($pkg->price > 0)
+                            <div class="flex items-center justify-between bg-gray-100 p-1 rounded-xl mb-4 text-xs font-bold border border-gray-200 shadow-inner">
+                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'monthly', event)" id="btn-monthly-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all bg-white text-indigo-700 shadow-sm font-black">
+                                    Monthly
+                                </button>
+                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'annual', event)" id="btn-annual-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all text-gray-600 hover:text-indigo-600 flex items-center justify-center">
+                                    Annual <span class="ml-1.5 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-black">Save 17%</span>
+                                </button>
+                            </div>
+                            @endif
+
+                            <!-- Dynamic Price Display Area -->
+                            <div class="my-2 pb-3 border-b border-gray-100">
+                                <!-- Monthly Price View -->
+                                <div id="price-monthly-{{ $pkg->slug }}" class="flex items-baseline justify-between">
+                                    <div>
+                                        <span class="text-3xl font-black text-gray-900 tracking-tight">UGX {{ number_format($pkg->price) }}</span>
+                                        <span class="text-gray-500 font-bold text-xs">/ mo</span>
+                                    </div>
+                                    <span class="text-[10px] font-extrabold text-gray-400 uppercase bg-gray-100 px-2 py-0.5 rounded">Billed Monthly</span>
+                                </div>
+
+                                @if($pkg->price > 0)
+                                <!-- Annual Price View -->
+                                <div id="price-annual-{{ $pkg->slug }}" class="hidden space-y-1.5">
+                                    <div class="flex items-baseline justify-between">
+                                        <div>
+                                            <span class="text-3xl font-black text-indigo-950 tracking-tight">UGX {{ number_format($pkg->price * 10) }}</span>
+                                            <span class="text-indigo-600 font-bold text-xs">/ yr</span>
+                                        </div>
+                                        <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-200">
+                                            2 Mos FREE
+                                        </span>
+                                    </div>
+
+                                    <div class="flex items-center justify-between text-xs font-bold pt-0.5">
+                                        <span class="text-gray-400 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
+                                        <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/80">
+                                            <i class="fas fa-piggy-bank mr-1 text-emerald-600"></i> Save UGX {{ number_format($pkg->price * 2) }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+
+                            <p class="text-gray-600 text-xs my-3 font-medium leading-relaxed min-h-[36px]">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>
+
+                            <div class="space-y-2 mb-5">
+                                <p class="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider mb-1">Package Features:</p>
+                                @if(!empty($pkg->features))
+                                    @foreach($pkg->features as $feature)
+                                        <div class="flex items-center text-xs font-semibold text-gray-700">
+                                            <i class="fas fa-check-circle text-indigo-500 mr-2 text-sm shrink-0"></i>
+                                            <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2 text-sm shrink-0"></i> Full POS & Sales Management
+                                    </div>
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2 text-sm shrink-0"></i> Real-time Stock Tracking
+                                    </div>
+                                    <div class="flex items-center text-xs font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-indigo-500 mr-2 text-sm shrink-0"></i> Profit & Loss Reports
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <button onclick="selectPackageAndRegister('{{ $pkg->slug }}', event)" class="w-full py-3 rounded-xl font-black text-xs shadow-md transition-all flex items-center justify-center transform active:scale-95 {{ $loop->iteration == 2 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-200' }}">
+                            <i class="fas fa-rocket mr-2"></i> Choose {{ $pkg->name }}
+                        </button>
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>
@@ -430,118 +542,6 @@
                         <div><h4 class="font-bold text-gray-900">Grow With Confidence</h4></div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Subscriptions & Pricing Section -->
-    <section id="subscriptions" class="py-24 bg-gradient-to-b from-gray-50 to-indigo-50/50 border-t border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="px-4 py-1.5 bg-indigo-100 text-indigo-700 font-extrabold rounded-full text-xs tracking-wider uppercase inline-block mb-3">
-                    <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscription Packages
-                </span>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Choose the Right Plan for Your Business</h2>
-                <p class="text-lg text-gray-600">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                @foreach($packages ?? [] as $pkg)
-                    <div class="bg-white rounded-3xl p-7 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between relative overflow-hidden group {{ $loop->iteration == 2 ? 'border-indigo-600 ring-4 ring-indigo-50' : 'border-gray-100' }}">
-                        @if($loop->iteration == 2)
-                            <div class="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] font-black uppercase tracking-wider py-1 px-5 rounded-bl-2xl shadow-sm">
-                                <i class="fas fa-star text-amber-300 mr-1"></i> Popular
-                            </div>
-                        @endif
-
-                        <div>
-                            <!-- Header: Crown & Plan Name -->
-                            <div class="flex items-center space-x-3 mb-4">
-                                <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold shadow-sm {{ $loop->iteration == 2 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }}">
-                                    <i class="fas fa-crown"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-black text-gray-900 leading-tight">{{ $pkg->name }}</h3>
-                                    <span class="text-[11px] text-gray-500 font-bold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
-                                </div>
-                            </div>
-
-                            <!-- Per-Card Compact Billing Switch Pill -->
-                            @if($pkg->price > 0)
-                            <div class="flex items-center justify-between bg-gray-100/90 p-1 rounded-xl mb-4 text-xs font-bold border border-gray-200/80 shadow-inner">
-                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'monthly', event)" id="btn-monthly-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all bg-white text-indigo-700 shadow-sm font-black">
-                                    Monthly
-                                </button>
-                                <button type="button" onclick="toggleCardBilling('{{ $pkg->slug }}', 'annual', event)" id="btn-annual-{{ $pkg->slug }}" class="flex-1 py-1.5 rounded-lg text-center transition-all text-gray-600 hover:text-indigo-600 flex items-center justify-center">
-                                    Annual <span class="ml-1 text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full font-black">Save 17%</span>
-                                </button>
-                            </div>
-                            @endif
-
-                            <!-- Dynamic Price Display Area (Compact & Space Optimized) -->
-                            <div class="my-3 pb-4 border-b border-gray-100">
-                                <!-- Monthly Price View -->
-                                <div id="price-monthly-{{ $pkg->slug }}" class="flex items-baseline justify-between">
-                                    <div>
-                                        <span class="text-3xl font-black text-gray-900 tracking-tight">UGX {{ number_format($pkg->price) }}</span>
-                                        <span class="text-gray-500 font-bold text-xs">/ mo</span>
-                                    </div>
-                                    <span class="text-[10px] font-extrabold text-gray-400 uppercase bg-gray-100 px-2.5 py-1 rounded-md">Billed Monthly</span>
-                                </div>
-
-                                @if($pkg->price > 0)
-                                <!-- Annual Price View (Hidden by default until Annual pill toggled) -->
-                                <div id="price-annual-{{ $pkg->slug }}" class="hidden space-y-2">
-                                    <div class="flex items-baseline justify-between">
-                                        <div>
-                                            <span class="text-3xl font-black text-indigo-950 tracking-tight">UGX {{ number_format($pkg->price * 10) }}</span>
-                                            <span class="text-indigo-600 font-bold text-xs">/ yr</span>
-                                        </div>
-                                        <span class="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200">
-                                            2 Months FREE
-                                        </span>
-                                    </div>
-
-                                    <div class="flex items-center justify-between text-xs font-bold pt-1">
-                                        <span class="text-gray-400 line-through">UGX {{ number_format($pkg->price * 12) }}</span>
-                                        <span class="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80">
-                                            <i class="fas fa-piggy-bank mr-1 text-emerald-600"></i> Save UGX {{ number_format($pkg->price * 2) }}
-                                        </span>
-                                    </div>
-                                </div>
-                                @endif
-                            </div>
-
-                            <p class="text-gray-600 text-xs mb-5 font-medium leading-relaxed">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>
-
-                            <div class="space-y-2.5 mb-7">
-                                <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1">Package Features:</p>
-                                @if(!empty($pkg->features))
-                                    @foreach($pkg->features as $feature)
-                                        <div class="flex items-center text-xs font-semibold text-gray-700">
-                                            <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i>
-                                            <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
-                                        </div>
-                                    @endforeach
-                                @else
-                                    <div class="flex items-center text-xs font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Full POS & Sales Management
-                                    </div>
-                                    <div class="flex items-center text-xs font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Real-time Stock Tracking
-                                    </div>
-                                    <div class="flex items-center text-xs font-semibold text-gray-700">
-                                        <i class="fas fa-check-circle text-indigo-500 mr-2.5 text-sm shrink-0"></i> Profit & Loss Reports
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-
-                        <button onclick="selectPackageAndRegister('{{ $pkg->slug }}', event)" class="w-full py-3.5 rounded-2xl font-black text-sm shadow-md transition-all flex items-center justify-center transform active:scale-95 {{ $loop->iteration == 2 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-200' }}">
-                            <i class="fas fa-rocket mr-2"></i> Choose {{ $pkg->name }}
-                        </button>
-                    </div>
-                @endforeach
             </div>
         </div>
     </section>
