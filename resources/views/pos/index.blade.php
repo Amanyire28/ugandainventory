@@ -72,18 +72,19 @@
             
             <div class="flex-1 overflow-y-auto rounded-lg border border-gray-200">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead class="bg-gray-50 sticky top-0 z-10">
+                    <thead class="bg-blue-50/70 sticky top-0 z-10 text-blue-900 border-b border-blue-200">
                         <tr>
-                            <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">Product</th>
-                            <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider w-32">Price</th>
-                            <th scope="col" class="px-4 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider w-40">Quantity</th>
-                            <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider w-36">Total</th>
-                            <th scope="col" class="px-4 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider w-16">Action</th>
+                            <th scope="col" class="px-3 py-2.5 text-left font-extrabold uppercase tracking-wider">Product</th>
+                            <th scope="col" class="px-3 py-2.5 text-right font-extrabold uppercase tracking-wider w-28">Price</th>
+                            <th scope="col" class="px-3 py-2.5 text-center font-extrabold uppercase tracking-wider w-32">Quantity</th>
+                            <th scope="col" class="px-3 py-2.5 text-right font-extrabold uppercase tracking-wider w-28">VAT (18%)</th>
+                            <th scope="col" class="px-3 py-2.5 text-right font-extrabold uppercase tracking-wider w-32">Subtotal</th>
+                            <th scope="col" class="px-3 py-2.5 text-center font-extrabold uppercase tracking-wider w-14">Action</th>
                         </tr>
                     </thead>
                     <tbody id="cartItemsTable" class="bg-white divide-y divide-gray-200 text-gray-700">
                         <tr>
-                            <td colspan="5" class="px-4 py-12 text-center text-gray-400">
+                            <td colspan="6" class="px-4 py-12 text-center text-gray-400">
                                 <i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>
                                 No products selected. Search/scan above to add.
                             </td>
@@ -624,7 +625,7 @@ function renderCart() {
     if (cart.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="5" class="px-4 py-12 text-center text-gray-400">
+                <td colspan="6" class="px-4 py-12 text-center text-gray-400">
                     <i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>
                     No products selected. Search/scan above to add.
                 </td>
@@ -638,24 +639,23 @@ function renderCart() {
     let html = '';
     cart.forEach(item => {
         const itemVat = item.requiresVat ? (item.price * item.quantity * 0.18) : 0;
-        const vatBadge = item.requiresVat 
-            ? `<span class="inline-flex items-center gap-1 mt-1 text-[11px] bg-amber-100 text-amber-900 border border-amber-300 font-extrabold px-2 py-0.5 rounded-full"><i class="fas fa-percent text-[10px]"></i> VAT (18%): +UGX ${itemVat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>` 
-            : `<span class="inline-flex items-center gap-1 mt-1 text-[11px] bg-gray-100 text-gray-600 border border-gray-200 font-semibold px-2 py-0.5 rounded-full">Exempt / No VAT</span>`;
+        const vatText = item.requiresVat 
+            ? `+UGX ${itemVat.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}` 
+            : `<span class="text-gray-400 font-normal">Exempt</span>`;
 
         html += `
             <tr class="hover:bg-gray-50 transition">
-                <td class="px-4 py-3 font-semibold text-gray-900">
-                    <div>${item.name}</div>
-                    ${vatBadge}
-                    <span class="text-xs text-gray-500 block font-mono mt-0.5">Max Stock: ${item.maxStock} ${item.unit}</span>
+                <td class="px-3 py-3 font-semibold text-gray-900">
+                    <div class="text-sm font-bold text-slate-900">${item.name}</div>
+                    <div class="text-xs text-slate-500 font-normal mt-0.5">Stock: ${item.maxStock} ${item.unit}</div>
                 </td>
-                <td class="px-4 py-3 text-right text-gray-800 font-medium">
+                <td class="px-3 py-3 text-right text-gray-800 font-medium text-xs">
                     UGX ${item.price.toLocaleString()}
                 </td>
-                <td class="px-4 py-3">
-                    <div class="flex items-center justify-center space-x-2">
+                <td class="px-3 py-3">
+                    <div class="flex items-center justify-center space-x-1.5">
                         <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity - 1})"
-                                class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition border border-gray-200">
+                                class="w-7 h-7 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded flex items-center justify-center transition border border-gray-200">
                             <i class="fas fa-minus text-xs"></i>
                         </button>
                         <input type="number"
@@ -663,20 +663,23 @@ function renderCart() {
                                min="1"
                                max="${item.maxStock}"
                                onchange="updateQuantity(${item.id}, this.value)"
-                               class="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-green-500">
+                               class="w-14 px-1.5 py-1 border border-gray-300 rounded text-center font-bold text-xs focus:ring-2 focus:ring-blue-500">
                         <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity + 1})"
-                                class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition border border-gray-200">
+                                class="w-7 h-7 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded flex items-center justify-center transition border border-gray-200">
                             <i class="fas fa-plus text-xs"></i>
                         </button>
                     </div>
                 </td>
-                <td class="px-4 py-3 text-right font-bold text-green-600">
+                <td class="px-3 py-3 text-right font-semibold text-blue-700 text-xs">
+                    ${vatText}
+                </td>
+                <td class="px-3 py-3 text-right font-extrabold text-blue-900 text-sm">
                     UGX ${(item.price * item.quantity).toLocaleString()}
                 </td>
-                <td class="px-4 py-3 text-center">
+                <td class="px-3 py-3 text-center">
                     <button type="button" onclick="removeFromCart(${item.id})"
-                            class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition border border-red-200">
-                        <i class="fas fa-trash-alt text-sm"></i>
+                            class="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded transition border border-red-200" title="Remove item">
+                        <i class="fas fa-trash-alt text-xs"></i>
                     </button>
                 </td>
             </tr>
