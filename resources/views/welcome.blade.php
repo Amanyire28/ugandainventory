@@ -610,131 +610,149 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4 pt-20">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full relative modal-float">
-            <button onclick="closeLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-xl"></i>
+    <div id="loginModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 pt-20 sm:pt-24">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full relative modal-float overflow-hidden my-auto border border-indigo-100">
+            <button onclick="closeLoginModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-lg"></i>
             </button>
-            <div class="text-center mb-8">
-                <i class="fas fa-sign-in-alt text-5xl text-indigo-600 mb-4"></i>
-                <h2 class="text-3xl font-extrabold text-gray-900">Welcome Back!</h2>
-                <p class="mt-2 text-sm text-gray-600">Sign in to access your dashboard</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 items-stretch">
+                <!-- Left Banner Card -->
+                <div class="md:col-span-5 gradient-bg p-8 text-white flex flex-col justify-between relative overflow-hidden">
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <h3 class="text-2xl font-black mb-2 leading-tight">Welcome Back!</h3>
+                        <p class="text-xs text-indigo-100 font-medium leading-relaxed">Access your DukaFlow Point of Sale, Inventory Management, and Real-time Analytics dashboard.</p>
+                    </div>
+                    <div class="relative z-10 mt-8 pt-4 border-t border-white/20 text-[11px] text-indigo-200 font-semibold flex items-center">
+                        <i class="fas fa-shield-alt text-amber-300 mr-2 text-sm"></i> Secure Cloud Access
+                    </div>
+                </div>
+
+                <!-- Right Form Area -->
+                <div class="md:col-span-7 p-6 sm:p-8 flex flex-col justify-center">
+                    @if(session('error'))
+                        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded-r-lg text-xs font-semibold">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-circle mr-2 text-sm"></i>
+                                <span>{{ session('error') }}</span>
+                            </div>
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                        @csrf
+                        <input type="hidden" name="_form_type" value="login">
+                        
+                        <div>
+                            <label for="login_email" class="block text-xs font-bold text-gray-700 mb-1">
+                                <i class="fas fa-envelope text-indigo-600 mr-1"></i> Email Address <span class="text-red-500">*</span>
+                            </label>
+                            <input id="login_email" name="email" type="email" required autofocus
+                                    value="{{ old('_form_type') == 'login' ? old('email') : '' }}"
+                                    class="appearance-none block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
+                                    placeholder="your@email.com">
+                            @if(old('_form_type') == 'login')
+                                @error('email')
+                                    <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                @enderror
+                            @endif
+                        </div>
+
+                        <div>
+                            <label for="login_password" class="block text-xs font-bold text-gray-700 mb-1">
+                                <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <input id="login_password" name="password" type="password" required
+                                        class="appearance-none block w-full px-3.5 py-2.5 pr-10 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
+                                        placeholder="Enter password">
+                                <button type="button" onclick="togglePasswordVisibility('login_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </button>
+                            </div>
+                            @if(old('_form_type') == 'login')
+                                @error('password')
+                                    <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                @enderror
+                            @endif
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs pt-1">
+                            <label class="flex items-center text-gray-600 font-medium cursor-pointer">
+                                <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded accent-indigo-600 mr-2">
+                                Remember me
+                            </label>
+                            <a href="#" class="font-bold text-indigo-600 hover:text-indigo-800">Forgot password?</a>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-black rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md transition-all">
+                                <i class="fas fa-sign-in-alt mr-2 mt-0.5"></i> Sign In to Dashboard
+                            </button>
+                        </div>
+
+                        <div class="text-center pt-2 border-t border-gray-100 text-xs">
+                            <span class="text-gray-500">Don't have an account?</span>
+                            <a href="#" onclick="openRegisterModal(event)" class="font-bold text-indigo-600 hover:text-indigo-800 ml-1">
+                                Register business <i class="fas fa-arrow-right ml-0.5"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
             </div>
-            
-            @if(session('error'))
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded">
-                    <div class="flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        <span>{{ session('error') }}</span>
-                    </div>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}" class="space-y-6">
-                @csrf
-                <input type="hidden" name="_form_type" value="login">
-                <div>
-                    <label for="login_email" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-envelope text-indigo-600 mr-1"></i> Email Address <span class="text-red-500">*</span>
-                    </label>
-                    <input id="login_email" name="email" type="email" required autofocus
-                            value="{{ old('_form_type') == 'login' ? old('email') : '' }}"
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="your@email.com">
-                    @if(old('_form_type') == 'login')
-                        @error('email')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
-
-                <div>
-                    <label for="login_password" class="block text-sm font-medium text-gray-700 mb-1">
-                        <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative">
-                        <input id="login_password" name="password" type="password" required
-                                class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Enter your password">
-                        <button type="button" onclick="togglePasswordVisibility('login_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
-                            <i class="fas fa-eye text-base"></i>
-                        </button>
-                    </div>
-                    @if(old('_form_type') == 'login')
-                        @error('password')
-                            <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                        @enderror
-                    @endif
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <input id="remember" name="remember" type="checkbox"
-                                class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        <label for="remember" class="ml-2 block text-sm text-gray-900">Remember me</label>
-                    </div>
-                    <div class="text-sm">
-                        <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500">Forgot password?</a>
-                    </div>
-                </div>
-
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg transform transition hover:scale-105">
-                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In to Dashboard
-                    </button>
-                </div>
-
-                <div class="text-center">
-                    <span class="text-gray-600">Don't have an account?</span>
-                    <a href="#" onclick="openRegisterModal(event)" class="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
-                        Register your business <i class="fas fa-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </form>
         </div>
     </div>
 
     <!-- Register Modal -->
-    <div id="registerModal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-blue-200 bg-opacity-40 backdrop-blur-xl flex items-center justify-center p-4 pt-20">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative modal-float my-8">
-            <button onclick="closeRegisterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-                <i class="fas fa-times text-xl"></i>
+    <div id="registerModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4 pt-20 sm:pt-24">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 max-w-4xl w-full relative modal-float my-auto border border-indigo-100 max-h-[85vh] overflow-y-auto">
+            <button onclick="closeRegisterModal()" class="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-lg"></i>
             </button>
-            <div class="text-center mb-8">
-                <i class="fas fa-rocket text-5xl text-indigo-600 mb-4"></i>
-                <h2 class="text-3xl font-extrabold text-gray-900">Register Your Business</h2>
-                <p class="mt-2 text-sm text-gray-600">
-                    <i class="fas fa-gift text-green-500 mr-1"></i>
-                    Get started with <span class="font-bold text-green-600">30 days FREE trial</span>
+
+            <!-- Compact Header -->
+            <div class="text-center mb-6 pb-4 border-b border-gray-100">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl text-2xl mb-2 shadow-sm">
+                    <i class="fas fa-rocket"></i>
+                </div>
+                <h2 class="text-2xl font-black text-gray-900">Register Your Business</h2>
+                <p class="text-xs text-gray-600 mt-1 font-medium">
+                    <i class="fas fa-gift text-emerald-500 mr-1"></i> Start with a <span class="font-bold text-emerald-600">30 Days FREE Trial</span> — No credit card required.
                 </p>
             </div>
 
-            <form method="POST" action="{{ route('register') }}" class="space-y-6">
+            <form method="POST" action="{{ route('register') }}" class="space-y-4">
                 @csrf
                 <input type="hidden" name="_form_type" value="register">
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <!-- Row 1 Left: Business Name -->
                     <div>
-                        <label for="business_name" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="business_name" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-store text-indigo-600 mr-1"></i> Business Name <span class="text-red-500">*</span>
                         </label>
                         <input id="business_name" name="business_name" type="text" required
                                 value="{{ old('_form_type') == 'register' ? old('business_name') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                class="appearance-none block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
                                 placeholder="e.g., Davis Electronics Store">
                         @if(old('_form_type') == 'register')
                             @error('business_name')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
 
+                    <!-- Row 1 Right: Business Category -->
                     <div>
-                        <label for="business_category_id" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="business_category_id" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-tags text-indigo-600 mr-1"></i> Business Category <span class="text-red-500">*</span>
                         </label>
                         <select id="business_category_id" name="business_category_id" required
-                                class="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                class="block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium">
                             <option value="">-- Select Your Business Type --</option>
                             @foreach($businessCategories ?? [] as $category)
                                 <option value="{{ $category->id }}" {{ (old('_form_type') == 'register' && old('business_category_id') == $category->id) ? 'selected' : '' }}>
@@ -744,17 +762,18 @@
                         </select>
                         @if(old('_form_type') == 'register')
                             @error('business_category_id')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label for="subscription_plan" class="block text-sm font-bold text-gray-800 mb-1">
-                            <i class="fas fa-crown text-amber-500 mr-1"></i> Select Subscription Plan <span class="text-red-500">*</span>
+                    <!-- Row 2 Left: Subscription Plan -->
+                    <div>
+                        <label for="subscription_plan" class="block text-xs font-bold text-gray-800 mb-1">
+                            <i class="fas fa-crown text-amber-500 mr-1"></i> Subscription Plan <span class="text-red-500">*</span>
                         </label>
                         <select id="subscription_plan" name="subscription_plan" required onchange="updatePlanNote()"
-                                class="block w-full px-4 py-3 border border-indigo-300 bg-indigo-50/40 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-gray-900">
+                                class="block w-full px-3.5 py-2.5 border border-indigo-300 bg-indigo-50/40 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-gray-900">
                             <option value="">-- Choose Subscription Plan --</option>
                             @foreach($packages ?? [] as $pkg)
                                 <option value="{{ $pkg->slug }}"
@@ -767,116 +786,123 @@
                                 </option>
                             @endforeach
                         </select>
-
-                        {{-- Dynamic Note Box shown when plan is selected --}}
-                        <div id="selectedPlanNote" class="hidden mt-3 p-3.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 shadow-sm space-y-1.5">
-                            <div class="font-extrabold text-indigo-950 flex items-center justify-between text-sm">
-                                <span id="notePlanName"><i class="fas fa-crown text-amber-500 mr-1"></i> Selected Plan</span>
-                                <span id="notePlanPrice" class="text-indigo-700 font-extrabold"></span>
-                            </div>
-                            <div id="notePlanDesc" class="text-gray-700 font-medium"></div>
-                            <div id="notePlanFeatures" class="text-gray-600 font-normal"></div>
-                            <div class="text-[11px] font-semibold text-amber-800 bg-amber-100/90 px-3 py-1 rounded-lg border border-amber-200 mt-1">
-                                <i class="fas fa-info-circle mr-1 text-amber-600"></i> Payment is optional at signup. You can log in immediately; operational features unlock upon Admin payment confirmation.
-                            </div>
-                        </div>
-
                         @if(old('_form_type') == 'register')
                             @error('subscription_plan')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
 
+                    <!-- Row 2 Right: Full Name -->
                     <div>
-                        <label for="business_email" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="personal_name" class="block text-xs font-bold text-gray-700 mb-1">
+                            <i class="fas fa-user text-indigo-600 mr-1"></i> Owner Full Name <span class="text-red-500">*</span>
+                        </label>
+                        <input id="personal_name" name="personal_name" type="text" required
+                                value="{{ old('_form_type') == 'register' ? old('personal_name') : '' }}"
+                                class="appearance-none block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
+                                placeholder="Barigye Davis">
+                        @if(old('_form_type') == 'register')
+                            @error('personal_name')
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                            @enderror
+                        @endif
+                    </div>
+
+                    <!-- Row 3 Left: Business Email -->
+                    <div>
+                        <label for="business_email" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-envelope text-indigo-600 mr-1"></i> Business Email <span class="text-red-500">*</span>
                         </label>
                         <input id="business_email" name="business_email" type="email" required
                                 value="{{ old('_form_type') == 'register' ? old('business_email') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                class="appearance-none block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
                                 placeholder="business@example.com">
                         @if(old('_form_type') == 'register')
                             @error('business_email')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
                     
+                    <!-- Row 3 Right: Contact Number -->
                     <div>
-                        <label for="contact" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="contact" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Number <span class="text-red-500">*</span>
                         </label>
                         <input id="contact" name="contact" type="tel" required
                                 value="{{ old('_form_type') == 'register' ? old('contact') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                class="appearance-none block w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
                                 placeholder="0700123456">
                         @if(old('_form_type') == 'register')
                             @error('contact')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label for="personal_name" class="block text-sm font-medium text-gray-700 mb-1">
-                            <i class="fas fa-user text-indigo-600 mr-1"></i> Your Full Name <span class="text-red-500">*</span>
-                        </label>
-                        <input id="personal_name" name="personal_name" type="text" required
-                                value="{{ old('_form_type') == 'register' ? old('personal_name') : '' }}"
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Barigye Davis">
-                        @if(old('_form_type') == 'register')
-                            @error('personal_name')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
-                            @enderror
-                        @endif
-                    </div>
-
+                    <!-- Row 4 Left: Password -->
                     <div>
-                        <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="register_password" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <input id="register_password" name="password" type="password" required
-                                    class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    class="appearance-none block w-full px-3.5 py-2.5 pr-10 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
                                     placeholder="Min. 8 characters">
                             <button type="button" onclick="togglePasswordVisibility('register_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
-                                <i class="fas fa-eye text-base"></i>
+                                <i class="fas fa-eye text-sm"></i>
                             </button>
                         </div>
                         @if(old('_form_type') == 'register')
                             @error('password')
-                                <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 font-semibold"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
                             @enderror
                         @endif
                     </div>
                     
+                    <!-- Row 4 Right: Confirm Password -->
                     <div>
-                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+                        <label for="password_confirmation" class="block text-xs font-bold text-gray-700 mb-1">
                             <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
                             <input id="password_confirmation" name="password_confirmation" type="password" required
-                                    class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    class="appearance-none block w-full px-3.5 py-2.5 pr-10 border border-gray-300 rounded-xl text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-medium"
                                     placeholder="Re-enter password">
                             <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
-                                <i class="fas fa-eye text-base"></i>
+                                <i class="fas fa-eye text-sm"></i>
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Selected Plan Note Box (Spans 2 columns) -->
+                    <div class="md:col-span-2">
+                        <div id="selectedPlanNote" class="hidden p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 shadow-sm space-y-1">
+                            <div class="font-extrabold text-indigo-950 flex items-center justify-between text-xs">
+                                <span id="notePlanName"><i class="fas fa-crown text-amber-500 mr-1"></i> Selected Plan</span>
+                                <span id="notePlanPrice" class="text-indigo-700 font-extrabold"></span>
+                            </div>
+                            <div id="notePlanDesc" class="text-gray-700 font-medium text-[11px]"></div>
+                            <div id="notePlanFeatures" class="text-gray-600 font-normal text-[11px]"></div>
+                            <div class="text-[10px] font-semibold text-amber-800 bg-amber-100/90 px-2.5 py-1 rounded-lg border border-amber-200 mt-1">
+                                <i class="fas fa-info-circle mr-1 text-amber-600"></i> Payment is optional at signup. Operational features unlock upon Admin payment confirmation.
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" class="group relative w-full flex justify-center py-4 px-4 border border-transparent text-lg font-bold rounded-lg text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 shadow-lg transform transition hover:scale-105">
-                        <i class="fas fa-rocket mr-2"></i> Create My Business Account
+                <!-- Submit Button & Login Link -->
+                <div class="pt-3 border-t border-gray-100">
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-black rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-md transition-all">
+                        <i class="fas fa-rocket mr-2 mt-0.5"></i> Create My Business Account
                     </button>
                 </div>
 
-                <div class="text-center">
-                    <span class="text-gray-600">Already have an account?</span>
-                    <a href="#" onclick="openLoginModal(event)" class="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
-                        Login here <i class="fas fa-arrow-right ml-1"></i>
+                <div class="text-center text-xs">
+                    <span class="text-gray-500">Already have an account?</span>
+                    <a href="#" onclick="openLoginModal(event)" class="font-bold text-indigo-600 hover:text-indigo-800 ml-1">
+                        Login here <i class="fas fa-arrow-right ml-0.5"></i>
                     </a>
                 </div>
             </form>
