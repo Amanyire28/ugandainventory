@@ -72,17 +72,13 @@
     </div>
 
     <!-- Navigation -->
-    <!-- Navigation -->
     <nav class="bg-white shadow-lg fixed w-full z-[60]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <div class="flex items-center space-x-8">
+                <div class="flex items-center">
                     <div class="flex items-center cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
                         <i class="fas fa-boxes text-3xl text-indigo-600"></i>
                         <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
-                    </div>
-                    <div class="hidden md:flex items-center space-x-6">
-                        <a href="#features" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">Features</a>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
