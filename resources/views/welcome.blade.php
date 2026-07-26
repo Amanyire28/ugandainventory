@@ -542,9 +542,14 @@
                     <label for="login_password" class="block text-sm font-medium text-gray-700 mb-1">
                         <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
                     </label>
-                    <input id="login_password" name="password" type="password" required
-                            class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                            placeholder="Enter your password">
+                    <div class="relative">
+                        <input id="login_password" name="password" type="password" required
+                                class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                placeholder="Enter your password">
+                        <button type="button" onclick="togglePasswordVisibility('login_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                            <i class="fas fa-eye text-base"></i>
+                        </button>
+                    </div>
                     @if(old('_form_type') == 'login')
                         @error('password')
                             <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
@@ -722,9 +727,14 @@
                         <label for="register_password" class="block text-sm font-medium text-gray-700 mb-1">
                             <i class="fas fa-lock text-indigo-600 mr-1"></i> Password <span class="text-red-500">*</span>
                         </label>
-                        <input id="register_password" name="password" type="password" required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Min. 8 characters">
+                        <div class="relative">
+                            <input id="register_password" name="password" type="password" required
+                                    class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Min. 8 characters">
+                            <button type="button" onclick="togglePasswordVisibility('register_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                <i class="fas fa-eye text-base"></i>
+                            </button>
+                        </div>
                         @if(old('_form_type') == 'register')
                             @error('password')
                                 <p class="mt-1 text-sm text-red-600"><i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}</p>
@@ -736,9 +746,14 @@
                         <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
                             <i class="fas fa-lock text-indigo-600 mr-1"></i> Confirm Password <span class="text-red-500">*</span>
                         </label>
-                        <input id="password_confirmation" name="password_confirmation" type="password" required
-                                class="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                                placeholder="Re-enter password">
+                        <div class="relative">
+                            <input id="password_confirmation" name="password_confirmation" type="password" required
+                                    class="appearance-none block w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Re-enter password">
+                            <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                <i class="fas fa-eye text-base"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -864,6 +879,30 @@
                     console.log('SW registration failed: ', err);
                 });
             });
+        }
+
+        // Toggle Password Visibility Helper
+        function togglePasswordVisibility(inputId, btn) {
+            let input = inputId ? document.getElementById(inputId) : null;
+            if (!input && btn) {
+                input = btn.closest('.relative') ? btn.closest('.relative').querySelector('input') : btn.previousElementSibling;
+            }
+            if (!input) return;
+
+            const icon = btn ? btn.querySelector('i') : null;
+            if (input.type === 'password') {
+                input.type = 'text';
+                if (icon) {
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                }
+            } else {
+                input.type = 'password';
+                if (icon) {
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            }
         }
     </script>
 </body>

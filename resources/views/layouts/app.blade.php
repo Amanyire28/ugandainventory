@@ -1057,6 +1057,28 @@
         document.getElementById('upgradeModal').classList.add('hidden');
         document.getElementById('upgradeModal').classList.remove('flex');
     }
+    function togglePasswordVisibility(inputId, btn) {
+        let input = inputId ? document.getElementById(inputId) : null;
+        if (!input && btn) {
+            input = btn.closest('.relative') ? btn.closest('.relative').querySelector('input') : btn.previousElementSibling;
+        }
+        if (!input) return;
+
+        const icon = btn ? btn.querySelector('i') : null;
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
 </script>
 @stack('scripts')
 </body>

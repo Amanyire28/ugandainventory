@@ -107,11 +107,16 @@
                 <label for="current_password" class="block text-sm font-semibold text-gray-700 mb-2">
                     Current Password <span class="text-red-500">*</span>
                 </label>
-                <input type="password" 
-                       id="current_password" 
-                       name="current_password" 
-                       required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                <div class="relative">
+                    <input type="password" 
+                           id="current_password" 
+                           name="current_password" 
+                           required
+                           class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="togglePasswordVisibility('current_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                        <i class="fas fa-eye text-base"></i>
+                    </button>
+                </div>
                 @error('current_password')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -122,11 +127,16 @@
                 <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
                     New Password <span class="text-red-500">*</span>
                 </label>
-                <input type="password" 
-                       id="password" 
-                       name="password" 
-                       required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                <div class="relative">
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           required
+                           class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                        <i class="fas fa-eye text-base"></i>
+                    </button>
+                </div>
                 @error('password')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -140,11 +150,16 @@
                 <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
                     Confirm New Password <span class="text-red-500">*</span>
                 </label>
-                <input type="password" 
-                       id="password_confirmation" 
-                       name="password_confirmation" 
-                       required
-                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                <div class="relative">
+                    <input type="password" 
+                           id="password_confirmation" 
+                           name="password_confirmation" 
+                           required
+                           class="w-full px-4 py-3 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                        <i class="fas fa-eye text-base"></i>
+                    </button>
+                </div>
             </div>
 
             <button type="submit" class="w-full py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">

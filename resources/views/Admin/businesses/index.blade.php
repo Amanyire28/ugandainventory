@@ -602,12 +602,22 @@
 
         <div class="form-group">
           <label class="form-label" for="addOwnerPassword">Owner Password <span style="color:var(--danger);">*</span></label>
-          <input type="password" name="owner_password" id="addOwnerPassword" class="form-input" placeholder="Minimum 8 characters" required>
+          <div style="position: relative;">
+            <input type="password" name="owner_password" id="addOwnerPassword" class="form-input" placeholder="Minimum 8 characters" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('addOwnerPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
         </div>
 
         <div class="form-group">
           <label class="form-label" for="addOwnerPasswordConfirm">Confirm Owner Password <span style="color:var(--danger);">*</span></label>
-          <input type="password" name="owner_password_confirmation" id="addOwnerPasswordConfirm" class="form-input" placeholder="Repeat password" required>
+          <div style="position: relative;">
+            <input type="password" name="owner_password_confirmation" id="addOwnerPasswordConfirm" class="form-input" placeholder="Repeat password" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('addOwnerPasswordConfirm', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

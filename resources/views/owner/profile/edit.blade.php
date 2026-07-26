@@ -158,18 +158,33 @@
           @csrf
           <div>
             <label class="block text-sm font-medium text-gray-700">Current Password</label>
-            <input type="password" name="current_password" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 text-sm focus:border-rose-500 focus:ring-rose-500" required>
+            <div class="relative">
+              <input id="owner_curr_pass" type="password" name="current_password" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 pr-10 text-sm focus:border-rose-500 focus:ring-rose-500 border" required>
+              <button type="button" onclick="togglePasswordVisibility('owner_curr_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
             @error('current_password')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700">New Password</label>
-              <input type="password" name="password" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 text-sm focus:border-rose-500 focus:ring-rose-500" required>
+              <div class="relative">
+                <input id="owner_new_pass" type="password" name="password" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 pr-10 text-sm focus:border-rose-500 focus:ring-rose-500 border" required>
+                <button type="button" onclick="togglePasswordVisibility('owner_new_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                  <i class="fas fa-eye text-sm"></i>
+                </button>
+              </div>
               @error('password')<p class="text-rose-600 text-xs mt-1">{{ $message }}</p>@enderror
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700">Confirm New Password</label>
-              <input type="password" name="password_confirmation" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 text-sm focus:border-rose-500 focus:ring-rose-500" required>
+              <div class="relative">
+                <input id="owner_conf_pass" type="password" name="password_confirmation" class="mt-1 w-full rounded-lg border-gray-300 px-3 py-2 pr-10 text-sm focus:border-rose-500 focus:ring-rose-500 border" required>
+                <button type="button" onclick="togglePasswordVisibility('owner_conf_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                  <i class="fas fa-eye text-sm"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div class="flex justify-end">

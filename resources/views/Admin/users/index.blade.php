@@ -609,13 +609,23 @@
 
         <div class="form-group">
           <label class="form-label">New Password</label>
-          <input type="password" id="editPassword" class="form-control" placeholder="Enter new password (optional)">
+          <div style="position: relative;">
+            <input type="password" id="editPassword" class="form-control" placeholder="Enter new password (optional)" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('editPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
           <div class="form-text">Minimum 8 characters</div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Confirm Password</label>
-          <input type="password" id="editPasswordConfirm" class="form-control" placeholder="Confirm new password">
+          <div style="position: relative;">
+            <input type="password" id="editPasswordConfirm" class="form-control" placeholder="Confirm new password" style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('editPasswordConfirm', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
         </div>
 
         <div class="modal-footer">
@@ -699,12 +709,22 @@
 
         <div class="form-group">
           <label class="form-label">Password <span style="color:var(--danger);">*</span></label>
-          <input type="password" name="password" class="form-control" placeholder="Minimum 8 characters" required>
+          <div style="position: relative;">
+            <input type="password" id="addUserPassword" name="password" class="form-control" placeholder="Minimum 8 characters" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('addUserPassword', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
         </div>
 
         <div class="form-group">
           <label class="form-label">Confirm Password <span style="color:var(--danger);">*</span></label>
-          <input type="password" name="password_confirmation" class="form-control" placeholder="Repeat password" required>
+          <div style="position: relative;">
+            <input type="password" id="addUserPasswordConfirm" name="password_confirmation" class="form-control" placeholder="Repeat password" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('addUserPasswordConfirm', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
         </div>
 
         <div class="form-group" style="display:flex; align-items:center; gap:8px;">

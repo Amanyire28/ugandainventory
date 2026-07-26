@@ -178,7 +178,12 @@
 
         <div class="field">
           <label for="password">Password</label>
-          <input id="password" type="password" name="password" autocomplete="current-password" required>
+          <div style="position: relative;">
+            <input id="password" type="password" name="password" autocomplete="current-password" required style="padding-right: 40px;">
+            <button type="button" onclick="togglePasswordVisibility('password', this)" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b;" title="Toggle password visibility">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
           @error('password') <div class="alert alert-error">{{ $message }}</div> @enderror
         </div>
 
@@ -195,5 +200,30 @@
       <p class="meta">After you sign in, you’ll be redirected to your two‑factor verification page.</p>
     </div>
   </div>
+
+  <script>
+    function togglePasswordVisibility(inputId, btn) {
+        let input = inputId ? document.getElementById(inputId) : null;
+        if (!input && btn) {
+            input = btn.closest('div') ? btn.closest('div').querySelector('input') : btn.previousElementSibling;
+        }
+        if (!input) return;
+
+        const icon = btn ? btn.querySelector('i') : null;
+        if (input.type === 'password') {
+            input.type = 'text';
+            if (icon) {
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            }
+        } else {
+            input.type = 'password';
+            if (icon) {
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    }
+  </script>
 </body>
 </html>

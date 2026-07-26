@@ -122,11 +122,16 @@
                                     <i class="fas fa-lock text-red-600 mr-1"></i>
                                     Current Password <span class="text-red-500">*</span>
                                 </label>
-                                <input type="password" 
-                                       name="current_password" 
-                                       id="current_password"
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('current_password') border-red-500 @enderror"
-                                       placeholder="Enter current password to verify">
+                                <div class="relative">
+                                    <input type="password" 
+                                           name="current_password" 
+                                           id="current_password"
+                                           class="w-full px-4 py-2 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('current_password') border-red-500 @enderror"
+                                           placeholder="Enter current password to verify">
+                                    <button type="button" onclick="togglePasswordVisibility('current_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                        <i class="fas fa-eye text-base"></i>
+                                    </button>
+                                </div>
                                 @error('current_password')
                                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                 @enderror
@@ -139,11 +144,16 @@
                                         <i class="fas fa-key text-green-600 mr-1"></i>
                                         New Password <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="password" 
-                                           name="password" 
-                                           id="password"
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('password') border-red-500 @enderror"
-                                           placeholder="Minimum 8 characters">
+                                    <div class="relative">
+                                        <input type="password" 
+                                               name="password" 
+                                               id="password"
+                                               class="w-full px-4 py-2 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('password') border-red-500 @enderror"
+                                               placeholder="Minimum 8 characters">
+                                        <button type="button" onclick="togglePasswordVisibility('password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                            <i class="fas fa-eye text-base"></i>
+                                        </button>
+                                    </div>
                                     @error('password')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
@@ -155,11 +165,16 @@
                                         <i class="fas fa-check-circle text-green-600 mr-1"></i>
                                         Confirm New Password <span class="text-red-500">*</span>
                                     </label>
-                                    <input type="password" 
-                                           name="password_confirmation" 
-                                           id="password_confirmation"
-                                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                                           placeholder="Re-enter new password">
+                                    <div class="relative">
+                                        <input type="password" 
+                                               name="password_confirmation" 
+                                               id="password_confirmation"
+                                               class="w-full px-4 py-2 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                               placeholder="Re-enter new password">
+                                        <button type="button" onclick="togglePasswordVisibility('password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                                            <i class="fas fa-eye text-base"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 

@@ -314,6 +314,30 @@
         if (window.innerWidth < 1024) closeSidebar();
       });
 
+      // Toggle Password Visibility Helper
+      window.togglePasswordVisibility = function(inputId, btn) {
+          let input = inputId ? document.getElementById(inputId) : null;
+          if (!input && btn) {
+              input = btn.closest('div') ? btn.closest('div').querySelector('input') : btn.previousElementSibling;
+          }
+          if (!input) return;
+
+          const icon = btn ? btn.querySelector('i') : null;
+          if (input.type === 'password') {
+              input.type = 'text';
+              if (icon) {
+                  icon.classList.remove('fa-eye');
+                  icon.classList.add('fa-eye-slash');
+              }
+          } else {
+              input.type = 'password';
+              if (icon) {
+                  icon.classList.remove('fa-eye-slash');
+                  icon.classList.add('fa-eye');
+              }
+          }
+      };
+
       // Ensure sidebar is visible on desktop and closed on load for mobile
       function syncOnResize(){
         if (window.innerWidth >= 1024){

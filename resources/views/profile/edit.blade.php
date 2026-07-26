@@ -97,20 +97,35 @@
           @csrf
           <div>
             <label class="block text-sm text-gray-700">Current Password</label>
-            <input type="password" name="current_password" class="mt-1 w-full border rounded p-2" required>
+            <div class="relative">
+              <input id="profile_curr_pass" type="password" name="current_password" class="mt-1 w-full border rounded p-2 pr-10" required>
+              <button type="button" onclick="togglePasswordVisibility('profile_curr_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
             @error('current_password')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
           </div>
           <div>
             <label class="block text-sm text-gray-700">New Password</label>
-            <input type="password" name="password" class="mt-1 w-full border rounded p-2" required>
+            <div class="relative">
+              <input id="profile_new_pass" type="password" name="password" class="mt-1 w-full border rounded p-2 pr-10" required>
+              <button type="button" onclick="togglePasswordVisibility('profile_new_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
             @error('password')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
           </div>
           <div>
             <label class="block text-sm text-gray-700">Confirm New Password</label>
-            <input type="password" name="password_confirmation" class="mt-1 w-full border rounded p-2" required>
+            <div class="relative">
+              <input id="profile_conf_pass" type="password" name="password_confirmation" class="mt-1 w-full border rounded p-2 pr-10" required>
+              <button type="button" onclick="togglePasswordVisibility('profile_conf_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
           </div>
           <div class="text-right">
-            <button class="px-4 py-2 bg-indigo-600 text-white rounded">Update Password</button>
+            <button class="px-4 py-2 bg-indigo-600 text-white rounded font-bold text-sm">Update Password</button>
           </div>
         </form>
       </div>
@@ -123,10 +138,15 @@
           @method('DELETE')
           <div>
             <label class="block text-sm text-gray-700">Confirm with Password</label>
-            <input type="password" name="password" class="mt-1 w-full border rounded p-2" required>
+            <div class="relative">
+              <input id="profile_del_pass" type="password" name="password" class="mt-1 w-full border rounded p-2 pr-10" required>
+              <button type="button" onclick="togglePasswordVisibility('profile_del_pass', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                <i class="fas fa-eye text-sm"></i>
+              </button>
+            </div>
           </div>
           <div class="text-right">
-            <button class="px-4 py-2 bg-rose-600 text-white rounded">Delete Account</button>
+            <button class="px-4 py-2 bg-rose-600 text-white rounded font-bold text-sm">Delete Account</button>
           </div>
         </form>
       </div>

@@ -83,9 +83,14 @@
                         <i class="fas fa-lock text-indigo-600 mr-1"></i>
                         Password <span class="text-red-500">*</span>
                     </label>
-                    <input type="password" name="password" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('password') border-red-500 @enderror"
-                           placeholder="Minimum 8 characters">
+                    <div class="relative">
+                        <input id="staff_password" type="password" name="password" required
+                               class="w-full px-4 py-2 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 @error('password') border-red-500 @enderror"
+                               placeholder="Minimum 8 characters">
+                        <button type="button" onclick="togglePasswordVisibility('staff_password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                            <i class="fas fa-eye text-base"></i>
+                        </button>
+                    </div>
                     @error('password')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                     @enderror
@@ -97,9 +102,14 @@
                         <i class="fas fa-lock text-indigo-600 mr-1"></i>
                         Confirm Password <span class="text-red-500">*</span>
                     </label>
-                    <input type="password" name="password_confirmation" required
-                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-                           placeholder="Re-enter password">
+                    <div class="relative">
+                        <input id="staff_password_confirmation" type="password" name="password_confirmation" required
+                               class="w-full px-4 py-2 pr-11 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                               placeholder="Re-enter password">
+                        <button type="button" onclick="togglePasswordVisibility('staff_password_confirmation', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none p-1" title="Toggle password visibility">
+                            <i class="fas fa-eye text-base"></i>
+                        </button>
+                    </div>
                 </div>
 
             </div>
