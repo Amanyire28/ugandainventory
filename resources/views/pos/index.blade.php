@@ -42,6 +42,27 @@
     <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4">
         <!-- Search Field & Camera Scanner Trigger -->
         <div class="bg-white rounded-xl shadow-lg p-4 flex-shrink-0">
+            <!-- Compact Keyboard Shortcut Instructions Bar -->
+            <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 flex items-center justify-between text-xs text-slate-600 mb-3">
+                <div class="flex items-center gap-4 flex-wrap font-medium">
+                    <span class="inline-flex items-center gap-1.5">
+                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-extrabold text-slate-800 text-[10px] shadow-sm">F12</kbd> Void / Correct Recent Sales
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-extrabold text-slate-800 text-[10px] shadow-sm">Ctrl + K</kbd> Search
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-extrabold text-slate-800 text-[10px] shadow-sm">Ctrl + Enter</kbd> Complete Sale
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <kbd class="px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono font-extrabold text-slate-800 text-[10px] shadow-sm">Esc</kbd> Clear
+                    </span>
+                </div>
+                <span class="hidden md:inline-flex text-[11px] text-slate-600 font-semibold items-center gap-1">
+                    <i class="fas fa-keyboard text-slate-500"></i> Terminal Keys
+                </span>
+            </div>
+
             <div class="flex items-center gap-3">
                 <div class="relative flex-1">
                     <input type="text" id="productSearch" autocomplete="off" placeholder="Type product name, SKU or scan barcode (USB scanner ready)..." class="w-full px-4 py-3 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 font-medium">
@@ -55,14 +76,6 @@
                         class="px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-lg shadow transition flex items-center gap-2 shrink-0">
                     <i class="fas fa-camera text-base text-yellow-300"></i>
                     <span class="hidden sm:inline">Scan Camera</span>
-                </button>
-
-                <!-- F12 Void Recent Sale Shortcut Button -->
-                <button type="button" onclick="openF12VoidModal()" 
-                        class="px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold rounded-lg shadow transition flex items-center gap-2 shrink-0"
-                        title="Press F12 to void/correct recent sales">
-                    <i class="fas fa-undo text-base"></i>
-                    <span>[F12] Void Sale</span>
                 </button>
             </div>
         </div>
