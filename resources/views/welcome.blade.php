@@ -75,11 +75,22 @@
     <nav class="bg-white shadow-lg fixed w-full z-[60]">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-boxes text-3xl text-indigo-600"></i>
-                    <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                        <i class="fas fa-boxes text-3xl text-indigo-600"></i>
+                        <span class="ml-2 text-2xl font-bold text-gray-800">DukaFlow</span>
+                    </div>
+                    <div class="hidden md:flex items-center space-x-6">
+                        <a href="#features" class="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition">Features</a>
+                        <a href="#subscriptions" class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition flex items-center">
+                            <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscriptions & Pricing
+                        </a>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
+                    <a href="#subscriptions" class="md:hidden px-2 py-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 rounded-lg">
+                        <i class="fas fa-crown text-amber-500 mr-1"></i> Plans
+                    </a>
                     <a href="#" id="installPwaBtn" class="px-3 sm:px-4 py-2 text-indigo-700 bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 hover:border-indigo-200 font-bold rounded-lg transition-colors flex items-center text-sm sm:text-base shadow-sm">
                         <i class="fas fa-download sm:mr-2"></i> <span class="hidden sm:inline">Download App</span>
                     </a>
@@ -423,14 +434,72 @@
         </div>
     </section>
 
-    <!-- Testimonials -->
-    <section class="py-20 bg-white border-t border-gray-100">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-4xl font-bold text-gray-900 mb-12">What Business Owners Say</h2>
-            <div class="bg-gray-50 p-8 md:p-12 rounded-2xl shadow-sm border border-gray-100 italic text-xl md:text-2xl text-gray-700 relative text-center">
-                <i class="fas fa-quote-left text-5xl text-indigo-100 absolute top-6 left-6"></i>
-                <p class="relative z-10 px-4 md:px-8 font-light">"DukaFlow has transformed how we manage sales and inventory. Everything is now faster, more organized, and easier to track."</p>
-                <div class="mt-8 font-bold text-gray-900 not-italic text-lg">— Retail Business Owner</div>
+    <!-- Subscriptions & Pricing Section -->
+    <section id="subscriptions" class="py-24 bg-gradient-to-b from-gray-50 to-indigo-50/50 border-t border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="px-4 py-1.5 bg-indigo-100 text-indigo-700 font-extrabold rounded-full text-xs tracking-wider uppercase inline-block mb-3">
+                    <i class="fas fa-crown text-amber-500 mr-1.5"></i> Subscription Packages
+                </span>
+                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Choose the Right Plan for Your Business</h2>
+                <p class="text-lg text-gray-600">All plans include secure cloud backup, real-time inventory tracking, and full access to our Point of Sale system. Admin approved & customizable.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach($packages ?? [] as $pkg)
+                    <div class="bg-white rounded-3xl p-8 shadow-xl border-2 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 flex flex-col justify-between relative overflow-hidden {{ $loop->iteration == 2 ? 'border-indigo-600 ring-4 ring-indigo-100' : 'border-gray-100' }}">
+                        @if($loop->iteration == 2)
+                            <div class="absolute top-0 right-0 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold uppercase tracking-wider py-1.5 px-6 rounded-bl-2xl shadow-md">
+                                <i class="fas fa-star text-amber-300 mr-1"></i> Most Popular
+                            </div>
+                        @endif
+
+                        <div>
+                            <div class="flex items-center space-x-3 mb-4">
+                                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl font-bold {{ $loop->iteration == 2 ? 'bg-indigo-600 text-white' : 'bg-indigo-50 text-indigo-600' }}">
+                                    <i class="fas fa-crown"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-gray-900">{{ $pkg->name }}</h3>
+                                    <span class="text-xs text-gray-500 font-semibold uppercase tracking-wider">{{ $pkg->duration_days ?? 30 }} Days Validity</span>
+                                </div>
+                            </div>
+
+                            <div class="my-6 pb-6 border-b border-gray-100">
+                                <span class="text-4xl md:text-5xl font-black text-gray-900">UGX {{ number_format($pkg->price) }}</span>
+                                <span class="text-gray-500 font-bold"> / month</span>
+                            </div>
+
+                            <p class="text-gray-600 text-sm mb-6 font-medium leading-relaxed">{{ $pkg->description ?? 'Full featured business package designed to optimize inventory and boost sales.' }}</p>
+
+                            <div class="space-y-3 mb-8">
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Package Features:</p>
+                                @if(!empty($pkg->features))
+                                    @foreach($pkg->features as $feature)
+                                        <div class="flex items-center text-sm font-semibold text-gray-700">
+                                            <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i>
+                                            <span>{{ ucfirst(str_replace('_', ' ', $feature)) }}</span>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <div class="flex items-center text-sm font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Full POS & Sales Management
+                                    </div>
+                                    <div class="flex items-center text-sm font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Real-time Stock Tracking
+                                    </div>
+                                    <div class="flex items-center text-sm font-semibold text-gray-700">
+                                        <i class="fas fa-check-circle text-green-500 mr-3 text-base"></i> Profit & Loss Reports
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <button onclick="selectPackageAndRegister('{{ $pkg->slug }}', event)" class="w-full py-4 rounded-xl font-bold text-base shadow-lg transition-all flex items-center justify-center transform active:scale-95 {{ $loop->iteration == 2 ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-200' : 'bg-gray-900 hover:bg-gray-800 text-white shadow-gray-200' }}">
+                            <i class="fas fa-rocket mr-2"></i> Choose {{ $pkg->name }}
+                        </button>
+                    </div>
+                @endforeach
             </div>
         </div>
     </section>
@@ -879,6 +948,17 @@
                     console.log('SW registration failed: ', err);
                 });
             });
+        }
+
+        // Select package from homepage card and open register modal
+        function selectPackageAndRegister(packageSlug, event) {
+            if (event) event.preventDefault();
+            openRegisterModal(event);
+            const select = document.getElementById('subscription_plan');
+            if (select) {
+                select.value = packageSlug;
+                updatePlanNote();
+            }
         }
 
         // Toggle Password Visibility Helper
