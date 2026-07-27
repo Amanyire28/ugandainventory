@@ -114,12 +114,19 @@
         .accordion-content {
             max-height: 500px;
             overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 1;
+            display: block;
         }
         .accordion-content.collapsed {
-            max-height: 0;
-            opacity: 0;
+            max-height: 0 !important;
+            opacity: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            overflow: hidden !important;
+            display: none !important;
         }
         
         /* Animation for success/alert messages */
@@ -385,18 +392,10 @@
                             </div>
                             <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }} space-y-1">
+                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*', 'stock-taking.*') ? '' : 'collapsed' }} space-y-1">
                             <a href="{{ route('inventory.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
                                 <i class="fas fa-boxes text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Inventory Management</span>
-                            </a>
-                            <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-amber-400' : 'hover:bg-indigo-800' }}">
-                                <i class="fas fa-code-branch text-sm flex-shrink-0 text-amber-300"></i>
-                                <span class="sidebar-text text-amber-200 font-bold">Branch Management</span>
-                            </a>
-                            <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-amber-400' : 'hover:bg-indigo-800' }}">
-                                <i class="fas fa-dolly text-sm flex-shrink-0 text-amber-300"></i>
-                                <span class="sidebar-text text-amber-200 font-bold">Stock Transfers</span>
                             </a>
                             <a href="{{ route('inventory.activities') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.activities') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
                                 <i class="fas fa-history text-sm flex-shrink-0"></i>
@@ -1105,19 +1104,25 @@
 
 <script>
     function toggleAccordion(event, targetId) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         const content = document.getElementById(targetId);
         if (!content) return;
         
-        const header = event.currentTarget;
-        const icon = header.querySelector('.accordion-icon');
+        const header = event ? event.currentTarget : content.previousElementSibling;
+        const icon = header ? header.querySelector('.accordion-icon') : null;
 
-        const isCollapsed = content.classList.contains('collapsed');
+        const isCurrentlyCollapsed = content.classList.contains('collapsed') || content.style.display === 'none';
 
-        if (isCollapsed) {
+        if (isCurrentlyCollapsed) {
             content.classList.remove('collapsed');
+            content.style.display = 'block';
             if (icon) icon.classList.remove('collapsed');
         } else {
             content.classList.add('collapsed');
+            content.style.display = 'none';
             if (icon) icon.classList.add('collapsed');
         }
     }
