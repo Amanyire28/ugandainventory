@@ -363,6 +363,18 @@
                     <span class="sidebar-text">VAT Management</span>
                 </a>
 
+                <!-- Multi-Branch Location Management (Top Level Link) -->
+                <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-amber-400 font-bold' : 'hover:bg-indigo-800' }} text-amber-300 sidebar-icon-only">
+                    <i class="fas fa-code-branch text-lg flex-shrink-0 text-amber-400"></i>
+                    <span class="sidebar-text text-amber-200 font-bold">Branch Management</span>
+                </a>
+
+                <!-- Inter-Branch Stock Transfers (Top Level Link) -->
+                <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-amber-400 font-bold' : 'hover:bg-indigo-800' }} text-amber-300 sidebar-icon-only">
+                    <i class="fas fa-dolly text-lg flex-shrink-0 text-amber-400"></i>
+                    <span class="sidebar-text text-amber-200 font-bold">Stock Transfers</span>
+                </a>
+
                 <!-- Inventory Accordion -->
                 @if(auth()->user()->business->hasFeature('inventory'))
                     <div class="accordion-group">
