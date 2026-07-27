@@ -640,15 +640,18 @@ public function updateUser(Request $request, User $user)
         }
 
         $packages = Package::all();
-        // Define all system features available to gate
+        // Define all system features available to gate in Packages Management
         $availableFeatures = [
-            'pos' => 'Point of Sale (POS) Billing',
+            'pos' => 'Point of Sale (POS) Billing & Sales',
             'products' => 'Products Management',
             'inventory' => 'Inventory & Stock Session Audits',
             'invoices' => 'Invoices / Credit Sales',
+            'vat' => 'VAT Management & Accounting',
+            'branches' => 'Multi-Branch Location Management',
+            'stock_transfers' => 'Inter-Branch Stock Transfers',
             'customers' => 'Customer Accounts & Ledger',
-            'suppliers' => 'Supplier Tracking',
-            'expenses' => 'Expense Records',
+            'suppliers' => 'Supplier Tracking & Management',
+            'expenses' => 'Expense Records & Tracking',
             'reports' => 'Profit & Sales Analytics Reports'
         ];
 

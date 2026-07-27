@@ -365,22 +365,46 @@
                 @endif
 
                 <!-- VAT Management & Accounting -->
-                <a href="{{ route('vat.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('vat.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
-                    <i class="fas fa-calculator text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">VAT Management</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('vat'))
+                    <a href="{{ route('vat.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('vat.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                        <i class="fas fa-calculator text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">VAT Management</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('VAT Management & Accounting')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
+                        <i class="fas fa-calculator text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">VAT Management</span>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
+                    </a>
+                @endif
 
                 <!-- Multi-Branch Location Management -->
-                <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
-                    <i class="fas fa-code-branch text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">Branch Management</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('branches'))
+                    <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                        <i class="fas fa-code-branch text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">Branch Management</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Multi-Branch Location Management')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
+                        <i class="fas fa-code-branch text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Branch Management</span>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
+                    </a>
+                @endif
 
                 <!-- Inter-Branch Stock Transfers -->
-                <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
-                    <i class="fas fa-dolly text-lg flex-shrink-0"></i>
-                    <span class="sidebar-text">Stock Transfers</span>
-                </a>
+                @if(auth()->user()->business->hasFeature('stock_transfers'))
+                    <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                        <i class="fas fa-dolly text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text">Stock Transfers</span>
+                    </a>
+                @else
+                    <a href="#" onclick="triggerUpgradeModal('Inter-Branch Stock Transfers')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
+                        <i class="fas fa-dolly text-lg flex-shrink-0"></i>
+                        <span class="sidebar-text flex-1">Stock Transfers</span>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
+                    </a>
+                @endif
 
                 <!-- Inventory Accordion -->
                 @if(auth()->user()->business->hasFeature('inventory'))

@@ -43,8 +43,8 @@ class PackageSeeder extends Seeder
             ['slug' => 'standard'],
             [
                 'name' => 'Standard Pro',
-                'description' => 'Includes invoices, inventory tracking, and stock sessions.',
-                'features' => ['pos', 'products', 'customers', 'suppliers', 'expenses', 'invoices', 'inventory'],
+                'description' => 'Includes invoices, inventory tracking, VAT management, and stock sessions.',
+                'features' => ['pos', 'products', 'customers', 'suppliers', 'expenses', 'invoices', 'inventory', 'vat'],
                 'price' => 50000.00,
                 'billing_cycle_days' => 30,
                 'is_active' => true,
@@ -56,8 +56,8 @@ class PackageSeeder extends Seeder
             ['slug' => 'premium'],
             [
                 'name' => 'Premium Enterprise',
-                'description' => 'Full access to sales reports, profit reports, and staff audits.',
-                'features' => ['pos', 'products', 'customers', 'suppliers', 'expenses', 'invoices', 'inventory', 'reports'],
+                'description' => 'Full access to sales reports, multi-branch management, stock transfers, and financial analytics.',
+                'features' => ['pos', 'products', 'customers', 'suppliers', 'expenses', 'invoices', 'inventory', 'reports', 'vat', 'branches', 'stock_transfers'],
                 'price' => 100000.00,
                 'billing_cycle_days' => 30,
                 'is_active' => true,
