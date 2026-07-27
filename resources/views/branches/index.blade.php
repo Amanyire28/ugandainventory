@@ -185,70 +185,70 @@
 </div>
 
 <!-- Add Branch Modal -->
-<div id="addBranchModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative modal-float border border-indigo-100">
-        <button onclick="closeAddBranchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-            <i class="fas fa-times text-xl"></i>
+<div id="addBranchModal" class="fixed inset-0 z-[99999] hidden bg-gray-900/75 backdrop-blur-sm items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative border-2 border-indigo-500 my-8">
+        <button onclick="closeAddBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all">
+            <i class="fas fa-times text-lg"></i>
         </button>
 
         <div class="text-center mb-6">
-            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm">
-                <i class="fas fa-code-branch"></i>
+            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">
+                <i class="fas fa-store"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900">Add New Branch / Outlet</h2>
-            <p class="text-xs text-gray-500 mt-1 font-medium">Create a new location under your business jurisdiction.</p>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight">Add New Branch / Outlet</h2>
+            <p class="text-xs text-gray-500 mt-1 font-semibold">Create a new business location under your jurisdiction.</p>
         </div>
 
         <form action="{{ route('branches.store') }}" method="POST" class="space-y-4">
             @csrf
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    <i class="fas fa-store text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
+                    <i class="fas fa-building text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
                 </label>
-                <input type="text" name="name" required class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Ntinda Shopping Center Branch">
+                <input type="text" name="name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="e.g., Ntinda Shopping Center Branch">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
                     <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
                 </label>
-                <input type="text" name="address" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="e.g., Plot 45 Ntinda Road, Kampala">
+                <input type="text" name="address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="e.g., Plot 45 Ntinda Road, Kampala">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
+                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone Number
                 </label>
-                <input type="text" name="phone" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none" placeholder="0700123456">
+                <input type="text" name="phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="0700123456">
             </div>
 
-            <div class="flex items-center pt-2">
-                <input type="checkbox" name="is_main" id="add_is_main" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
-                <label for="add_is_main" class="text-xs font-bold text-gray-800">
+            <div class="p-3.5 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3 mt-2">
+                <input type="checkbox" name="is_main" id="add_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
+                <label for="add_is_main" class="text-xs font-black text-indigo-900 cursor-pointer">
                     Designate as Main Branch (Headquarters)
                 </label>
             </div>
 
             <div class="pt-4 flex items-center justify-end space-x-3">
-                <button type="button" onclick="closeAddBranchModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200">Cancel</button>
-                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md">Create Branch</button>
+                <button type="button" onclick="closeAddBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all">Create Branch</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Edit Branch Modal -->
-<div id="editBranchModal" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative modal-float border border-indigo-100">
-        <button onclick="closeEditBranchModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-            <i class="fas fa-times text-xl"></i>
+<div id="editBranchModal" class="fixed inset-0 z-[99999] hidden bg-gray-900/75 backdrop-blur-sm items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative border-2 border-indigo-500 my-8">
+        <button onclick="closeEditBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all">
+            <i class="fas fa-times text-lg"></i>
         </button>
 
         <div class="text-center mb-6">
-            <div class="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-2 shadow-sm">
+            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">
                 <i class="fas fa-edit"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900">Edit Branch Details</h2>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight">Edit Branch Details</h2>
         </div>
 
         <form id="editBranchForm" method="POST" class="space-y-4">
@@ -256,45 +256,45 @@
             @method('PUT')
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    <i class="fas fa-store text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
+                    <i class="fas fa-building text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
                 </label>
-                <input type="text" name="name" id="edit_branch_name" required class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <input type="text" name="name" id="edit_branch_name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
                     <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
                 </label>
-                <input type="text" name="address" id="edit_branch_address" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <input type="text" name="address" id="edit_branch_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-700 mb-1">
-                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
+                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone Number
                 </label>
-                <input type="text" name="phone" id="edit_branch_phone" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <input type="text" name="phone" id="edit_branch_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
             </div>
 
             <div class="space-y-2 pt-2">
-                <div class="flex items-center">
-                    <input type="checkbox" name="is_main" id="edit_is_main" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
-                    <label for="edit_is_main" class="text-xs font-bold text-gray-800">
+                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3">
+                    <input type="checkbox" name="is_main" id="edit_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
+                    <label for="edit_is_main" class="text-xs font-black text-indigo-900 cursor-pointer">
                         Designate as Main Branch (Headquarters)
                     </label>
                 </div>
 
-                <div class="flex items-center">
-                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-4 h-4 text-indigo-600 border-gray-300 rounded accent-indigo-600 mr-2">
-                    <label for="edit_is_active" class="text-xs font-bold text-gray-800">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center space-x-3">
+                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
+                    <label for="edit_is_active" class="text-xs font-bold text-gray-800 cursor-pointer">
                         Branch Active Status
                     </label>
                 </div>
             </div>
 
             <div class="pt-4 flex items-center justify-end space-x-3">
-                <button type="button" onclick="closeEditBranchModal()" class="px-5 py-2.5 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200">Cancel</button>
-                <button type="submit" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md">Save Changes</button>
+                <button type="button" onclick="closeEditBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all">Save Changes</button>
             </div>
         </form>
     </div>
@@ -302,10 +302,14 @@
 
 <script>
     function openAddBranchModal() {
-        document.getElementById('addBranchModal').classList.remove('hidden');
+        const modal = document.getElementById('addBranchModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
     function closeAddBranchModal() {
-        document.getElementById('addBranchModal').classList.add('hidden');
+        const modal = document.getElementById('addBranchModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
     function openEditBranchModal(branch) {
         document.getElementById('editBranchForm').action = "/branches/" + branch.id;
@@ -314,10 +318,14 @@
         document.getElementById('edit_branch_phone').value = branch.phone || '';
         document.getElementById('edit_is_main').checked = !!branch.is_main;
         document.getElementById('edit_is_active').checked = !!branch.is_active;
-        document.getElementById('editBranchModal').classList.remove('hidden');
+        const modal = document.getElementById('editBranchModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
     function closeEditBranchModal() {
-        document.getElementById('editBranchModal').classList.add('hidden');
+        const modal = document.getElementById('editBranchModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
 </script>
 @endsection
