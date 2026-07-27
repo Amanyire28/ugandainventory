@@ -185,116 +185,116 @@
 </div>
 
 <!-- Add Branch Modal -->
-<div id="addBranchModal" class="fixed inset-0 z-[99999] hidden bg-gray-900/75 backdrop-blur-sm items-center justify-center p-4 sm:p-6 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative border-2 border-indigo-500 my-8">
-        <button onclick="closeAddBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all">
+<div id="addBranchModal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto" style="position: fixed; inset: 0; z-index: 99999; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-center: center; padding: 1rem;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative my-8" style="background-color: #ffffff; border-radius: 1.5rem; max-width: 32rem; width: 100%; padding: 1.75rem; position: relative; border: 2px solid #4f46e5; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <button type="button" onclick="closeAddBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all" style="position: absolute; top: 1.25rem; right: 1.25rem; width: 2.25rem; height: 2.25rem; border-radius: 9999px; background-color: #f3f4f6; color: #9ca3af; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <i class="fas fa-times text-lg"></i>
         </button>
 
-        <div class="text-center mb-6">
-            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">
+        <div class="text-center mb-6" style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md" style="width: 3.5rem; height: 3.5rem; background-color: #4f46e5; color: #ffffff; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; font-size: 1.5rem;">
                 <i class="fas fa-store"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900 tracking-tight">Add New Branch / Outlet</h2>
-            <p class="text-xs text-gray-500 mt-1 font-semibold">Create a new business location under your jurisdiction.</p>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight" style="font-size: 1.5rem; font-weight: 900; color: #111827; margin: 0;">Add New Branch / Outlet</h2>
+            <p class="text-xs text-gray-500 mt-1 font-semibold" style="font-size: 0.75rem; color: #6b7280; margin-top: 0.25rem; font-weight: 600;">Create a new business location under your jurisdiction.</p>
         </div>
 
-        <form action="{{ route('branches.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('branches.store') }}" method="POST" class="space-y-4" style="display: flex; flex-direction: column; gap: 1rem;">
             @csrf
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-building text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-building text-indigo-600 mr-1" style="color: #4f46e5;"></i> Branch Name <span class="text-red-500" style="color: #ef4444;">*</span>
                 </label>
-                <input type="text" name="name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="e.g., Ntinda Shopping Center Branch">
+                <input type="text" name="name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; color: #111827; box-sizing: border-box;" placeholder="e.g., Ntinda Shopping Center Branch">
             </div>
 
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1" style="color: #4f46e5;"></i> Physical Address
                 </label>
-                <input type="text" name="address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="e.g., Plot 45 Ntinda Road, Kampala">
+                <input type="text" name="address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; color: #111827; box-sizing: border-box;" placeholder="e.g., Plot 45 Ntinda Road, Kampala">
             </div>
 
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone Number
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-phone text-indigo-600 mr-1" style="color: #4f46e5;"></i> Contact Phone Number
                 </label>
-                <input type="text" name="phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" placeholder="0700123456">
+                <input type="text" name="phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; color: #111827; box-sizing: border-box;" placeholder="0700123456">
             </div>
 
-            <div class="p-3.5 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3 mt-2">
-                <input type="checkbox" name="is_main" id="add_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
-                <label for="add_is_main" class="text-xs font-black text-indigo-900 cursor-pointer">
+            <div class="p-3.5 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3 mt-2" style="padding: 0.875rem; background-color: #eff6ff; border-radius: 0.75rem; border: 1px solid #dbeafe; display: flex; align-items: center; gap: 0.75rem; margin-top: 0.5rem;">
+                <input type="checkbox" name="is_main" id="add_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                <label for="add_is_main" class="text-xs font-black text-indigo-900 cursor-pointer" style="font-size: 0.75rem; font-weight: 900; color: #1e3a8a; cursor: pointer;">
                     Designate as Main Branch (Headquarters)
                 </label>
             </div>
 
-            <div class="pt-4 flex items-center justify-end space-x-3">
-                <button type="button" onclick="closeAddBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors">Cancel</button>
-                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all">Create Branch</button>
+            <div class="pt-4 flex items-center justify-end space-x-3" style="padding-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" onclick="closeAddBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors" style="padding: 0.75rem 1.25rem; background-color: #f3f4f6; color: #374151; font-weight: 700; border-radius: 0.75rem; font-size: 0.75rem; border: none; cursor: pointer;">Cancel</button>
+                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all" style="padding: 0.75rem 1.75rem; background-color: #4f46e5; color: #ffffff; font-weight: 900; border-radius: 0.75rem; font-size: 0.75rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);">Create Branch</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Edit Branch Modal -->
-<div id="editBranchModal" class="fixed inset-0 z-[99999] hidden bg-gray-900/75 backdrop-blur-sm items-center justify-center p-4 sm:p-6 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative border-2 border-indigo-500 my-8">
-        <button onclick="closeEditBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all">
+<div id="editBranchModal" class="fixed inset-0 z-[99999] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto" style="position: fixed; inset: 0; z-index: 99999; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 relative my-8" style="background-color: #ffffff; border-radius: 1.5rem; max-width: 32rem; width: 100%; padding: 1.75rem; position: relative; border: 2px solid #4f46e5; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);">
+        <button type="button" onclick="closeEditBranchModal()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-full w-9 h-9 flex items-center justify-center transition-all" style="position: absolute; top: 1.25rem; right: 1.25rem; width: 2.25rem; height: 2.25rem; border-radius: 9999px; background-color: #f3f4f6; color: #9ca3af; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;">
             <i class="fas fa-times text-lg"></i>
         </button>
 
-        <div class="text-center mb-6">
-            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md">
+        <div class="text-center mb-6" style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-md" style="width: 3.5rem; height: 3.5rem; background-color: #4f46e5; color: #ffffff; border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; font-size: 1.5rem;">
                 <i class="fas fa-edit"></i>
             </div>
-            <h2 class="text-2xl font-black text-gray-900 tracking-tight">Edit Branch Details</h2>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight" style="font-size: 1.5rem; font-weight: 900; color: #111827; margin: 0;">Edit Branch Details</h2>
         </div>
 
-        <form id="editBranchForm" method="POST" class="space-y-4">
+        <form id="editBranchForm" method="POST" class="space-y-4" style="display: flex; flex-direction: column; gap: 1rem;">
             @csrf
             @method('PUT')
 
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-building text-indigo-600 mr-1"></i> Branch Name <span class="text-red-500">*</span>
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-building text-indigo-600 mr-1" style="color: #4f46e5;"></i> Branch Name <span class="text-red-500" style="color: #ef4444;">*</span>
                 </label>
-                <input type="text" name="name" id="edit_branch_name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
+                <input type="text" name="name" id="edit_branch_name" required class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-bold text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; color: #111827; box-sizing: border-box;">
             </div>
 
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1"></i> Physical Address
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-map-marker-alt text-indigo-600 mr-1" style="color: #4f46e5;"></i> Physical Address
                 </label>
-                <input type="text" name="address" id="edit_branch_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
+                <input type="text" name="address" id="edit_branch_address" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; color: #111827; box-sizing: border-box;">
             </div>
 
             <div>
-                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5">
-                    <i class="fas fa-phone text-indigo-600 mr-1"></i> Contact Phone Number
+                <label class="block text-xs font-black text-gray-800 uppercase tracking-wider mb-1.5" style="display: block; font-size: 0.75rem; font-weight: 900; color: #1f2937; text-transform: uppercase; margin-bottom: 0.375rem;">
+                    <i class="fas fa-phone text-indigo-600 mr-1" style="color: #4f46e5;"></i> Contact Phone Number
                 </label>
-                <input type="text" name="phone" id="edit_branch_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none">
+                <input type="text" name="phone" id="edit_branch_phone" class="w-full px-4 py-3 border-2 border-gray-300 rounded-xl text-sm font-medium text-gray-900 focus:border-indigo-600 focus:ring-0 focus:outline-none" style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #d1d5db; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600; color: #111827; box-sizing: border-box;">
             </div>
 
-            <div class="space-y-2 pt-2">
-                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3">
-                    <input type="checkbox" name="is_main" id="edit_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
-                    <label for="edit_is_main" class="text-xs font-black text-indigo-900 cursor-pointer">
+            <div class="space-y-2 pt-2" style="display: flex; flex-direction: column; gap: 0.5rem; padding-top: 0.5rem;">
+                <div class="p-3 bg-indigo-50 rounded-xl border border-indigo-100 flex items-center space-x-3" style="padding: 0.75rem; background-color: #eff6ff; border-radius: 0.75rem; border: 1px solid #dbeafe; display: flex; align-items: center; gap: 0.75rem;">
+                    <input type="checkbox" name="is_main" id="edit_is_main" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                    <label for="edit_is_main" class="text-xs font-black text-indigo-900 cursor-pointer" style="font-size: 0.75rem; font-weight: 900; color: #1e3a8a; cursor: pointer;">
                         Designate as Main Branch (Headquarters)
                     </label>
                 </div>
 
-                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center space-x-3">
-                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600">
-                    <label for="edit_is_active" class="text-xs font-bold text-gray-800 cursor-pointer">
+                <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center space-x-3" style="padding: 0.75rem; background-color: #f9fafb; border-radius: 0.75rem; border: 1px solid #e5e7eb; display: flex; align-items: center; gap: 0.75rem;">
+                    <input type="checkbox" name="is_active" id="edit_is_active" value="1" class="w-5 h-5 text-indigo-600 border-2 border-gray-300 rounded accent-indigo-600" style="width: 1.25rem; height: 1.25rem; cursor: pointer;">
+                    <label for="edit_is_active" class="text-xs font-bold text-gray-800 cursor-pointer" style="font-size: 0.75rem; font-weight: 700; color: #1f2937; cursor: pointer;">
                         Branch Active Status
                     </label>
                 </div>
             </div>
 
-            <div class="pt-4 flex items-center justify-end space-x-3">
-                <button type="button" onclick="closeEditBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors">Cancel</button>
-                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all">Save Changes</button>
+            <div class="pt-4 flex items-center justify-end space-x-3" style="padding-top: 1rem; display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem;">
+                <button type="button" onclick="closeEditBranchModal()" class="px-5 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl text-xs hover:bg-gray-200 transition-colors" style="padding: 0.75rem 1.25rem; background-color: #f3f4f6; color: #374151; font-weight: 700; border-radius: 0.75rem; font-size: 0.75rem; border: none; cursor: pointer;">Cancel</button>
+                <button type="submit" class="px-7 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-lg transform active:scale-95 transition-all" style="padding: 0.75rem 1.75rem; background-color: #4f46e5; color: #ffffff; font-weight: 900; border-radius: 0.75rem; font-size: 0.75rem; border: none; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);">Save Changes</button>
             </div>
         </form>
     </div>
@@ -303,13 +303,11 @@
 <script>
     function openAddBranchModal() {
         const modal = document.getElementById('addBranchModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        modal.style.display = 'flex';
     }
     function closeAddBranchModal() {
         const modal = document.getElementById('addBranchModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.style.display = 'none';
     }
     function openEditBranchModal(branch) {
         document.getElementById('editBranchForm').action = "/branches/" + branch.id;
@@ -319,13 +317,11 @@
         document.getElementById('edit_is_main').checked = !!branch.is_main;
         document.getElementById('edit_is_active').checked = !!branch.is_active;
         const modal = document.getElementById('editBranchModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        modal.style.display = 'flex';
     }
     function closeEditBranchModal() {
         const modal = document.getElementById('editBranchModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+        modal.style.display = 'none';
     }
 </script>
 @endsection
