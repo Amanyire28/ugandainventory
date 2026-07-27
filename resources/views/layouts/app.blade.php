@@ -264,15 +264,15 @@
 
                 <!-- Quick Access / POS -->
                 @if(auth()->user()->business->hasFeature('pos'))
-                    <a href="{{ route('pos.index') }}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-green-300 font-semibold sidebar-icon-only">
+                    <a href="{{ route('pos.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('pos.*') ? 'bg-indigo-800 border-l-4 border-white' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
                         <i class="fas fa-cash-register text-lg flex-shrink-0"></i>
                         <span class="sidebar-text">POS - New Sale</span>
                     </a>
                 @else
-                    <a href="#" onclick="triggerUpgradeModal('POS & Billing')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                    <a href="#" onclick="triggerUpgradeModal('POS & Billing')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
                         <i class="fas fa-cash-register text-lg flex-shrink-0"></i>
                         <span class="sidebar-text flex-1">POS - New Sale</span>
-                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
                     </a>
                 @endif
 
@@ -296,20 +296,20 @@
                                 <span class="sidebar-text">Add Product</span>
                             </a>
                             <a href="{{ route('products.expired') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expired') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                                <i class="fas fa-exclamation-triangle text-sm text-red-400 flex-shrink-0"></i>
+                                <i class="fas fa-exclamation-triangle text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Expired Products</span>
                             </a>
                             <a href="{{ route('products.expiring-soon') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('products.expiring-soon') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
-                                <i class="fas fa-clock text-sm text-yellow-400 flex-shrink-0"></i>
+                                <i class="fas fa-clock text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Expiring Soon</span>
                             </a>
                         </div>
                     </div>
                 @else
-                    <a href="#" onclick="triggerUpgradeModal('Products Management')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                    <a href="#" onclick="triggerUpgradeModal('Products Management')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
                         <i class="fas fa-box text-lg flex-shrink-0"></i>
                         <span class="sidebar-text flex-1">Products</span>
-                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
                     </a>
                 @endif
 
@@ -343,43 +343,43 @@
                         </div>
                     </div>
                 @else
-                    <a href="#" onclick="triggerUpgradeModal('Sales Transactions Logs')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                    <a href="#" onclick="triggerUpgradeModal('Sales Transactions Logs')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
                         <i class="fas fa-shopping-cart text-lg flex-shrink-0"></i>
                         <span class="sidebar-text flex-1">Sales Logs</span>
-                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
                     </a>
                 @endif
 
                 <!-- Invoices/Credit Sales -->
                 @if(auth()->user()->business->hasFeature('invoices'))
-                    <a href="{{route('invoices.index')}}" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 sidebar-icon-only">
+                    <a href="{{route('invoices.index')}}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('invoices.*') ? 'bg-indigo-800 border-l-4 border-white' : 'hover:bg-indigo-800' }} text-white sidebar-icon-only">
                         <i class="fas fa-file-invoice-dollar text-lg flex-shrink-0"></i>
                         <span class="sidebar-text">Invoices/Credit Sales</span>
                     </a>
                 @else
-                    <a href="#" onclick="triggerUpgradeModal('Invoices & Credit Sales')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                    <a href="#" onclick="triggerUpgradeModal('Invoices & Credit Sales')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
                         <i class="fas fa-file-invoice-dollar text-lg flex-shrink-0"></i>
                         <span class="sidebar-text flex-1">Invoices/Credit Sales</span>
-                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
                     </a>
                 @endif
 
-                <!-- VAT Management & Accounting (Independent Sidebar Link) -->
-                <a href="{{ route('vat.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('vat.*') ? 'bg-indigo-800 border-l-4 border-yellow-400' : 'hover:bg-indigo-800' }} text-yellow-300 font-semibold sidebar-icon-only">
-                    <i class="fas fa-calculator text-lg flex-shrink-0 text-yellow-400"></i>
+                <!-- VAT Management & Accounting -->
+                <a href="{{ route('vat.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('vat.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                    <i class="fas fa-calculator text-lg flex-shrink-0"></i>
                     <span class="sidebar-text">VAT Management</span>
                 </a>
 
-                <!-- Multi-Branch Location Management (Top Level Link) -->
-                <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-amber-400 font-bold' : 'hover:bg-indigo-800' }} text-amber-300 sidebar-icon-only">
-                    <i class="fas fa-code-branch text-lg flex-shrink-0 text-amber-400"></i>
-                    <span class="sidebar-text text-amber-200 font-bold">Branch Management</span>
+                <!-- Multi-Branch Location Management -->
+                <a href="{{ route('branches.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('branches.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                    <i class="fas fa-code-branch text-lg flex-shrink-0"></i>
+                    <span class="sidebar-text">Branch Management</span>
                 </a>
 
-                <!-- Inter-Branch Stock Transfers (Top Level Link) -->
-                <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-amber-400 font-bold' : 'hover:bg-indigo-800' }} text-amber-300 sidebar-icon-only">
-                    <i class="fas fa-dolly text-lg flex-shrink-0 text-amber-400"></i>
-                    <span class="sidebar-text text-amber-200 font-bold">Stock Transfers</span>
+                <!-- Inter-Branch Stock Transfers -->
+                <a href="{{ route('stock-transfers.index') }}" class="flex items-center space-x-3 p-3 rounded-lg {{ request()->routeIs('stock-transfers.*') ? 'bg-indigo-800 border-l-4 border-white font-bold' : 'hover:bg-indigo-800' }} text-white font-medium sidebar-icon-only">
+                    <i class="fas fa-dolly text-lg flex-shrink-0"></i>
+                    <span class="sidebar-text">Stock Transfers</span>
                 </a>
 
                 <!-- Inventory Accordion -->
@@ -512,7 +512,7 @@
                                 <span class="sidebar-text">Product Report</span>
                             </a>
                             <a href="{{ route('reports.top-selling') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
-                                <i class="fas fa-fire text-sm text-orange-400 flex-shrink-0"></i>
+                                <i class="fas fa-fire text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Top Selling</span>
                             </a>
                             <a href="{{ route('reports.custom') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
@@ -522,10 +522,10 @@
                         </div>
                     </div>
                 @else
-                    <a href="#" onclick="triggerUpgradeModal('Analytics & Financial Reports')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-300/60 sidebar-icon-only">
+                    <a href="#" onclick="triggerUpgradeModal('Analytics & Financial Reports')" class="flex items-center space-x-3 p-3 rounded-lg hover:bg-indigo-800 text-indigo-200/60 sidebar-icon-only">
                         <i class="fas fa-chart-bar text-lg flex-shrink-0"></i>
                         <span class="sidebar-text flex-1">Reports</span>
-                        <i class="fas fa-lock text-xs text-amber-500"></i>
+                        <i class="fas fa-lock text-xs text-indigo-300"></i>
                     </a>
                 @endif
 
