@@ -30,7 +30,7 @@ class BranchController extends Controller
                 ->where('business_id', $businessId)
                 ->where('location_id', $branch->id)
                 ->whereDate('sale_date', today())
-                ->sum('grand_total');
+                ->sum('total');
 
             $branch->total_stock_qty = DB::table('inventory')
                 ->where('location_id', $branch->id)
