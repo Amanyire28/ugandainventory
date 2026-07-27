@@ -385,7 +385,7 @@
                             </div>
                             <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }}"></i>
                         </div>
-                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*', 'branches.*', 'stock-transfers.*') ? '' : 'collapsed' }} space-y-1">
+                        <div id="inventory" class="accordion-content {{ request()->routeIs('inventory.*') ? '' : 'collapsed' }} space-y-1">
                             <a href="{{ route('inventory.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('inventory.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
                                 <i class="fas fa-boxes text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Inventory Management</span>
@@ -1104,6 +1104,24 @@
 </div>
 
 <script>
+    function toggleAccordion(event, targetId) {
+        const content = document.getElementById(targetId);
+        if (!content) return;
+        
+        const header = event.currentTarget;
+        const icon = header.querySelector('.accordion-icon');
+
+        const isCollapsed = content.classList.contains('collapsed');
+
+        if (isCollapsed) {
+            content.classList.remove('collapsed');
+            if (icon) icon.classList.remove('collapsed');
+        } else {
+            content.classList.add('collapsed');
+            if (icon) icon.classList.add('collapsed');
+        }
+    }
+
     function triggerUpgradeModal(featureName) {
         document.getElementById('upgradeFeatureName').textContent = featureName;
         document.getElementById('upgradeModal').classList.remove('hidden');
