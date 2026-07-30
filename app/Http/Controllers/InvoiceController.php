@@ -37,6 +37,12 @@ class InvoiceController extends Controller
         $invoices = $query->paginate(20);
         $customers = Customer::orderBy('name')->get();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('invoices.partials.table', compact('invoices'))->render()
+            ]);
+        }
+
         return view('invoices.index', compact('invoices', 'status', 'search', 'customerId', 'customers'));
     }
 
@@ -562,15 +568,25 @@ public function customerFinancialSummary($customerId)
     return view('invoices.customer', compact('customer', 'outstandingInvoices', 'paidInvoices', 'payments'));
 }
 
-    public function customersWithInvoices()
+    public function customersWithInvoices(Request $request)
     {
         // Get only customers who have invoices
         $customers = Customer::whereHas('invoices')->with('invoices')->get();
 
-        return view('invoices.customers', compact('customers'));
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('invoices.partials.customers-table', compact('customers'))->render()
+            ]);
+        }
+
+        return view('invoices.index', [
+            'status' => 'customers',
+            'customers' => $customers,
+            'invoices' => collect()
+        ]);
     }
 
-    public function creditors()
+    public function creditors(Request $request)
     {
         // Get customers who have unpaid or partially paid invoices
         $customers = Customer::whereHas('invoices', function ($q) {
@@ -579,7 +595,17 @@ public function customerFinancialSummary($customerId)
             $q->where('status', '!=', 'paid');
         }])->get();
 
-        return view('invoices.creditors', compact('customers'));
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('invoices.partials.creditors-table', compact('customers'))->render()
+            ]);
+        }
+
+        return view('invoices.index', [
+            'status' => 'creditors',
+            'customers' => $customers,
+            'invoices' => collect()
+        ]);
     }
 }
 
