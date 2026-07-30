@@ -89,24 +89,25 @@
             </a>
         </div>
         
-        <!-- Display Validation Errors -->
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div class="flex items-start">
-                    <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
-                    <div>
-                        <h3 class="font-semibold text-red-800 mb-2">Validation Errors</h3>
-                        <ul class="list-disc list-inside space-y-1 text-red-700 text-sm">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+        {{-- ── Toast Notification ─────────────────────────────────────────── --}}
+        <div id="createToast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:99999;min-width:340px;max-width:520px;">
+            <div id="createToastInner" style="display:flex;align-items:flex-start;gap:16px;background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.22);border-left:6px solid #16a34a;">
+                <div id="createToastIcon" style="font-size:28px;line-height:1;margin-top:2px;">✅</div>
+                <div style="flex:1;">
+                    <p id="createToastTitle" style="font-size:15px;font-weight:800;color:#14532d;margin:0 0 6px;"></p>
+                    <ul id="createToastList" style="font-size:13px;color:#166534;font-weight:600;margin:0;padding-left:16px;line-height:1.7;"></ul>
                 </div>
+                <button onclick="document.getElementById('createToast').classList.remove('ct-active')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#94a3b8;line-height:1;padding:0;margin-top:-2px;">×</button>
             </div>
-        @endif
+        </div>
+        <style>
+        #createToast { display:none; }
+        #createToast.ct-active { display:block !important; animation:ctSlideIn 0.4s cubic-bezier(.22,1,.36,1); }
+        @keyframes ctSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-20px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+        .field-error { border-color: #ef4444 !important; background-color: #fff5f5 !important; }
+        </style>
         
-        <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('products.store') }}" id="productCreateForm" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -379,9 +380,137 @@
                 </a>
                 <button type="submit" id="submitBtn"
                         class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 flex items-center space-x-2">
-                    <i class="fas fa-save mr-2"></i>
+                    <i class="fas fa-save mr-2" id="submitIcon"></i>
                     <span id="submitText">Save Product</span>
                     <span id="loadingSpinner" class="hidden">
                         <i class="fas fa-spinner fa-spin"></i>
                     </span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@push('scripts')
+<script>
+(function () {
+    const form      = document.getElementById('productCreateForm');
+    const csrfMeta  = document.querySelector('meta[name="csrf-token"]');
+
+    // ── Toast helpers ────────────────────────────────────────────────────
+    function showCreateToast(title, messages, isError) {
+        const toast  = document.getElementById('createToast');
+        const inner  = document.getElementById('createToastInner');
+        const icon   = document.getElementById('createToastIcon');
+        const titleEl= document.getElementById('createToastTitle');
+        const list   = document.getElementById('createToastList');
+
+        if (isError) {
+            inner.style.borderLeftColor = '#dc2626';
+            icon.textContent  = '❌';
+            titleEl.style.color = '#7f1d1d';
+            titleEl.textContent = title;
+            list.style.color  = '#991b1b';
+        } else {
+            inner.style.borderLeftColor = '#16a34a';
+            icon.textContent  = '✅';
+            titleEl.style.color = '#14532d';
+            titleEl.textContent = title;
+            list.style.color  = '#166534';
+        }
+
+        list.innerHTML = '';
+        (messages || []).forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = msg;
+            list.appendChild(li);
+        });
+
+        toast.classList.remove('ct-active');
+        void toast.offsetWidth;
+        toast.classList.add('ct-active');
+        if (isError) {
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('ct-active'), 10000);
+        } else {
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('ct-active'), 4000);
+        }
+    }
+
+    // ── Clear all field highlights ────────────────────────────────────────
+    function clearFieldErrors() {
+        document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+    }
+
+    // ── Highlight specific fields returned by validation ─────────────────
+    function highlightFields(errors) {
+        clearFieldErrors();
+        Object.keys(errors).forEach(field => {
+            const el = document.querySelector(`[name="${field}"]`);
+            if (el) el.classList.add('field-error');
+        });
+    }
+
+    // ── AJAX form submit ─────────────────────────────────────────────────
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const spinner    = document.getElementById('loadingSpinner');
+
+        submitBtn.disabled   = true;
+        submitText.textContent = 'Saving…';
+        spinner.classList.remove('hidden');
+        clearFieldErrors();
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfMeta ? csrfMeta.content : '',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(async res => {
+            const text = await res.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch(e) {
+                data = { success: false, message: `Server error (HTTP ${res.status}).`, errors: {} };
+            }
+
+            submitBtn.disabled = false;
+            submitText.textContent = 'Save Product';
+            spinner.classList.add('hidden');
+
+            if (res.ok && data.success) {
+                showCreateToast('Product saved successfully!', [`"${data.name}" has been added to your inventory.`], false);
+                setTimeout(() => { window.location.href = data.redirect; }, 1500);
+            } else if (res.status === 422 && data.errors) {
+                // Laravel validation errors
+                const messages = Object.values(data.errors).flat();
+                highlightFields(data.errors);
+                showCreateToast('Please fix the following errors:', messages, true);
+                // Scroll to first errored field
+                const firstError = document.querySelector('.field-error');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                showCreateToast('Failed to save product', [data.message || 'An unexpected error occurred.'], true);
+            }
+        })
+        .catch(err => {
+            submitBtn.disabled = false;
+            submitText.textContent = 'Save Product';
+            spinner.classList.add('hidden');
+            showCreateToast('Connection error', ['Could not reach the server. Please check your connection and try again.'], true);
+            console.error('Product save error:', err);
+        });
+    });
+})();
+</script>
+@endpush
 @endsection

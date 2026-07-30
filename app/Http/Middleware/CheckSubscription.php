@@ -20,6 +20,9 @@ class CheckSubscription
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::check()) {
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Session expired. Please log in again.'], 401);
+            }
             return redirect()->route('login');
         }
 
@@ -34,6 +37,9 @@ class CheckSubscription
 
         if (!$business) {
             Auth::logout();
+            if ($request->expectsJson()) {
+                return response()->json(['success' => false, 'message' => 'Business not found. You have been logged out.'], 403);
+            }
             return redirect()->route('login')->with('error', 'Business not found.');
         }
 
@@ -64,6 +70,12 @@ class CheckSubscription
             ];
 
             if (!in_array($currentRoute, $allowedRoutes)) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => '🔒 Subscription required. Please activate your subscription to use this feature.',
+                    ], 403);
+                }
                 return redirect()->route('subscription.index')
                     ->with('error', '🔒 Features Locked: Operational features (POS, Invoicing, Inventory, Sales, Reports) require an active subscription confirmed by the Admin. Payment is optional at registration, but you must submit subscription payment below for Admin confirmation to unlock all features.');
             }

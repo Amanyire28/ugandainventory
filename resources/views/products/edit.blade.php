@@ -78,24 +78,25 @@
 <div class="max-w-7xl mx-auto w-full">
     <div class="bg-white rounded-xl shadow-lg p-6">
         
-        <!-- Display Validation Errors -->
-        @if ($errors->any())
-            <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <div class="flex items-start">
-                    <i class="fas fa-exclamation-circle text-red-600 mt-1 mr-3"></i>
-                    <div>
-                        <h3 class="font-semibold text-red-800 mb-2">Validation Errors</h3>
-                        <ul class="list-disc list-inside space-y-1 text-red-700 text-sm">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
+        {{-- ── Toast Notification ─────────────────────────────────────────── --}}
+        <div id="editToast" style="display:none;position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:99999;min-width:340px;max-width:520px;">
+            <div id="editToastInner" style="display:flex;align-items:flex-start;gap:16px;background:#fff;border-radius:14px;padding:20px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.22);border-left:6px solid #16a34a;">
+                <div id="editToastIcon" style="font-size:28px;line-height:1;margin-top:2px;">✅</div>
+                <div style="flex:1;">
+                    <p id="editToastTitle" style="font-size:15px;font-weight:800;color:#14532d;margin:0 0 6px;"></p>
+                    <ul id="editToastList" style="font-size:13px;color:#166534;font-weight:600;margin:0;padding-left:16px;line-height:1.7;"></ul>
                 </div>
+                <button onclick="document.getElementById('editToast').classList.remove('et-active')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#94a3b8;line-height:1;padding:0;margin-top:-2px;">×</button>
             </div>
-        @endif
-        
-        <form method="POST" action="{{ route('products.update', $product) }}" enctype="multipart/form-data">
+        </div>
+        <style>
+        #editToast { display:none; }
+        #editToast.et-active { display:block !important; animation:etSlideIn 0.4s cubic-bezier(.22,1,.36,1); }
+        @keyframes etSlideIn { from{opacity:0;transform:translateX(-50%) translateY(-20px);} to{opacity:1;transform:translateX(-50%) translateY(0);} }
+        .field-error { border-color: #ef4444 !important; background-color: #fff5f5 !important; }
+        </style>
+
+        <form method="POST" id="productEditForm" action="{{ route('products.update', $product) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -369,10 +370,11 @@
                    class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
                     <i class="fas fa-times mr-2"></i>Cancel
                 </a>
-                <button type="submit" id="submitBtn"
-                        class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center space-x-2">
-                    <i class="fas fa-save mr-2"></i>
-                    <span id="submitText">Update Product</span>
+                <button type="submit" id="editSubmitBtn"
+                        class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                    <i class="fas fa-save" id="editSubmitIcon"></i>
+                    <span id="editSubmitText">Update Product</span>
+                    <i class="fas fa-spinner fa-spin hidden" id="editSpinner"></i>
                 </button>
             </div>
         </form>
@@ -408,4 +410,120 @@
     </div>
 </div>
 
+@push('scripts')
+<script>
+(function () {
+    const form     = document.getElementById('productEditForm');
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+
+    // ── Toast ──────────────────────────────────────────────────────────────
+    function showEditToast(title, messages, isError) {
+        const toast   = document.getElementById('editToast');
+        const inner   = document.getElementById('editToastInner');
+        const icon    = document.getElementById('editToastIcon');
+        const titleEl = document.getElementById('editToastTitle');
+        const list    = document.getElementById('editToastList');
+
+        if (isError) {
+            inner.style.borderLeftColor = '#dc2626';
+            icon.textContent   = '❌';
+            titleEl.style.color = '#7f1d1d';
+            titleEl.textContent = title;
+            list.style.color   = '#991b1b';
+        } else {
+            inner.style.borderLeftColor = '#16a34a';
+            icon.textContent   = '✅';
+            titleEl.style.color = '#14532d';
+            titleEl.textContent = title;
+            list.style.color   = '#166534';
+        }
+
+        list.innerHTML = '';
+        (messages || []).forEach(msg => {
+            const li = document.createElement('li');
+            li.textContent = msg;
+            list.appendChild(li);
+        });
+
+        toast.classList.remove('et-active');
+        void toast.offsetWidth;
+        toast.classList.add('et-active');
+        clearTimeout(toast._timer);
+        toast._timer = setTimeout(() => toast.classList.remove('et-active'), isError ? 10000 : 4000);
+    }
+
+    function clearFieldErrors() {
+        document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+    }
+
+    function highlightFields(errors) {
+        clearFieldErrors();
+        Object.keys(errors).forEach(field => {
+            const el = document.querySelector(`[name="${field}"]`);
+            if (el) el.classList.add('field-error');
+        });
+    }
+
+    // ── AJAX Submit ──────────────────────────────────────────────────────
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const btn     = document.getElementById('editSubmitBtn');
+        const btnText = document.getElementById('editSubmitText');
+        const spinner = document.getElementById('editSpinner');
+        const icon    = document.getElementById('editSubmitIcon');
+
+        btn.disabled      = true;
+        btnText.textContent = 'Updating…';
+        icon.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        clearFieldErrors();
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',          // FormData with _method=PUT is fine
+            headers: {
+                'X-CSRF-TOKEN': csrfMeta ? csrfMeta.content : '',
+                'Accept': 'application/json',
+            },
+            body: formData,
+        })
+        .then(async res => {
+            const text = await res.text();
+            let data = {};
+            try { data = JSON.parse(text); } catch(err) {
+                data = { success: false, message: `Server error (HTTP ${res.status}). Please try again.`, errors: {} };
+            }
+
+            btn.disabled      = false;
+            btnText.textContent = 'Update Product';
+            icon.classList.remove('hidden');
+            spinner.classList.add('hidden');
+
+            if (res.ok && data.success) {
+                showEditToast('Product updated!', [`"${data.name}" has been saved successfully.`], false);
+                setTimeout(() => { window.location.href = data.redirect; }, 1500);
+            } else if (res.status === 422 && data.errors) {
+                const messages = Object.values(data.errors).flat();
+                highlightFields(data.errors);
+                showEditToast('Please fix the following errors:', messages, true);
+                const firstError = document.querySelector('.field-error');
+                if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                showEditToast('Update failed', [data.message || 'An unexpected error occurred. Please try again.'], true);
+            }
+        })
+        .catch(err => {
+            btn.disabled      = false;
+            btnText.textContent = 'Update Product';
+            icon.classList.remove('hidden');
+            spinner.classList.add('hidden');
+            showEditToast('Connection error', ['Could not reach the server. Check your internet and try again.'], true);
+            console.error('Edit save error:', err);
+        });
+    });
+})();
+</script>
+@endpush
 @endsection

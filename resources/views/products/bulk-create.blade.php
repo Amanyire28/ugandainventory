@@ -148,9 +148,9 @@
                     Selling Value: <span id="summaryTotalSelling" style="color: #2563eb; font-weight: 900; font-size: 14px;">UGX 0</span>
                 </div>
 
-                <button type="submit" form="excelProductForm" class="excel-btn-primary" style="padding: 9px 24px; font-size: 13px;">
-                    <i class="fas fa-save text-yellow-300 text-sm"></i>
-                    <span>Save All Products</span>
+                <button type="button" id="saveAllBtnTop" onclick="submitBulkForm()" class="excel-btn-primary" style="padding: 9px 24px; font-size: 13px;">
+                    <i class="fas fa-save text-yellow-300 text-sm" id="saveIconTop"></i>
+                    <span id="saveLabelTop">Save All Products</span>
                 </button>
             </div>
         </div>
@@ -193,15 +193,50 @@
                     <button type="button" onclick="addRows(1)" class="excel-btn-secondary">
                         <i class="fas fa-plus text-blue-600"></i> Add Row
                     </button>
-                    <button type="submit" class="excel-btn-primary" style="padding: 9px 28px; font-size: 13px;">
-                        <i class="fas fa-check-circle text-yellow-300 text-sm"></i>
-                        <span>Save All Products</span>
+                    <button type="button" id="saveAllBtnBottom" onclick="submitBulkForm()" class="excel-btn-primary" style="padding: 9px 28px; font-size: 13px;">
+                        <i class="fas fa-check-circle text-yellow-300 text-sm" id="saveIconBottom"></i>
+                        <span id="saveLabelBottom">Save All Products</span>
                     </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
+
+{{-- Spinner Overlay --}}
+<div id="bulkSaveOverlay" style="display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:16px;">
+    <div style="background:#fff; border-radius:16px; padding:36px 48px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div style="display:flex; justify-content:center; margin-bottom:16px;">
+            <svg width="52" height="52" viewBox="0 0 52 52" style="animation:spin 0.9s linear infinite;">
+                <circle cx="26" cy="26" r="22" fill="none" stroke="#dbeafe" stroke-width="5"/>
+                <path d="M26 4 a22 22 0 0 1 22 22" fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <p style="font-size:16px; font-weight:800; color:#1e3a8a; margin:0 0 4px;">Saving Products…</p>
+        <p style="font-size:13px; color:#64748b; font-weight:600; margin:0;">Please wait while your products are being added.</p>
+    </div>
+</div>
+
+{{-- Toast Notification --}}
+<div id="bulkToast" style="display:none; position:fixed; bottom:28px; right:28px; z-index:10000; min-width:280px; max-width:380px;">
+    <div id="bulkToastInner" style="display:flex; align-items:flex-start; gap:14px; background:#fff; border-radius:14px; padding:18px 20px; box-shadow:0 8px 32px rgba(0,0,0,0.18); border-left:5px solid #16a34a;">
+        <div id="bulkToastIcon" style="font-size:26px; line-height:1;">🎉</div>
+        <div style="flex:1;">
+            <p id="bulkToastTitle" style="font-size:14px; font-weight:800; color:#14532d; margin:0 0 3px;">Products Added!</p>
+            <p id="bulkToastMsg" style="font-size:13px; color:#166534; font-weight:600; margin:0;"></p>
+        </div>
+        <button onclick="closeToast()" style="background:none;border:none;cursor:pointer;font-size:18px;color:#94a3b8;line-height:1;padding:0;">×</button>
+    </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+#bulkSaveOverlay { display: none; }
+#bulkSaveOverlay.active { display: flex !important; }
+#bulkToast { display: none; }
+#bulkToast.active { display: block !important; animation: toastSlideIn 0.35s cubic-bezier(.22,1,.36,1); }
+@keyframes toastSlideIn { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+</style>
 
 <script>
 let rowIndex = 0;
@@ -433,5 +468,172 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// ─── AJAX Bulk Submit ────────────────────────────────────────────────────────
+function setSavingState(isSaving) {
+    const overlay = document.getElementById('bulkSaveOverlay');
+    const btns = [document.getElementById('saveAllBtnTop'), document.getElementById('saveAllBtnBottom')];
+    if (isSaving) {
+        overlay.classList.add('active');
+        btns.forEach(btn => { if(btn) btn.disabled = true; });
+    } else {
+        overlay.classList.remove('active');
+        btns.forEach(btn => { if(btn) btn.disabled = false; });
+    }
+}
+
+function showToast(count, isError = false) {
+    const toast = document.getElementById('bulkToast');
+    const inner = document.getElementById('bulkToastInner');
+    const icon  = document.getElementById('bulkToastIcon');
+    const title = document.getElementById('bulkToastTitle');
+    const msg   = document.getElementById('bulkToastMsg');
+
+    if (isError) {
+        inner.style.borderLeftColor = '#dc2626';
+        icon.textContent = '❌';
+        title.style.color = '#7f1d1d';
+        title.textContent = 'Error!';
+        msg.style.color   = '#991b1b';
+        msg.textContent   = count; // count holds error message when isError
+    } else {
+        inner.style.borderLeftColor = '#16a34a';
+        icon.textContent = '🎉';
+        title.style.color = '#14532d';
+        title.textContent = count === 1 ? '1 Product Added!' : `${count} Products Added!`;
+        msg.style.color   = '#166534';
+        msg.textContent   = count === 1
+            ? 'Your product has been saved successfully.'
+            : `All ${count} products have been saved successfully.`;
+    }
+
+    toast.classList.remove('active');
+    void toast.offsetWidth; // reflow to restart animation
+    toast.classList.add('active');
+
+    setTimeout(() => closeToast(), 6000);
+}
+
+function closeToast() {
+    document.getElementById('bulkToast').classList.remove('active');
+}
+
+function submitBulkForm() {
+    const form = document.getElementById('excelProductForm');
+
+    // Basic validation: must have at least one row with a name
+    const filledRows = Array.from(document.querySelectorAll('#excelGridBody input[name*="[name]"]'))
+        .filter(inp => inp.value.trim() !== '');
+
+    if (filledRows.length === 0) {
+        showToast('Please fill in at least one product name before saving.', true);
+        return;
+    }
+
+    // Check HTML5 validity
+    if (!form.reportValidity()) return;
+
+    const formData   = new FormData(form);
+    const csrfToken  = document.querySelector('meta[name="csrf-token"]');
+
+    // Clear any previous row highlights
+    document.querySelectorAll('#excelGridBody tr.bulk-row-error').forEach(tr => {
+        tr.classList.remove('bulk-row-error');
+        tr.style.background = '';
+    });
+
+    setSavingState(true);
+
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken ? csrfToken.content : '',
+            'Accept': 'application/json',
+        },
+        body: formData,
+    })
+    .then(async res => {
+        const text = await res.text();
+        let data = {};
+        try { data = JSON.parse(text); } catch(e) {
+            data = { success: false, message: `Server error (HTTP ${res.status}). Please try again.` };
+        }
+
+        setSavingState(false);
+
+        if (res.ok && data.success) {
+            showToast(data.count);
+            // Clear the grid after a short delay so user sees the toast
+            setTimeout(() => {
+                document.getElementById('excelGridBody').innerHTML = '';
+                rowIndex = 0;
+                addRows(8);
+                calculateSummaries();
+            }, 1500);
+        } else if (data.row_errors && data.row_errors.length > 0) {
+            // Per-row validation errors — highlight the bad rows and show details
+            const rows = document.querySelectorAll('#excelGridBody tr');
+            data.row_errors.forEach(re => {
+                const tr = rows[re.row - 1];
+                if (tr) {
+                    tr.style.background = '#fff1f2';
+                    tr.classList.add('bulk-row-error');
+                    tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+
+            // Build detailed error message for the toast
+            const errorLines = data.row_errors.map(re =>
+                `Row ${re.row} (${re.name}): ${re.errors.join(' | ')}`
+            );
+
+            showBulkErrorToast(data.message, errorLines);
+        } else {
+            showToast(data.message || 'An unexpected error occurred.', true);
+        }
+    })
+    .catch(err => {
+        setSavingState(false);
+        showToast('Connection failed. Please check your internet and try again.', true);
+        console.error('Bulk save error:', err);
+    });
+}
+
+// Detailed multi-line error toast for row errors
+function showBulkErrorToast(title, lines) {
+    const toast = document.getElementById('bulkToast');
+    const inner = document.getElementById('bulkToastInner');
+    const icon  = document.getElementById('bulkToastIcon');
+    const titleEl = document.getElementById('bulkToastTitle');
+
+    // Replace simple msg <p> with a <ul> for multiple lines
+    let listEl = document.getElementById('bulkToastErrorList');
+    const existingMsg = document.getElementById('bulkToastMsg');
+    if (existingMsg) existingMsg.style.display = 'none';
+    if (!listEl) {
+        listEl = document.createElement('ul');
+        listEl.id = 'bulkToastErrorList';
+        listEl.style.cssText = 'font-size:12px;color:#991b1b;font-weight:600;margin:4px 0 0;padding-left:16px;line-height:1.7;max-height:200px;overflow-y:auto;';
+        inner.insertBefore(listEl, inner.querySelector('button'));
+    }
+    listEl.innerHTML = '';
+    lines.forEach(line => {
+        const li = document.createElement('li');
+        li.textContent = line;
+        listEl.appendChild(li);
+    });
+
+    inner.style.borderLeftColor = '#dc2626';
+    icon.textContent = '❌';
+    titleEl.style.color = '#7f1d1d';
+    titleEl.textContent = title;
+
+    toast.classList.remove('active');
+    void toast.offsetWidth;
+    toast.classList.add('active');
+    // Keep error toast open for 15s (user needs to read it)
+    clearTimeout(toast._bulkTimer);
+    toast._bulkTimer = setTimeout(() => closeToast(), 15000);
+}
 </script>
 @endsection

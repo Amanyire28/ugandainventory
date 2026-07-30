@@ -14,6 +14,46 @@
         overflow: hidden !important;
         padding: 1rem !important;
     }
+    @media (max-width: 1023px) {
+        main {
+            padding: 0.5rem !important;
+            height: calc(100vh - 56px) !important;
+        }
+        #checkoutPanel {
+            position: fixed !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            z-index: 50 !important;
+            border-top-left-radius: 1rem !important;
+            border-top-right-radius: 1rem !important;
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.1), 0 -10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            border-top: 1px solid #e5e7eb !important;
+            transition: transform 0.3s ease-in-out !important;
+            transform: translateY(100%) !important;
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+            display: flex !important;
+        }
+        #checkoutPanel.mobile-panel-open {
+            transform: translateY(0) !important;
+        }
+    }
+    #mobileCartBar {
+        display: none !important;
+    }
+    @media (max-width: 1023px) {
+        #mobileCartBar {
+            display: flex !important;
+        }
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+    .scrollbar-none {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 </style>
 <!-- JSON Products data for search autocomplete -->
 <script>
@@ -37,9 +77,12 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
 
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-hidden">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-hidden relative">
+    <!-- Backdrop for Mobile Drawer -->
+    <div id="checkoutPanelBackdrop" onclick="closeMobileCheckout()" class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
     <!-- LEFT SIDE: Selected Products Table -->
-    <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4">
+    <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4 pb-16 lg:pb-0">
         <!-- Search Field & Camera Scanner Trigger -->
         <div class="bg-white rounded-xl shadow-lg p-4 flex-shrink-0">
             <!-- Compact Keyboard Shortcut Instructions Bar -->
@@ -116,8 +159,16 @@
         </div>
     </div>
 
-    <!-- RIGHT SIDE: Payment & Checkout Panel -->
-    <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-4 flex flex-col h-full justify-between min-h-0">
+    <!-- RIGHT SIDE: Payment & Checkout Panel (Behaves as Drawer on Mobile) -->
+    <div id="checkoutPanel" class="lg:col-span-1 bg-white rounded-xl shadow-lg p-4 flex flex-col justify-between min-h-0 lg:flex lg:h-full max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:z-50 max-lg:rounded-t-2xl max-lg:shadow-2xl max-lg:border-t max-lg:border-gray-200 max-lg:transition-transform max-lg:duration-300 max-lg:translate-y-full max-lg:max-h-[85vh] max-lg:overflow-y-auto">
+        <!-- Mobile Drawer Header -->
+        <div class="lg:hidden flex justify-between items-center pb-3 border-b mb-3">
+            <h3 class="font-extrabold text-gray-800 text-sm flex items-center">
+                <i class="fas fa-shopping-cart text-green-600 mr-2"></i>Checkout Details
+            </h3>
+            <button type="button" onclick="closeMobileCheckout()" class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1">&times;</button>
+        </div>
+
         <!-- Customer Section -->
         <div class="border-b pb-3 flex-shrink-0">
             <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center">
@@ -221,6 +272,17 @@
                 <span id="checkoutBtnText">Complete Sale</span>
             </button>
         </div>
+    </div>
+
+    <!-- Floating Mobile Summary & Checkout Trigger Bar -->
+    <div id="mobileCartBar" class="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3 z-30 flex justify-between items-center shadow-lg transition-transform duration-300 translate-y-full">
+        <div>
+            <span class="text-xs text-gray-500 block font-semibold" id="mobileCartCount">0 items</span>
+            <span class="text-base font-extrabold text-green-600">Total: UGX <span id="mobileCartTotal">0</span></span>
+        </div>
+        <button type="button" onclick="openMobileCheckout()" id="mobileCheckoutTrigger" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-extrabold rounded-lg shadow-md flex items-center gap-1.5 transition">
+            <span>Checkout</span> <i class="fas fa-arrow-right text-xs"></i>
+        </button>
     </div>
 </div>
 
@@ -739,6 +801,38 @@ function calculateChange() {
         changeAmountSpan.classList.remove('text-red-600');
     }
 }
+
+// Override updateTotals to sync values on Mobile cart bar
+const originalUpdateTotals = updateTotals;
+updateTotals = function() {
+    originalUpdateTotals();
+    
+    // Grab elements
+    const mobileCartCount = document.getElementById('mobileCartCount');
+    const mobileCartTotal = document.getElementById('mobileCartTotal');
+    const mobileCartBar = document.getElementById('mobileCartBar');
+    const totalText = document.getElementById('totalAmount').textContent;
+    
+    // Count total items
+    const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+    
+    if (mobileCartCount) {
+        mobileCartCount.textContent = cartItemCount === 1 ? '1 item' : `${cartItemCount} items`;
+    }
+    if (mobileCartTotal) {
+        mobileCartTotal.textContent = totalText;
+    }
+    
+    // Control bottom bar visibility
+    if (mobileCartBar) {
+        if (cart.length > 0) {
+            mobileCartBar.classList.remove('translate-y-full');
+        } else {
+            mobileCartBar.classList.add('translate-y-full');
+            closeMobileCheckout();
+        }
+    }
+}
 function exactAmount() {
     const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g, ''));
     document.getElementById('amountPaid').value = total;
@@ -788,63 +882,74 @@ function showErrorToast(message) {
 }
 
 async function processSale() {
+    if (window.isProcessingSale) {
+        console.warn('Sale processing is already in progress. Ignoring duplicate call.');
+        return;
+    }
+
     if (cart.length === 0) {
         alert('Cart is empty!');
         return;
     }
-    const paymentType = document.querySelector('input[name="payment_type"]:checked').value;
-    const customerOption = document.querySelector('input[name="customer_option"]:checked').value;
-    let saleData = {
-        customer_option: customerOption,
-        items: cart.map(item => ({
-            product_id: item.id,
-            quantity: item.quantity,
-            price: item.price
-        })),
-        discount: parseFloat(document.getElementById('discountAmount').value) || 0,
-        add_tax: true,
-        notes: document.getElementById('saleNotes').value || null,
-        _token: '{{ csrf_token() }}',
-        payment_type: paymentType
-    };
-    if (paymentType === 'cash') {
-        saleData.amount_paid = parseFloat(document.getElementById('amountPaid').value) || 0;
-    }
-    if (customerOption === 'existing') {
-        const customerId = document.getElementById('existingCustomerId').value;
-        if (!customerId) {
-            alert('Please select a customer');
-            return;
-        }
-        saleData.customer_id = customerId;
-    } else if (customerOption === 'new') {
-        const name = document.getElementById('newCustomerName').value.trim();
-        const phone = document.getElementById('newCustomerPhone').value.trim();
-        if (!name || !phone) {
-            alert('Please enter customer name and phone number');
-            return;
-        }
-        saleData.new_customer_name = name;
-        saleData.new_customer_phone = phone;
-        saleData.new_customer_email = document.getElementById('newCustomerEmail').value.trim();
-        saleData.new_customer_address = document.getElementById('newCustomerAddress').value.trim();
-    }
-    if (paymentType === 'cash') {
-        const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g, ''));
-        const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
-        if (amountPaid < total) {
-            alert('Amount paid is less than total amount!');
-            return;
-        }
-    }
+
+    window.isProcessingSale = true;
     const checkoutBtn = document.getElementById('checkoutBtn');
-    checkoutBtn.disabled = true;
-    checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    if (checkoutBtn) {
+        checkoutBtn.disabled = true;
+        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    }
+
     try {
+        const paymentType = document.querySelector('input[name="payment_type"]:checked').value;
+        const customerOption = document.querySelector('input[name="customer_option"]:checked').value;
+        let saleData = {
+            customer_option: customerOption,
+            items: cart.map(item => ({
+                product_id: item.id,
+                quantity: item.quantity,
+                price: item.price
+            })),
+            discount: parseFloat(document.getElementById('discountAmount').value) || 0,
+            add_tax: true,
+            notes: document.getElementById('saleNotes').value || null,
+            _token: '{{ csrf_token() }}',
+            payment_type: paymentType
+        };
+        if (paymentType === 'cash') {
+            saleData.amount_paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        }
+        if (customerOption === 'existing') {
+            const customerId = document.getElementById('existingCustomerId').value;
+            if (!customerId) {
+                alert('Please select a customer');
+                return;
+            }
+            saleData.customer_id = customerId;
+        } else if (customerOption === 'new') {
+            const name = document.getElementById('newCustomerName').value.trim();
+            const phone = document.getElementById('newCustomerPhone').value.trim();
+            if (!name || !phone) {
+                alert('Please enter customer name and phone number');
+                return;
+            }
+            saleData.new_customer_name = name;
+            saleData.new_customer_phone = phone;
+            saleData.new_customer_email = document.getElementById('newCustomerEmail').value.trim();
+            saleData.new_customer_address = document.getElementById('newCustomerAddress').value.trim();
+        }
+        if (paymentType === 'cash') {
+            const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g, ''));
+            const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+            if (amountPaid < total) {
+                alert('Amount paid is less than total amount!');
+                return;
+            }
+        }
+
         let endpoint =
             paymentType === "invoice"
-            ? "{{ route('invoices.pos') }}"
-            : "{{ route('pos.process') }}";
+            ? "{{ route('invoices.pos', [], false) }}"
+            : "{{ route('pos.process', [], false) }}";
         
         console.log('Posting to:', endpoint);
         console.log('Payload:', saleData);
@@ -892,7 +997,10 @@ async function processSale() {
             document.querySelector('input[name="customer_option"][value="walk_in"]').checked = true;
             toggleCustomerFields();
             document.getElementById('discountAmount').value = 0;
-            document.getElementById('addTaxCheckbox').checked = false;
+            const addTaxCheckbox = document.getElementById('addTaxCheckbox');
+            if (addTaxCheckbox) {
+                addTaxCheckbox.checked = false;
+            }
             document.getElementById('amountPaid').value = 0;
             document.getElementById('saleNotes').value = '';
             document.getElementById('existingCustomerId').value = '';
@@ -912,10 +1020,13 @@ async function processSale() {
         console.error('Fetch error:', error);
         showErrorToast('Failed to process sale. Please check your connection and try again.');
     } finally {
-        checkoutBtn.disabled = false;
-        let paymentType2 = document.querySelector('input[name="payment_type"]:checked').value;
-        let btnText2 = paymentType2 === 'invoice' ? 'Make Invoice' : 'Complete Sale';
-        checkoutBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <span id="checkoutBtnText">' + btnText2 + '</span>';
+        window.isProcessingSale = false;
+        if (checkoutBtn) {
+            checkoutBtn.disabled = false;
+            let paymentType2 = document.querySelector('input[name="payment_type"]:checked').value;
+            let btnText2 = paymentType2 === 'invoice' ? 'Make Invoice' : 'Complete Sale';
+            checkoutBtn.innerHTML = '<i class="fas fa-check-circle mr-2"></i> <span id="checkoutBtnText">' + btnText2 + '</span>';
+        }
     }
 }
 function showReceipt(data) {
@@ -1172,7 +1283,7 @@ function loadRecentSalesForF12() {
         </tr>
     `;
 
-    fetch("{{ route('pos.recent-sales') }}")
+    fetch("{{ route('pos.recent-sales', [], false) }}")
         .then(response => response.json())
         .then(data => {
             if (!data || data.length === 0) {
@@ -1286,6 +1397,16 @@ function highlightSearchItem(items) {
             item.classList.remove('bg-green-50', 'ring-1', 'ring-green-400', 'font-semibold');
         }
     });
+}
+
+function openMobileCheckout() {
+    document.getElementById('checkoutPanel').classList.add('mobile-panel-open');
+    document.getElementById('checkoutPanelBackdrop').classList.remove('hidden');
+}
+
+function closeMobileCheckout() {
+    document.getElementById('checkoutPanel').classList.remove('mobile-panel-open');
+    document.getElementById('checkoutPanelBackdrop').classList.add('hidden');
 }
 </script>
 

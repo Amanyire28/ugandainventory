@@ -142,6 +142,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
         Route::get('/{product}/edit', [ProductController::class, 'edit'])->name('edit');
         Route::put('/{product}', [ProductController::class, 'update'])->name('update');
         Route::delete('/{product}', [ProductController::class, 'destroy'])->name('destroy');
+        Route::post('/{product}/activate', [ProductController::class, 'activate'])->name('activate');
         Route::get('/{id}', [ProductController::class, 'show'])->name('show');
     });
 

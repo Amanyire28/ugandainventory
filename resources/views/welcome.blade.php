@@ -112,8 +112,8 @@
                     <a href="#" onclick="openRegisterModal(event)" class="px-8 py-4 bg-white text-indigo-600 rounded-lg font-bold text-lg hover:bg-gray-100 shadow-xl hover-scale">
                         Start Free Trial
                     </a>
-                    <a href="#subscriptions" class="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-white rounded-lg font-bold text-lg shadow-xl hover-scale flex items-center">
-                        <i class="fas fa-crown text-amber-200 mr-2"></i> View Subscription Plans
+                    <a href="#subscriptions" class="px-8 py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-lg font-bold text-lg shadow-xl hover-scale flex items-center">
+                        <i class="fas fa-crown text-indigo-200 mr-2"></i> View Subscription Plans
                     </a>
                     <a href="#demo" class="px-8 py-4 bg-indigo-500 text-white rounded-lg font-bold text-lg hover:bg-indigo-400 shadow-xl hover-scale">
                         Book a Demo
