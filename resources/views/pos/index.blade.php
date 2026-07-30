@@ -67,7 +67,7 @@
             price: {{ $product->selling_price }},
             stock: {{ $product->quantity }},
             unit: '{{ addslashes($product->unit) }}',
-            requiresVat: {{ ($product->requires_vat ?? true) ? 'true' : 'false' }}
+            requiresVat: {{ ($product->requires_vat ?? false) ? 'true' : 'false' }}
         },
         @endforeach
     ];

@@ -343,7 +343,8 @@ class InvoiceController extends Controller
                 ]);
                 $subtotal += $lineTotal;
 
-                if ($product && ($product->requires_vat ?? true)) {
+                // Use ?? false: products with NULL requires_vat are treated as no-VAT
+                if ($product && (bool) ($product->requires_vat ?? false)) {
                     $autoVat += $lineTotal * 0.18;
                 }
 

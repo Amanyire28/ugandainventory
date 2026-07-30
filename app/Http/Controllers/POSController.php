@@ -149,7 +149,9 @@ class POSController extends Controller
                 $itemTotal = $item['quantity'] * $item['price'];
                 $subtotal += $itemTotal;
 
-                if ($product->requires_vat ?? true) {
+                // Apply VAT only when product explicitly has requires_vat = true
+                // Use ?? false so old products with NULL are treated as non-VAT
+                if ((bool) ($product->requires_vat ?? false)) {
                     $autoVat += $itemTotal * 0.18;
                 }
             }
