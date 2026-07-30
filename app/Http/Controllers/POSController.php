@@ -219,11 +219,46 @@ class POSController extends Controller
                 $saleItem->quantity = $item['quantity'];
                 $saleItem->unit_price = $item['price'];
                 $saleItem->total = $item['quantity'] * $item['price'];
+                $saleItem->selling_price = $item['price'];
+                $saleItem->cost_price_at_sale = $product->cost_price;
+                $saleItem->subtotal = $item['quantity'] * $item['price'];
                 $saleItem->save();
+
+                // Record Inventory Transaction
+                \App\Models\InventoryTransaction::create([
+                    'business_id' => $businessId,
+                    'product_id' => $product->id,
+                    'transaction_type' => 'SALE',
+                    'quantity_in' => 0,
+                    'quantity_out' => $item['quantity'],
+                    'reference_type' => Sale::class,
+                    'reference_id' => $sale->id,
+                    'description' => "POS Sale #{$sale->sale_number}",
+                    'created_by' => $user->id,
+                ]);
 
                 // Update stock
                 $product->decrement('quantity', $item['quantity']);
             }
+
+            // Record Customer Transaction if applicable
+            if ($sale->customer_id) {
+                $prevBal = \App\Models\CustomerTransaction::where('customer_id', $sale->customer_id)
+                    ->orderBy('id', 'desc')
+                    ->value('balance') ?? 0;
+                \App\Models\CustomerTransaction::create([
+                    'customer_id' => $sale->customer_id,
+                    'sale_id' => $sale->id,
+                    'transaction_type' => 'SALE',
+                    'debit' => $sale->total,
+                    'credit' => $sale->total, // Fully paid cash sale
+                    'balance' => $prevBal,
+                    'notes' => "POS Cash Sale #{$sale->sale_number}",
+                ]);
+            }
+
+            // Log Audit
+            \App\Models\AuditLog::log('pos_sale', Sale::class, $sale->id, null, $sale->toArray());
 
             DB::commit();
 

@@ -85,8 +85,42 @@ class SaleController extends Controller
             foreach ($sale->items as $item) {
                 if ($item->product) {
                     $item->product->increment('quantity', $item->quantity);
+
+                    \App\Models\InventoryTransaction::create([
+                        'business_id' => $sale->business_id,
+                        'product_id' => $item->product_id,
+                        'transaction_type' => 'ADJUSTMENT',
+                        'quantity_in' => $item->quantity,
+                        'quantity_out' => 0,
+                        'reference_type' => Sale::class,
+                        'reference_id' => $sale->id,
+                        'description' => "Voided Sale #{$sale->sale_number} restock",
+                        'created_by' => $user->id,
+                    ]);
                 }
             }
+
+            // Record Customer Void Transaction
+            if ($sale->customer_id) {
+                $prevBal = \App\Models\CustomerTransaction::where('customer_id', $sale->customer_id)
+                    ->orderBy('id', 'desc')
+                    ->value('balance') ?? 0;
+                \App\Models\CustomerTransaction::create([
+                    'customer_id' => $sale->customer_id,
+                    'sale_id' => $sale->id,
+                    'transaction_type' => 'VOID',
+                    'debit' => 0,
+                    'credit' => 0,
+                    'balance' => $prevBal,
+                    'notes' => "Voided Sale #{$sale->sale_number}",
+                ]);
+            }
+
+            // Audit Log
+            \App\Models\AuditLog::log('void_sale', Sale::class, $sale->id, null, [
+                'sale_number' => $sale->sale_number,
+                'void_reason' => $validated['void_reason'],
+            ]);
         });
 
         return back()->with('success', "Sale #{$sale->sale_number} has been voided successfully. Items have been restored to inventory.");

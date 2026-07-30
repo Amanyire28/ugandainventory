@@ -64,18 +64,21 @@
                             {{ $customer->is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
                             {{ $customer->is_active ? 'Active' : 'Inactive' }}
                         </span>
-                    </td>
                     <td class="px-4 py-3">
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-3 items-center">
+                            <a href="{{ route('customers.statement', $customer->id) }}" 
+                               class="text-emerald-600 hover:text-emerald-800" title="View Statement">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </a>
                             <a href="{{ route('customers.edit', $customer) }}" 
-                               class="text-indigo-600 hover:text-indigo-800">
+                               class="text-indigo-600 hover:text-indigo-800" title="Edit Customer">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" action="{{ route('customers.destroy', $customer) }}" 
                                   onsubmit="return confirm('Delete this customer?')" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                <button type="submit" class="text-red-600 hover:text-red-800" title="Delete Customer">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>

@@ -155,6 +155,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     // PROFIT REPORT
     // ========================================
     Route::get('/profit', [ProfitController::class, 'index'])->name('profit.index');
+    Route::get('/profit/cash-flow', [ProfitController::class, 'cashFlow'])->name('profit.cash-flow');
 
     // ========================================
     // INVENTORY (Role checked in controller)
@@ -179,11 +180,13 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     // ========================================
     // SUPPLIERS (Role checked in controller)
     // ========================================
+    Route::get('suppliers/{supplier}/statement', [SupplierController::class, 'statement'])->name('suppliers.statement');
     Route::resource('suppliers', SupplierController::class);
 
     // ========================================
     // CUSTOMERS (Role checked in controller)
     // ========================================
+    Route::get('customers/{customer}/statement', [CustomerController::class, 'statement'])->name('customers.statement');
     Route::resource('customers', CustomerController::class);
 
     // ========================================
@@ -236,6 +239,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
 
         // Main settings page
         Route::get('/', [SettingsController::class, 'index'])->name('index');
+        Route::get('/audit-logs', [SettingsController::class, 'auditLogs'])->name('audit-logs');
 
         // Business Information
         Route::put('/info', [SettingsController::class, 'updateInfo'])->name('update-info');

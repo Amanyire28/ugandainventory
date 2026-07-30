@@ -324,7 +324,7 @@ class ProductController extends Controller
                     $requiresVat = isset($row['requires_vat']) &&
                                    ($row['requires_vat'] == '1' || $row['requires_vat'] === 'on');
 
-                    Product::create([
+                    $product = Product::create([
                         'business_id'  => $user->business_id,
                         'category_id'  => $categoryId,
                         'name'         => trim($row['name']),
@@ -339,6 +339,23 @@ class ProductController extends Controller
                         'reorder_level'=> 10,
                         'is_active'    => true,
                     ]);
+
+                    if ($product->quantity > 0) {
+                        \App\Models\InventoryTransaction::create([
+                            'business_id' => $user->business_id,
+                            'product_id' => $product->id,
+                            'transaction_type' => 'ADJUSTMENT',
+                            'quantity_in' => $product->quantity,
+                            'quantity_out' => 0,
+                            'reference_type' => Product::class,
+                            'reference_id' => $product->id,
+                            'description' => "Initial/opening stock on bulk import",
+                            'created_by' => $user->id,
+                        ]);
+                    }
+
+                    // Audit Log
+                    \App\Models\AuditLog::log('create_product', Product::class, $product->id, null, $product->toArray());
 
                     $createdCount++;
                 }
@@ -469,6 +486,23 @@ public function store(Request $request)
 
         // ✅ CREATE PRODUCT
         $product = Product::create($validated);
+
+        if ($product->quantity > 0) {
+            \App\Models\InventoryTransaction::create([
+                'business_id' => $user->business_id,
+                'product_id' => $product->id,
+                'transaction_type' => 'ADJUSTMENT',
+                'quantity_in' => $product->quantity,
+                'quantity_out' => 0,
+                'reference_type' => Product::class,
+                'reference_id' => $product->id,
+                'description' => "Initial/opening stock on creation",
+                'created_by' => $user->id,
+            ]);
+        }
+
+        // Audit Log
+        \App\Models\AuditLog::log('create_product', Product::class, $product->id, null, $product->toArray());
 
         DB::commit();
 
@@ -602,14 +636,52 @@ public function store(Request $request)
             unset($validated['new_category_name'], $validated['new_category_description'],
                   $validated['category_option'], $validated['track_expiry']);
 
+            // Track changes for auditing
+            $oldValues = [];
+            $newValues = [];
+            $priceChanged = false;
+
+            if ($product->cost_price != $validated['cost_price']) {
+                $oldValues['cost_price'] = $product->cost_price;
+                $newValues['cost_price'] = $validated['cost_price'];
+                $priceChanged = true;
+            }
+            if ($product->selling_price != $validated['selling_price']) {
+                $oldValues['selling_price'] = $product->selling_price;
+                $newValues['selling_price'] = $validated['selling_price'];
+                $priceChanged = true;
+            }
+
             // Sync opening_stock when quantity is manually edited
             if (isset($validated['quantity'])) {
                 $totalSales     = \App\Models\SaleItem::where('product_id', $product->id)->sum('quantity');
                 $totalPurchases = \App\Models\PurchaseItem::where('product_id', $product->id)->sum('quantity');
                 $validated['opening_stock'] = max(0, $validated['quantity'] + $totalSales - $totalPurchases);
+
+                if ($product->quantity != $validated['quantity']) {
+                    $oldValues['quantity'] = $product->quantity;
+                    $newValues['quantity'] = $validated['quantity'];
+                    
+                    $qtyDiff = $validated['quantity'] - $product->quantity;
+                    \App\Models\InventoryTransaction::create([
+                        'business_id' => $user->business_id,
+                        'product_id' => $product->id,
+                        'transaction_type' => 'ADJUSTMENT',
+                        'quantity_in' => $qtyDiff > 0 ? $qtyDiff : 0,
+                        'quantity_out' => $qtyDiff < 0 ? abs($qtyDiff) : 0,
+                        'reference_type' => Product::class,
+                        'reference_id' => $product->id,
+                        'description' => "Manual stock quantity adjustment from {$product->quantity} to {$validated['quantity']}",
+                        'created_by' => $user->id,
+                    ]);
+                }
             }
 
             $product->update($validated);
+
+            if ($priceChanged || !empty($oldValues)) {
+                \App\Models\AuditLog::log('price_change_or_product_edit', Product::class, $product->id, $oldValues, $newValues);
+            }
 
             if ($request->expectsJson()) {
                 return response()->json([

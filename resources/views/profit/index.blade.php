@@ -9,15 +9,20 @@
         <h1 class="text-3xl font-bold text-gray-900">
             <i class="fas fa-chart-pie text-indigo-600 mr-2"></i>Profit Report
         </h1>
-        @if($hasFilters)
-        <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-semibold">
-            <i class="fas fa-filter mr-1"></i>Filtered Results
-        </span>
-        @else
-        <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-semibold">
-            <i class="fas fa-infinity mr-1"></i>All Time Data
-        </span>
-        @endif
+        <div class="flex items-center space-x-3">
+            <a href="{{ route('profit.cash-flow') }}" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow transition flex items-center">
+                <i class="fas fa-money-bill-wave mr-2"></i>Cash Flow Statement
+            </a>
+            @if($hasFilters)
+            <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg text-sm font-semibold">
+                <i class="fas fa-filter mr-1"></i>Filtered Results
+            </span>
+            @else
+            <span class="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-semibold">
+                <i class="fas fa-infinity mr-1"></i>All Time Data
+            </span>
+            @endif
+        </div>
     </div>
 
     <!-- Filters -->

@@ -349,6 +349,18 @@ public function destroy($id)
                 $subtotal += $lineTotal;
                 if ($product) {
                     $product->decrement('quantity', $item['quantity']);
+
+                    \App\Models\InventoryTransaction::create([
+                        'business_id' => $businessId,
+                        'product_id' => $product->id,
+                        'transaction_type' => 'SALE',
+                        'quantity_in' => 0,
+                        'quantity_out' => $item['quantity'],
+                        'reference_type' => Invoice::class,
+                        'reference_id' => $invoice->id,
+                        'description' => "Credit Invoice #{$invoiceNum}",
+                        'created_by' => $user->id,
+                    ]);
                 }
             }
 
@@ -362,6 +374,23 @@ public function destroy($id)
                 'tax_amount'      => $taxAmount,
                 'total'           => $total,
             ]);
+
+            // Record Customer Credit Transaction
+            $prevBal = \App\Models\CustomerTransaction::where('customer_id', $customerId)
+                ->orderBy('id', 'desc')
+                ->value('balance') ?? 0;
+            \App\Models\CustomerTransaction::create([
+                'customer_id' => $customerId,
+                'invoice_id' => $invoice->id,
+                'transaction_type' => 'INVOICE',
+                'debit' => $total,
+                'credit' => 0,
+                'balance' => $prevBal + $total,
+                'notes' => "Invoice #{$invoiceNum} created",
+            ]);
+
+            // Log Audit
+            \App\Models\AuditLog::log('create_invoice', Invoice::class, $invoice->id, null, $invoice->toArray());
 
             DB::commit();
 
@@ -433,6 +462,19 @@ public function destroy($id)
         $invoice->status  = $newStatus;
         $invoice->save();
 
+        // Record Customer Payment Transaction
+        $prevBal = \App\Models\CustomerTransaction::where('customer_id', $invoice->customer_id)
+            ->orderBy('id', 'desc')
+            ->value('balance') ?? 0;
+        \App\Models\CustomerTransaction::create([
+            'customer_id' => $invoice->customer_id,
+            'invoice_id' => $invoice->id,
+            'transaction_type' => 'PAYMENT',
+            'debit' => 0,
+            'credit' => $amountToPay,
+            'balance' => $prevBal - $amountToPay,
+            'notes' => "Payment of UGX " . number_format($amountToPay) . " received for Invoice #{$invoice->invoice_number}",
+        ]);
 
         // 3. Fetch the payment record just inserted (for the email)
         $latestPayment = DB::table('payments')
@@ -442,6 +484,7 @@ public function destroy($id)
 
         // 4. Create Sale record only when fully paid
         if ($newStatus === 'paid') {
+            $invoice->load('items.product');
             $sale = Sale::create([
                 'business_id'     => $invoice->business_id,
                 'user_id'         => $invoice->user_id,
@@ -458,14 +501,26 @@ public function destroy($id)
             ]);
             foreach ($invoice->items as $item) {
                 SaleItem::create([
-                    'sale_id'    => $sale->id,
-                    'product_id' => $item->product_id,
-                    'quantity'   => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'total'      => $item->total,
+                    'sale_id'            => $sale->id,
+                    'product_id'         => $item->product_id,
+                    'quantity'           => $item->quantity,
+                    'unit_price'         => $item->unit_price,
+                    'total'              => $item->total,
+                    'selling_price'      => $item->unit_price,
+                    'cost_price_at_sale' => $item->product ? $item->product->cost_price : 0,
+                    'subtotal'           => $item->total,
                 ]);
             }
+
+            // Log Sale Audit
+            \App\Models\AuditLog::log('pos_sale', Sale::class, $sale->id, null, $sale->toArray());
         }
+
+        // Log Payment Audit
+        \App\Models\AuditLog::log('invoice_payment', Invoice::class, $invoice->id, null, [
+            'amount_paid' => $amountToPay,
+            'invoice_status' => $newStatus,
+        ]);
 
         // 5. Send receipt email for BOTH partial and paid (moved outside the 'paid'-only block)
         try {

@@ -110,7 +110,36 @@ class StockTransferController extends Controller
                 );
 
                 $destInv->increment('quantity', $transferQty);
+
+                // Source Location Outflow
+                \App\Models\InventoryTransaction::create([
+                    'business_id' => $businessId,
+                    'product_id' => $product->id,
+                    'transaction_type' => 'TRANSFER_OUT',
+                    'quantity_in' => 0,
+                    'quantity_out' => $transferQty,
+                    'reference_type' => StockTransfer::class,
+                    'reference_id' => $transfer->id,
+                    'description' => "Transferred OUT to location ID {$validated['to_location_id']} via transfer #{$transferNumber}",
+                    'created_by' => $user->id,
+                ]);
+
+                // Destination Location Inflow
+                \App\Models\InventoryTransaction::create([
+                    'business_id' => $businessId,
+                    'product_id' => $product->id,
+                    'transaction_type' => 'TRANSFER_IN',
+                    'quantity_in' => $transferQty,
+                    'quantity_out' => 0,
+                    'reference_type' => StockTransfer::class,
+                    'reference_id' => $transfer->id,
+                    'description' => "Transferred IN from location ID {$validated['from_location_id']} via transfer #{$transferNumber}",
+                    'created_by' => $user->id,
+                ]);
             }
+
+            // Audit Log
+            \App\Models\AuditLog::log('stock_transfer', StockTransfer::class, $transfer->id, null, $transfer->toArray());
 
             DB::commit();
 

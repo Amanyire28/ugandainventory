@@ -86,6 +86,25 @@ class CloseInventoryPeriod extends Command
                     $variance = $closingStock - $calculatedStock;
                     $variancePercentage = $calculatedStock > 0 ? ($variance / $calculatedStock) * 100 : 0;
 
+                    // Get purchases value
+                    $purchasesValue = $product->purchaseItems()
+                        ->whereHas('purchase', function ($q) use ($business, $periodStart, $periodEnd) {
+                            $q->where('business_id', $business->id)
+                                ->whereBetween('created_at', [$periodStart, $periodEnd]);
+                        })
+                        ->sum('total') ?? 0;
+
+                    // Get sales cost value
+                    $salesCostValue = $product->saleItems()
+                        ->whereHas('sale', function ($q) use ($business, $periodStart, $periodEnd) {
+                            $q->where('business_id', $business->id)
+                                ->whereBetween('created_at', [$periodStart, $periodEnd]);
+                        })
+                        ->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(cost_price_at_sale, unit_price) * quantity')) ?? 0;
+
+                    $openingStockValue = $openingStock * $product->cost_price;
+                    $closingStockValue = $closingStock * $product->cost_price;
+
                     // Create inventory period record
                     InventoryPeriod::updateOrCreate(
                         [
@@ -104,6 +123,10 @@ class CloseInventoryPeriod extends Command
                             'closing_stock' => $closingStock,
                             'variance' => $variance,
                             'variance_percentage' => $variancePercentage,
+                            'opening_stock_value' => $openingStockValue,
+                            'closing_stock_value' => $closingStockValue,
+                            'purchases_value' => $purchasesValue,
+                            'sales_cost_value' => $salesCostValue,
                             'status' => 'closed',
                             'closed_by' => 1, // System user
                             'closed_at' => now(),

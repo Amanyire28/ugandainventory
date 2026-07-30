@@ -196,4 +196,26 @@ class CustomerController extends Controller
         return redirect()->route('customers.index')
             ->with('success', 'Customer deactivated successfully!');
     }
+
+    /**
+     * View customer statement
+     */
+    public function statement(Customer $customer)
+    {
+        $user = Auth::user();
+        if ($customer->business_id !== $user->business_id) {
+            abort(403);
+        }
+
+        $transactions = \App\Models\CustomerTransaction::where('customer_id', $customer->id)
+            ->with(['invoice', 'sale'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $currentBalance = \App\Models\CustomerTransaction::where('customer_id', $customer->id)
+            ->orderBy('id', 'desc')
+            ->value('balance') ?? 0;
+
+        return view('customers.statement', compact('customer', 'transactions', 'currentBalance'));
+    }
 }

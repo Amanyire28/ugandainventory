@@ -68,16 +68,20 @@
                         </span>
                     </td>
                     <td class="px-4 py-3">
-                        <div class="flex space-x-2">
+                        <div class="flex space-x-3 items-center">
+                            <a href="{{ route('suppliers.statement', $supplier->id) }}" 
+                               class="text-emerald-600 hover:text-emerald-800" title="View Statement">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </a>
                             <a href="{{ route('suppliers.edit', $supplier) }}" 
-                               class="text-indigo-600 hover:text-indigo-800">
+                               class="text-indigo-600 hover:text-indigo-800" title="Edit Supplier">
                                 <i class="fas fa-edit"></i>
                             </a>
                             <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" 
                                   onsubmit="return confirm('Delete this supplier?')" class="inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                <button type="submit" class="text-red-600 hover:text-red-800" title="Delete Supplier">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>

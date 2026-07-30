@@ -129,4 +129,26 @@ class SupplierController extends Controller
                 ->with('error', 'Failed to delete supplier: ' . $e->getMessage());
         }
     }
+
+    /**
+     * View supplier statement
+     */
+    public function statement(Supplier $supplier)
+    {
+        $user = Auth::user();
+        if ($supplier->business_id !== $user->business_id) {
+            abort(403);
+        }
+
+        $transactions = \App\Models\SupplierTransaction::where('supplier_id', $supplier->id)
+            ->with(['purchase'])
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $currentBalance = \App\Models\SupplierTransaction::where('supplier_id', $supplier->id)
+            ->orderBy('id', 'desc')
+            ->value('balance') ?? 0;
+
+        return view('suppliers.statement', compact('supplier', 'transactions', 'currentBalance'));
+    }
 }

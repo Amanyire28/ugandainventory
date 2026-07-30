@@ -51,7 +51,7 @@ class ProfitController extends Controller
             $allTimeCostQuery->where('sales.user_id', $user->id);
         }
 
-        $allTimeCost = $allTimeCostQuery->sum(DB::raw('products.cost_price * sale_items.quantity'));
+        $allTimeCost = $allTimeCostQuery->sum(DB::raw('COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity'));
         $allTimeGrossProfit = $allTimeRevenue - $allTimeCost;
 
         // All time expenses
@@ -95,7 +95,7 @@ class ProfitController extends Controller
             $costQuery->where('sales. user_id', $selectedCashierId);
         }
 
-        $totalCost = $costQuery->sum(DB::raw('products.cost_price * sale_items.quantity'));
+        $totalCost = $costQuery->sum(DB::raw('COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity'));
         $grossProfit = $totalRevenue - $totalCost;
 
         // Filtered expenses
@@ -150,7 +150,7 @@ class ProfitController extends Controller
             ->select(
                 DB::raw('DATE(sales.sale_date) as date'),
                 DB::raw('SUM(sales.total) as revenue'),
-                DB::raw('SUM(products.cost_price * sale_items.quantity) as cost')
+                DB::raw('SUM(COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity) as cost')
             )
             ->groupBy('date')
             ->orderBy('date')
@@ -227,7 +227,7 @@ class ProfitController extends Controller
             ->select(
                 DB::raw('MONTH(sales.sale_date) as month'),
                 DB::raw('SUM(sales.total) as revenue'),
-                DB::raw('SUM(products.cost_price * sale_items.quantity) as cost')
+                DB::raw('SUM(COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity) as cost')
             )
             ->groupBy('month')
             ->get()
@@ -685,5 +685,67 @@ class ProfitController extends Controller
         }
 
         return view('profit.index', $viewData);
+    }
+
+    public function cashFlow(Request $request)
+    {
+        $user = Auth::user();
+        $businessId = $user->business_id;
+        $userRole = $user->role->name;
+
+        if (!in_array($userRole, ['owner', 'admin', 'manager', 'sales_manager'])) {
+            abort(403, 'Unauthorized access to cash flow report.');
+        }
+
+        $startDate = $request->input('start_date', now()->startOfMonth()->format('Y-m-d'));
+        $endDate = $request->input('end_date', now()->endOfMonth()->format('Y-m-d'));
+
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+
+        // 1. Direct Sales Cash Inflow (excludes sales recorded as 'credit' which come from invoices)
+        $salesCashPayments = Sale::where('business_id', $businessId)
+            ->where('status', '!=', 'voided')
+            ->where('payment_method', '!=', 'credit')
+            ->whereBetween('sale_date', [$start, $end])
+            ->sum('total');
+
+        // 2. Customer Payments on Invoices
+        $invoicePayments = DB::table('payments')
+            ->join('invoices', 'payments.invoice_id', '=', 'invoices.id')
+            ->where('invoices.business_id', $businessId)
+            ->whereBetween('payments.paid_at', [$start, $end])
+            ->sum('payments.amount_paid');
+
+        $totalCashIn = $salesCashPayments + $invoicePayments;
+
+        // 3. Business Expenses Paid Out
+        $expenses = Expense::where('business_id', $businessId)
+            ->whereBetween('date_spent', [$start, $end])
+            ->sum('amount');
+
+        // 4. Supplier Payments Made
+        $supplierPayments = \App\Models\SupplierTransaction::whereHas('supplier', function($q) use ($businessId) {
+                $q->where('business_id', $businessId);
+            })
+            ->where('transaction_type', 'PAYMENT')
+            ->whereBetween('created_at', [$start, $end])
+            ->sum('debit');
+
+        $totalCashOut = $expenses + $supplierPayments;
+
+        $netCashFlow = $totalCashIn - $totalCashOut;
+
+        return view('profit.cash-flow', compact(
+            'startDate',
+            'endDate',
+            'salesCashPayments',
+            'invoicePayments',
+            'totalCashIn',
+            'expenses',
+            'supplierPayments',
+            'totalCashOut',
+            'netCashFlow'
+        ));
     }
 }

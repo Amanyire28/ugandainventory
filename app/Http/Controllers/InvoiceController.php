@@ -339,6 +339,18 @@ class InvoiceController extends Controller
 
                 if ($product) {
                     $product->decrement('quantity', $item['quantity']);
+                    
+                    \App\Models\InventoryTransaction::create([
+                        'business_id' => $businessId,
+                        'product_id' => $product->id,
+                        'transaction_type' => 'SALE',
+                        'quantity_in' => 0,
+                        'quantity_out' => $item['quantity'],
+                        'reference_type' => Invoice::class,
+                        'reference_id' => $invoice->id,
+                        'description' => "Credit Invoice #{$invoiceNum}",
+                        'created_by' => $user->id,
+                    ]);
                 }
             }
 
@@ -355,6 +367,23 @@ class InvoiceController extends Controller
                 'tax_amount'      => $taxAmount,
                 'total'           => $total,
             ]);
+
+            // Record Customer Credit Transaction
+            $prevBal = \App\Models\CustomerTransaction::where('customer_id', $customerId)
+                ->orderBy('id', 'desc')
+                ->value('balance') ?? 0;
+            \App\Models\CustomerTransaction::create([
+                'customer_id' => $customerId,
+                'invoice_id' => $invoice->id,
+                'transaction_type' => 'INVOICE',
+                'debit' => $total,
+                'credit' => 0,
+                'balance' => $prevBal + $total,
+                'notes' => "Invoice #{$invoiceNum} created",
+            ]);
+
+            // Log Audit
+            \App\Models\AuditLog::log('create_invoice', Invoice::class, $invoice->id, null, $invoice->toArray());
 
             DB::commit();
 
@@ -439,6 +468,60 @@ public function pay(Request $request, $id)
     $invoice->balance = $newBalance;
     $invoice->status = $newStatus;
     $invoice->save();
+
+    // Record Customer Payment Transaction
+    $prevBal = \App\Models\CustomerTransaction::where('customer_id', $invoice->customer_id)
+        ->orderBy('id', 'desc')
+        ->value('balance') ?? 0;
+    \App\Models\CustomerTransaction::create([
+        'customer_id' => $invoice->customer_id,
+        'invoice_id' => $invoice->id,
+        'transaction_type' => 'PAYMENT',
+        'debit' => 0,
+        'credit' => $amountToPay,
+        'balance' => $prevBal - $amountToPay,
+        'notes' => "Payment of UGX " . number_format($amountToPay) . " received for Invoice #{$invoice->invoice_number}",
+    ]);
+
+    // Create Sale record only when fully paid
+    if ($newStatus === 'paid') {
+        $invoice->load('items.product');
+        $sale = Sale::create([
+            'business_id'     => $invoice->business_id,
+            'user_id'         => $invoice->user_id,
+            'customer_id'     => $invoice->customer_id,
+            'sale_number'     => 'SALE-' . now()->format('Ymd') . '-' . rand(1000, 9999),
+            'sale_date'       => now(),
+            'subtotal'        => $invoice->subtotal,
+            'tax_amount'      => $invoice->tax_amount,
+            'discount_amount' => $invoice->discount_amount,
+            'total'           => $invoice->total,
+            'payment_status'  => 'paid',
+            'payment_method'  => 'credit',
+            'notes'           => 'From invoice ' . $invoice->invoice_number,
+        ]);
+        foreach ($invoice->items as $item) {
+            SaleItem::create([
+                'sale_id'            => $sale->id,
+                'product_id'         => $item->product_id,
+                'quantity'           => $item->quantity,
+                'unit_price'         => $item->unit_price,
+                'total'              => $item->total,
+                'selling_price'      => $item->unit_price,
+                'cost_price_at_sale' => $item->product ? $item->product->cost_price : 0,
+                'subtotal'           => $item->total,
+            ]);
+        }
+        
+        // Log Sale Audit
+        \App\Models\AuditLog::log('pos_sale', Sale::class, $sale->id, null, $sale->toArray());
+    }
+
+    // Log Payment Audit
+    \App\Models\AuditLog::log('invoice_payment', Invoice::class, $invoice->id, null, [
+        'amount_paid' => $amountToPay,
+        'invoice_status' => $newStatus,
+    ]);
 
     // ========== ADDED CODE: fetch the latest payment for this invoice ==========
     $latestPayment = DB::table('payments')

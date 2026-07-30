@@ -135,16 +135,51 @@ class CashierPOSController extends Controller
 
                 // Create sale item
                 SaleItem::create([
-                    'sale_id'    => $sale->id,
+                    'sale_id'            => $sale->id,
+                    'product_id'         => $product->id,
+                    'quantity'           => $item['quantity'],
+                    'unit_price'         => $item['price'],
+                    'total'              => $item['price'] * $item['quantity'],
+                    'selling_price'      => $item['price'],
+                    'cost_price_at_sale' => $product->cost_price,
+                    'subtotal'           => $item['price'] * $item['quantity'],
+                ]);
+
+                // Record Inventory Transaction
+                \App\Models\InventoryTransaction::create([
+                    'business_id' => $businessId,
                     'product_id' => $product->id,
-                    'quantity'   => $item['quantity'],
-                    'unit_price' => $item['price'],
-                    'total'      => $item['price'] * $item['quantity'],
+                    'transaction_type' => 'SALE',
+                    'quantity_in' => 0,
+                    'quantity_out' => $item['quantity'],
+                    'reference_type' => Sale::class,
+                    'reference_id' => $sale->id,
+                    'description' => "Cashier POS Sale #{$sale->sale_number}",
+                    'created_by' => $user->id,
                 ]);
 
                 // Reduce stock
                 $product->decrement('quantity', $item['quantity']);
             }
+
+            // Record Customer Transaction if applicable
+            if ($sale->customer_id) {
+                $prevBal = \App\Models\CustomerTransaction::where('customer_id', $sale->customer_id)
+                    ->orderBy('id', 'desc')
+                    ->value('balance') ?? 0;
+                \App\Models\CustomerTransaction::create([
+                    'customer_id' => $sale->customer_id,
+                    'sale_id' => $sale->id,
+                    'transaction_type' => 'SALE',
+                    'debit' => $sale->total,
+                    'credit' => $sale->total, // Fully paid cash sale
+                    'balance' => $prevBal,
+                    'notes' => "Cashier POS Cash Sale #{$sale->sale_number}",
+                ]);
+            }
+
+            // Log Audit
+            \App\Models\AuditLog::log('pos_sale', Sale::class, $sale->id, null, $sale->toArray());
 
             DB::commit();
 

@@ -297,6 +297,7 @@ class InventoryController extends Controller
             foreach ($adjustments as $adjustment) {
                 $product = Product::find($adjustment->product_id);
                 if ($product) {
+                    $oldQty = $product->quantity;
                     $product->quantity = $adjustment->physical_count;
                     $product->save();
                     
@@ -305,6 +306,25 @@ class InventoryController extends Controller
                         'approved_by' => Auth::id(),
                         'approved_at' => now(),
                     ]);
+
+                    // Record Inventory Transaction
+                    $qtyIn = $adjustment->variance > 0 ? $adjustment->variance : 0;
+                    $qtyOut = $adjustment->variance < 0 ? abs($adjustment->variance) : 0;
+
+                    \App\Models\InventoryTransaction::create([
+                        'business_id' => $businessId,
+                        'product_id' => $product->id,
+                        'transaction_type' => 'ADJUSTMENT',
+                        'quantity_in' => $qtyIn,
+                        'quantity_out' => $qtyOut,
+                        'reference_type' => StockAdjustment::class,
+                        'reference_id' => $adjustment->id,
+                        'description' => "Stock Reconciliation Session #{$session->id}. Notes: {$adjustment->notes}",
+                        'created_by' => Auth::id(),
+                    ]);
+
+                    // Audit Log
+                    \App\Models\AuditLog::log('stock_adjustment', Product::class, $product->id, ['quantity' => $oldQty], ['quantity' => $adjustment->physical_count]);
                 }
             }
 

@@ -328,4 +328,21 @@ class SettingsController extends Controller
         return redirect()->route('settings.index')
             ->with('success', "Business {$status} successfully!");
     }
+
+    /**
+     * View audit logs
+     */
+    public function auditLogs()
+    {
+        $user = Auth::user();
+        if (!in_array($user->role->name, ['admin', 'owner'])) {
+            abort(403, 'Unauthorized. Only business owners can view audit logs.');
+        }
+
+        $logs = \App\Models\AuditLog::with('user')
+            ->orderBy('timestamp', 'desc')
+            ->paginate(30);
+
+        return view('settings.audit-logs', compact('logs'));
+    }
 }
