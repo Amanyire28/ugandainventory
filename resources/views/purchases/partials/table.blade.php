@@ -13,6 +13,7 @@
                 <th class="px-5 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">Supplier</th>
                 <th class="px-5 py-3 text-left font-semibold text-gray-500 uppercase tracking-wider">Date</th>
                 <th class="px-5 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider">Items</th>
+                <th class="px-5 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider">VAT</th>
                 <th class="px-5 py-3 text-right font-semibold text-gray-500 uppercase tracking-wider">Total</th>
                 <th class="px-5 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                 <th class="px-5 py-3 text-center font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -43,6 +44,9 @@
                     </td>
                     <td class="px-5 py-3 text-center font-semibold text-gray-700">
                         {{ $purchase->items->count() }}
+                    </td>
+                    <td class="px-5 py-3 text-right text-gray-500">
+                        UGX {{ number_format($purchase->tax_amount) }}
                     </td>
                     <td class="px-5 py-3 text-right font-black text-gray-900">
                         UGX {{ number_format($purchase->total) }}

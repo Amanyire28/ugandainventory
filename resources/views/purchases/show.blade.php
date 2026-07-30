@@ -116,10 +116,24 @@
                         </tr>
                     @endforeach
                 </tbody>
-                <tfoot class="bg-gray-50">
+                <tfoot class="bg-gray-50 text-sm">
                     <tr>
-                        <td colspan="5" class="px-6 py-4 text-right font-bold text-gray-600 uppercase text-xs">Grand Total</td>
-                        <td class="px-6 py-4 text-right font-black text-indigo-700 text-base">
+                        <td colspan="5" class="px-6 py-3 text-right font-semibold text-gray-500 uppercase text-xs">Subtotal</td>
+                        <td class="px-6 py-3 text-right font-bold text-gray-700">
+                            UGX {{ number_format($purchase->subtotal) }}
+                        </td>
+                    </tr>
+                    @if($purchase->tax_amount > 0)
+                    <tr>
+                        <td colspan="5" class="px-6 py-3 text-right font-semibold text-gray-500 uppercase text-xs">VAT (18%)</td>
+                        <td class="px-6 py-3 text-right font-bold text-gray-700">
+                            UGX {{ number_format($purchase->tax_amount) }}
+                        </td>
+                    </tr>
+                    @endif
+                    <tr>
+                        <td colspan="5" class="px-6 py-4 text-right font-bold text-gray-700 uppercase text-xs border-t border-gray-200">Grand Total</td>
+                        <td class="px-6 py-4 text-right font-black text-indigo-700 text-base border-t border-gray-200">
                             UGX {{ number_format($purchase->total) }}
                         </td>
                     </tr>

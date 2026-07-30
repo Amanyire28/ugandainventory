@@ -104,12 +104,19 @@ class PurchaseController extends Controller
             $sequence = ((int) substr($lastNumber, -4)) + 1;
             $purchaseNumber = 'PO-' . now()->format('Ymd') . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
 
-            // Calculate totals
+            // Calculate totals and VAT
             $subtotal = 0;
+            $taxAmount = 0;
             foreach ($validated['items'] as $item) {
-                $subtotal += $item['quantity'] * $item['unit_cost'];
+                $product = \App\Models\Product::find($item['product_id']);
+                $lineTotal = $item['quantity'] * $item['unit_cost'];
+                $subtotal += $lineTotal;
+
+                if ($product && (bool) ($product->requires_vat ?? false)) {
+                    $taxAmount += $lineTotal * 0.18;
+                }
             }
-            $total = $subtotal; // No tax for now (can extend later)
+            $total = $subtotal + $taxAmount;
 
             // Amount paid
             $amountPaid = 0;
@@ -133,7 +140,7 @@ class PurchaseController extends Controller
                 'purchase_number'=> $purchaseNumber,
                 'purchase_date'  => Carbon::parse($validated['purchase_date']),
                 'subtotal'       => $subtotal,
-                'tax_amount'     => 0,
+                'tax_amount'     => $taxAmount,
                 'total'          => $total,
                 'payment_status' => $validated['payment_status'],
                 'notes'          => $validated['notes'] ?? null,

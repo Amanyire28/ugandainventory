@@ -429,6 +429,10 @@
                             <span>Subtotal</span>
                             <span class="val" id="summarySubtotal">UGX 0</span>
                         </div>
+                        <div class="summary-row">
+                            <span>VAT (18%)</span>
+                            <span class="val" id="summaryVat">UGX 0</span>
+                        </div>
                         <div class="mt-4 text-center">
                             <div class="text-xs text-indigo-300 uppercase font-bold tracking-widest mb-1">Grand Total</div>
                             <div class="summary-total-val" id="summaryTotal">UGX 0</div>
@@ -514,6 +518,7 @@
             'unit'       => $p->unit,
             'cost_price' => (float) $p->cost_price,
             'quantity'   => (float) $p->quantity,
+            'requires_vat'=> (bool) ($p->requires_vat ?? false),
         ];
     })->values();
 @endphp
@@ -560,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function buildOptions(selectedId = '') {
         return '<option value="">— Select product —</option>' +
             PRODUCTS.map(p =>
-                `<option value="${p.id}" data-cost="${p.cost_price}" data-unit="${p.unit||''}"${p.id == selectedId ? ' selected' : ''}>
+                `<option value="${p.id}" data-cost="${p.cost_price}" data-unit="${p.unit||''}" data-vat="${p.requires_vat}"${p.id == selectedId ? ' selected' : ''}>
                     ${p.name}${p.sku ? ' ['+p.sku+']' : ''} (Stock: ${p.quantity})
                 </option>`
             ).join('');
@@ -660,7 +665,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const qty  = parseFloat(card.querySelector('.qty-input').value)  || 0;
         const cost = parseFloat(card.querySelector('.cost-input').value) || 0;
         const total = qty * cost;
+        const select = card.querySelector('.product-select');
+        const isVat = select.options[select.selectedIndex]?.dataset.vat === 'true';
         card.dataset.lineTotal = total;
+        card.dataset.lineVat = isVat ? (total * 0.18) : 0;
         card.querySelector('.line-total').textContent = 'UGX ' + fmt(total);
     }
 
@@ -671,7 +679,12 @@ document.addEventListener('DOMContentLoaded', function () {
     function recalcTotals() {
         const cards = container.querySelectorAll('.item-row');
         let subtotal = 0;
-        cards.forEach(c => { subtotal += parseFloat(c.dataset.lineTotal || 0); });
+        let vatAmount = 0;
+        cards.forEach(c => { 
+            subtotal += parseFloat(c.dataset.lineTotal || 0); 
+            vatAmount += parseFloat(c.dataset.lineVat || 0);
+        });
+        const total = subtotal + vatAmount;
 
         const count = cards.length;
         itemBadge.textContent = count;
@@ -682,10 +695,12 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('summaryLineCount').textContent = count + (count === 1 ? ' item' : ' items');
         if (document.getElementById('summarySubtotal'))
             document.getElementById('summarySubtotal').textContent = 'UGX ' + fmt(subtotal);
+        if (document.getElementById('summaryVat'))
+            document.getElementById('summaryVat').textContent = 'UGX ' + fmt(vatAmount);
         if (document.getElementById('summaryTotal'))
-            document.getElementById('summaryTotal').textContent = 'UGX ' + fmt(subtotal);
+            document.getElementById('summaryTotal').textContent = 'UGX ' + fmt(total);
         if (document.getElementById('mobileSummaryTotal'))
-            document.getElementById('mobileSummaryTotal').textContent = 'UGX ' + fmt(subtotal);
+            document.getElementById('mobileSummaryTotal').textContent = 'UGX ' + fmt(total);
     }
 
     addRowBtn.addEventListener('click', () => addRow());
