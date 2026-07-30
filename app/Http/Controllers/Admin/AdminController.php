@@ -311,7 +311,7 @@ public function storeUser(Request $request)
     $role = Role::find($data['role_id']);
     $isOwner = ($role && strtolower($role->name) === 'owner');
 
-    User::create([
+    $user = User::create([
         'name' => $data['name'],
         'email' => $data['email'],
         'phone' => $data['phone'] ?? '',
@@ -322,6 +322,8 @@ public function storeUser(Request $request)
         'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         'email_verified_at' => now(),
     ]);
+
+    \App\Models\AuditLog::logAdmin('create_user', \App\Models\User::class, $user->id, null, $user->toArray());
 
     return back()->with('success', "User '{$data['name']}' created successfully.");
 }
@@ -337,7 +339,16 @@ public function storeUser(Request $request)
             return redirect()->route('admin.auth.twofactor.show');
         }
 
+        $oldStatus = $user->is_active;
         $user->update(['is_active' => !$user->is_active]);
+
+        \App\Models\AuditLog::logAdmin(
+            $user->is_active ? 'activate_user' : 'suspend_user',
+            \App\Models\User::class,
+            $user->id,
+            ['is_active' => $oldStatus],
+            ['is_active' => $user->is_active]
+        );
 
         return back()->with('success', 
             $user->is_active ?  'User activated.' : 'User deactivated.');
@@ -357,7 +368,10 @@ public function storeUser(Request $request)
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
         ]);
 
+        $oldEmail = $user->email;
         $user->update(['email' => $data['email']]);
+
+        \App\Models\AuditLog::logAdmin('update_user_email', \App\Models\User::class, $user->id, ['email' => $oldEmail], ['email' => $user->email]);
 
         return back()->with('success', 'User email updated.');
     }
@@ -407,7 +421,10 @@ public function updateUser(Request $request, User $user)
         $user->password = Hash:: make($data['password']);
     }
 
+    $oldValues = $user->getOriginal();
     $user->save();
+
+    \App\Models\AuditLog::logAdmin('update_user', \App\Models\User::class, $user->id, $oldValues, $user->toArray());
 
     return response()->json([
         'success' => true,
@@ -564,6 +581,8 @@ public function updateUser(Request $request, User $user)
                 'email_verified_at' => now(),
             ]);
 
+            \App\Models\AuditLog::logAdmin('create_business', \App\Models\Business::class, $business->id, null, $business->toArray());
+
             DB::commit();
 
             return back()->with('success', "Business '{$business->name}' and Owner account created successfully.");
@@ -584,7 +603,16 @@ public function updateUser(Request $request, User $user)
             return redirect()->route('admin.auth.twofactor.show');
         }
 
+        $oldStatus = $business->is_active;
         $business->update(['is_active' => !$business->is_active]);
+
+        \App\Models\AuditLog::logAdmin(
+            $business->is_active ? 'activate_business' : 'suspend_business', 
+            \App\Models\Business::class, 
+            $business->id, 
+            ['is_active' => $oldStatus], 
+            ['is_active' => $business->is_active]
+        );
 
         return back()->with('success', 
             $business->is_active ? 'Business account activated successfully.' : 'Business account suspended successfully.');

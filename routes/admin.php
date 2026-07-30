@@ -64,6 +64,11 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     Route::get('/reports/revenue', [AdminController::class, 'revenueReport'])->name('reports.revenue');
 
     // ========================================
+    // SYSTEM AUDIT LOGS
+    // ========================================
+    Route::get('/audit-logs', [\App\Http\Controllers\Admin\AdminAuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // ========================================
     // PAYMENTS MANAGEMENT (Admin Billing Tracker)
     // ========================================
     Route::get('/payments', [AdminController::class, 'paymentsManagement'])->name('payments.index');
