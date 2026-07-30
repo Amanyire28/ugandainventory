@@ -2,198 +2,523 @@
 
 @section('title', 'Record Purchase')
 
+@push('styles')
+<style>
+    .po-page { background: #f0f4ff; min-height: 100%; }
+
+    /* Hero gradient header */
+    .po-hero {
+        background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
+        padding: 1.75rem 2rem;
+        border-radius: 1.25rem 1.25rem 0 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .po-hero::before {
+        content: '';
+        position: absolute;
+        top: -60px; right: -60px;
+        width: 200px; height: 200px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.07);
+    }
+    .po-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -40px; left: 40px;
+        width: 140px; height: 140px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.05);
+    }
+
+    /* Section cards */
+    .po-card {
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(79,70,229,.07);
+        overflow: hidden;
+    }
+    .po-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 1.1rem 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+        background: #fafbff;
+    }
+    .po-card-header .icon-wrap {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.875rem;
+    }
+    .po-card-body { padding: 1.25rem 1.5rem; }
+
+    /* Float-label inputs */
+    .field-wrap { position: relative; margin-bottom: 1.1rem; }
+    .field-wrap:last-child { margin-bottom: 0; }
+    .field-wrap label {
+        display: block;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        color: #6b7280;
+        margin-bottom: 0.35rem;
+    }
+    .field-wrap .required { color: #ef4444; margin-left: 2px; }
+    .field-control {
+        width: 100%;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.625rem;
+        padding: 0.65rem 0.875rem;
+        font-size: 0.875rem;
+        color: #111827;
+        background: #fff;
+        transition: border-color .2s, box-shadow .2s;
+        outline: none;
+    }
+    .field-control:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+    }
+    select.field-control { appearance: auto; }
+    textarea.field-control { resize: none; }
+
+    /* Payment option pills */
+    .pay-option {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        cursor: pointer;
+        transition: all .2s;
+        background: #fff;
+    }
+    .pay-option:hover { border-color: #c7d2fe; background: #f5f3ff; }
+    .pay-option.active-paid    { border-color: #22c55e; background: #f0fdf4; }
+    .pay-option.active-partial { border-color: #f59e0b; background: #fffbeb; }
+    .pay-option.active-unpaid  { border-color: #ef4444; background: #fef2f2; }
+    .pay-option .pay-dot {
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        border: 2px solid #d1d5db;
+        flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        transition: all .2s;
+    }
+    .pay-option input[type=radio] { display: none; }
+    .pay-option.active-paid    .pay-dot { border-color: #22c55e; background: #22c55e; }
+    .pay-option.active-partial .pay-dot { border-color: #f59e0b; background: #f59e0b; }
+    .pay-option.active-unpaid  .pay-dot { border-color: #ef4444; background: #ef4444; }
+    .pay-dot::after {
+        content: '';
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: white;
+        display: none;
+    }
+    .pay-option.active-paid .pay-dot::after,
+    .pay-option.active-partial .pay-dot::after,
+    .pay-option.active-unpaid .pay-dot::after { display: block; }
+
+    /* Item card on mobile */
+    .item-card {
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 0.875rem;
+        padding: 1rem;
+        position: relative;
+        transition: border-color .2s, box-shadow .2s;
+    }
+    .item-card:hover { border-color: #a5b4fc; box-shadow: 0 2px 8px rgba(99,102,241,.1); }
+    .item-card .item-num {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 800;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+    }
+    .item-card .line-total-badge {
+        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        border-radius: 0.5rem;
+        padding: 0.35rem 0.75rem;
+        font-weight: 800;
+        font-size: 0.8rem;
+    }
+
+    /* Sticky summary on desktop */
+    .summary-panel {
+        position: sticky;
+        top: 1rem;
+    }
+    .summary-gradient {
+        background: linear-gradient(160deg, #4f46e5 0%, #7c3aed 60%, #6d28d9 100%);
+        border-radius: 1.25rem;
+        padding: 1.5rem;
+        color: white;
+        box-shadow: 0 8px 32px rgba(79,70,229,.35);
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+        color: rgba(255,255,255,.75);
+        border-bottom: 1px solid rgba(255,255,255,.1);
+    }
+    .summary-row:last-of-type { border-bottom: none; }
+    .summary-row .val { color: white; font-weight: 600; }
+    .summary-total-val {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #fde68a;
+    }
+
+    /* Save button */
+    .save-btn {
+        width: 100%;
+        padding: 0.875rem;
+        background: white;
+        color: #4f46e5;
+        border: none;
+        border-radius: 0.875rem;
+        font-weight: 800;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,.12);
+        margin-top: 1.25rem;
+    }
+    .save-btn:hover { background: #eef2ff; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.15); }
+    .save-btn:active { transform: translateY(0); }
+
+    /* Mobile sticky bar */
+    .mobile-total-bar {
+        display: none;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        background: linear-gradient(135deg, #4f46e5, #6d28d9);
+        padding: 0.875rem 1.25rem;
+        z-index: 50;
+        box-shadow: 0 -4px 20px rgba(79,70,229,.3);
+    }
+    @media (max-width: 1023px) {
+        .mobile-total-bar { display: flex; align-items: center; justify-content: space-between; }
+        .po-page { padding-bottom: 5rem; }
+    }
+
+    /* Add item button */
+    .add-item-btn {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px dashed #c7d2fe;
+        border-radius: 0.875rem;
+        background: #f5f3ff;
+        color: #6366f1;
+        font-weight: 700;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    .add-item-btn:hover { background: #ede9fe; border-color: #8b5cf6; }
+
+    /* Empty state */
+    .empty-items {
+        text-align: center;
+        padding: 2.5rem 1rem;
+        color: #9ca3af;
+    }
+
+    /* Input group for qty+cost */
+    .input-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.625rem; }
+
+    /* Animated entry */
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .item-card { animation: slideDown .2s ease; }
+
+    /* Add new supplier inline link */
+    .inline-action-link {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 0.75rem; font-weight: 600;
+        color: #6366f1;
+        text-decoration: none;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.375rem;
+        transition: background .15s;
+        margin-top: 0.375rem;
+    }
+    .inline-action-link:hover { background: #eef2ff; }
+</style>
+@endpush
+
 @section('content')
-<div class="max-w-5xl mx-auto">
-
-    {{-- Page Header --}}
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Record Purchase</h2>
-            <p class="text-gray-500 text-sm mt-1">Add stock from a supplier and update inventory</p>
-        </div>
-        <a href="{{ route('purchases.index') }}"
-           class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Purchases
-        </a>
-    </div>
-
-    @if($errors->any())
-        <div class="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r-lg">
-            <ul class="list-disc list-inside text-sm space-y-1">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
+<div class="po-page">
     <form id="purchaseForm" method="POST" action="{{ route('purchases.store') }}">
         @csrf
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            {{-- ─── LEFT COLUMN: Purchase Info ─── --}}
-            <div class="lg:col-span-1 space-y-5">
-
-                {{-- Supplier --}}
-                <div class="bg-white rounded-xl shadow p-5">
-                    <h3 class="text-base font-bold text-gray-700 mb-4 flex items-center">
-                        <i class="fas fa-truck text-indigo-500 mr-2"></i>Supplier Details
-                    </h3>
-
-                    <div>
-                        <label for="supplier_id" class="block text-xs font-semibold text-gray-500 uppercase mb-1">Supplier</label>
-                        <select id="supplier_id" name="supplier_id"
-                                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
-                            <option value="">— No Supplier / Walk-in —</option>
-                            @foreach($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}" {{ old('supplier_id') == $supplier->id ? 'selected' : '' }}>
-                                    {{ $supplier->name }}
-                                    @if($supplier->phone) ({{ $supplier->phone }}) @endif
-                                </option>
-                            @endforeach
-                        </select>
-                        <a href="{{ route('suppliers.create') }}" target="_blank"
-                           class="inline-block mt-1.5 text-xs text-indigo-600 hover:underline">
-                            <i class="fas fa-plus mr-1"></i>Add new supplier
-                        </a>
-                    </div>
-
-                    {{-- Purchase Date --}}
-                    <div class="mt-4">
-                        <label for="purchase_date" class="block text-xs font-semibold text-gray-500 uppercase mb-1">Purchase Date <span class="text-red-500">*</span></label>
-                        <input type="date" id="purchase_date" name="purchase_date"
-                               value="{{ old('purchase_date', date('Y-m-d')) }}"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                    </div>
-
-                    {{-- Notes --}}
-                    <div class="mt-4">
-                        <label for="notes" class="block text-xs font-semibold text-gray-500 uppercase mb-1">Notes</label>
-                        <textarea id="notes" name="notes" rows="3"
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition resize-none"
-                                  placeholder="Delivery note, reference number…">{{ old('notes') }}</textarea>
-                    </div>
-                </div>
-
-                {{-- Payment --}}
-                <div class="bg-white rounded-xl shadow p-5">
-                    <h3 class="text-base font-bold text-gray-700 mb-4 flex items-center">
-                        <i class="fas fa-credit-card text-green-500 mr-2"></i>Payment
-                    </h3>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase mb-2">Payment Status <span class="text-red-500">*</span></label>
-                        <div class="space-y-2">
-                            @foreach(['paid' => ['Fully Paid', 'green'], 'partial' => ['Partially Paid', 'yellow'], 'unpaid' => ['Unpaid / On Credit', 'red']] as $val => [$label, $color])
-                                <label class="flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition payment-option
-                                    {{ old('payment_status', 'paid') === $val ? "border-{$color}-500 bg-{$color}-50" : 'border-gray-200 hover:border-gray-300' }}"
-                                    data-value="{{ $val }}" data-color="{{ $color }}">
-                                    <input type="radio" name="payment_status" value="{{ $val }}"
-                                           class="text-indigo-600"
-                                           {{ old('payment_status', 'paid') === $val ? 'checked' : '' }}>
-                                    <span class="font-medium text-sm text-gray-700">{{ $label }}</span>
-                                </label>
-                            @endforeach
+        {{-- ═══ HERO HEADER ═══ --}}
+        <div class="po-hero mb-6 relative z-10">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative z-10">
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-shopping-bag text-white text-lg"></i>
                         </div>
+                        <h1 class="text-xl font-black text-white tracking-tight">Record Purchase</h1>
                     </div>
-
-                    {{-- Amount paid (shown only for partial) --}}
-                    <div id="amountPaidWrap" class="{{ old('payment_status', 'paid') === 'partial' ? '' : 'hidden' }} mt-4">
-                        <label for="amount_paid" class="block text-xs font-semibold text-gray-500 uppercase mb-1">Amount Paid (UGX)</label>
-                        <input type="number" id="amount_paid" name="amount_paid"
-                               value="{{ old('amount_paid', 0) }}" min="0" step="1"
-                               class="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
-                    </div>
+                    <p class="text-indigo-200 text-sm ml-13">Add stock from a supplier — inventory updates instantly</p>
                 </div>
-
-                {{-- Summary Card --}}
-                <div class="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-xl shadow p-5 text-white">
-                    <h3 class="text-base font-bold mb-4 flex items-center">
-                        <i class="fas fa-receipt mr-2 text-indigo-200"></i>Order Summary
-                    </h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-indigo-200">Items:</span>
-                            <span id="summaryItemCount" class="font-semibold">0</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-indigo-200">Subtotal:</span>
-                            <span id="summarySubtotal" class="font-semibold">UGX 0</span>
-                        </div>
-                        <div class="border-t border-indigo-500 pt-2 flex justify-between text-base">
-                            <span class="font-bold text-indigo-100">Grand Total:</span>
-                            <span id="summaryTotal" class="font-black text-yellow-300">UGX 0</span>
-                        </div>
-                    </div>
-
-                    <button id="submitBtn" type="submit"
-                            class="mt-5 w-full py-3 bg-white text-indigo-700 rounded-lg font-bold text-sm hover:bg-indigo-50 transition flex items-center justify-center gap-2 shadow">
-                        <span id="submitLabel"><i class="fas fa-save mr-1"></i>Save Purchase</span>
-                        <span id="submitSpinner" class="hidden">
-                            <svg class="animate-spin h-4 w-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Saving...
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-            {{-- ─── RIGHT COLUMN: Product Items ─── --}}
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-xl shadow p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-base font-bold text-gray-700 flex items-center">
-                            <i class="fas fa-box text-indigo-500 mr-2"></i>Purchase Items
-                        </h3>
-                        <button type="button" id="addRowBtn"
-                                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-semibold transition shadow-sm">
-                            <i class="fas fa-plus mr-2"></i>Add Product
-                        </button>
-                    </div>
-
-                    {{-- Items Table --}}
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full text-sm" id="itemsTable">
-                            <thead class="bg-gray-50 rounded-lg">
-                                <tr>
-                                    <th class="px-3 py-2.5 text-left font-semibold text-gray-500 uppercase text-xs">Product</th>
-                                    <th class="px-3 py-2.5 text-center font-semibold text-gray-500 uppercase text-xs w-28">Qty</th>
-                                    <th class="px-3 py-2.5 text-center font-semibold text-gray-500 uppercase text-xs w-36">Unit Cost (UGX)</th>
-                                    <th class="px-3 py-2.5 text-right font-semibold text-gray-500 uppercase text-xs w-36">Line Total</th>
-                                    <th class="px-3 py-2.5 w-10"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="itemsBody" class="divide-y divide-gray-100">
-                                {{-- Rows injected by JS --}}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Empty state --}}
-                    <div id="emptyItems" class="flex flex-col items-center justify-center py-10 text-gray-400">
-                        <i class="fas fa-cubes text-4xl mb-3 text-gray-300"></i>
-                        <p class="text-sm font-medium">No items added yet.</p>
-                        <p class="text-xs mt-1">Click <strong>Add Product</strong> to start building the order.</p>
-                    </div>
-                </div>
+                <a href="{{ route('purchases.index') }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl text-sm font-semibold transition backdrop-blur-sm self-start sm:self-auto">
+                    <i class="fas fa-arrow-left text-xs"></i>Back
+                </a>
             </div>
         </div>
+
+        {{-- ═══ ERRORS ═══ --}}
+        @if($errors->any())
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 flex gap-3">
+                <i class="fas fa-exclamation-circle text-red-400 mt-0.5 flex-shrink-0"></i>
+                <ul class="text-sm space-y-0.5 list-disc list-inside">
+                    @foreach($errors->all() as $err)<li>{{ $err }}</li>@endforeach
+                </ul>
+            </div>
+        @endif
+
+        {{-- ═══ MAIN GRID ═══ --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+            {{-- ──────────────────────────────── --}}
+            {{-- LEFT: INFO + PAYMENT + SUMMARY   --}}
+            {{-- ──────────────────────────────── --}}
+            <div class="lg:col-span-1 space-y-4">
+
+                {{-- Supplier & Date --}}
+                <div class="po-card">
+                    <div class="po-card-header">
+                        <div class="icon-wrap bg-blue-100"><i class="fas fa-truck text-blue-600"></i></div>
+                        <span class="font-bold text-gray-700 text-sm">Supplier & Date</span>
+                    </div>
+                    <div class="po-card-body space-y-4">
+                        <div class="field-wrap">
+                            <label for="supplier_id">Supplier</label>
+                            <select id="supplier_id" name="supplier_id" class="field-control">
+                                <option value="">— No Supplier / Walk-in —</option>
+                                @foreach($suppliers as $s)
+                                    <option value="{{ $s->id }}" {{ old('supplier_id') == $s->id ? 'selected' : '' }}>
+                                        {{ $s->name }}@if($s->phone) · {{ $s->phone }}@endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <a href="{{ route('suppliers.create') }}" target="_blank" class="inline-action-link">
+                                <i class="fas fa-plus-circle"></i>Add new supplier
+                            </a>
+                        </div>
+
+                        <div class="field-wrap">
+                            <label for="purchase_date">Purchase Date<span class="required">*</span></label>
+                            <input type="date" id="purchase_date" name="purchase_date"
+                                   value="{{ old('purchase_date', date('Y-m-d')) }}"
+                                   class="field-control">
+                        </div>
+
+                        <div class="field-wrap">
+                            <label for="notes">Notes / Reference</label>
+                            <textarea id="notes" name="notes" rows="3"
+                                      class="field-control"
+                                      placeholder="Delivery note #, LPO reference…">{{ old('notes') }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Payment Status --}}
+                <div class="po-card">
+                    <div class="po-card-header">
+                        <div class="icon-wrap bg-green-100"><i class="fas fa-credit-card text-green-600"></i></div>
+                        <span class="font-bold text-gray-700 text-sm">Payment Status</span>
+                    </div>
+                    <div class="po-card-body space-y-2">
+                        <label class="pay-option {{ old('payment_status','paid') === 'paid' ? 'active-paid' : '' }}"
+                               data-status="paid">
+                            <input type="radio" name="payment_status" value="paid"
+                                   {{ old('payment_status','paid') === 'paid' ? 'checked' : '' }}>
+                            <span class="pay-dot"></span>
+                            <div>
+                                <div class="font-bold text-sm text-gray-800">Fully Paid</div>
+                                <div class="text-xs text-gray-500">Complete payment made</div>
+                            </div>
+                            <i class="fas fa-check-circle text-green-500 ml-auto text-sm"></i>
+                        </label>
+
+                        <label class="pay-option {{ old('payment_status') === 'partial' ? 'active-partial' : '' }}"
+                               data-status="partial">
+                            <input type="radio" name="payment_status" value="partial"
+                                   {{ old('payment_status') === 'partial' ? 'checked' : '' }}>
+                            <span class="pay-dot"></span>
+                            <div>
+                                <div class="font-bold text-sm text-gray-800">Partial Payment</div>
+                                <div class="text-xs text-gray-500">Some paid, balance pending</div>
+                            </div>
+                            <i class="fas fa-adjust text-amber-500 ml-auto text-sm"></i>
+                        </label>
+
+                        <label class="pay-option {{ old('payment_status') === 'unpaid' ? 'active-unpaid' : '' }}"
+                               data-status="unpaid">
+                            <input type="radio" name="payment_status" value="unpaid"
+                                   {{ old('payment_status') === 'unpaid' ? 'checked' : '' }}>
+                            <span class="pay-dot"></span>
+                            <div>
+                                <div class="font-bold text-sm text-gray-800">On Credit</div>
+                                <div class="text-xs text-gray-500">Pay later / credit terms</div>
+                            </div>
+                            <i class="fas fa-clock text-red-400 ml-auto text-sm"></i>
+                        </label>
+
+                        {{-- Amount paid field (partial only) --}}
+                        <div id="amountPaidWrap"
+                             class="{{ old('payment_status') === 'partial' ? '' : 'hidden' }} pt-1">
+                            <div class="field-wrap" style="margin-bottom:0">
+                                <label for="amount_paid">Amount Paid (UGX)<span class="required">*</span></label>
+                                <div style="position:relative">
+                                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#6b7280;font-size:.8rem;font-weight:700">UGX</span>
+                                    <input type="number" id="amount_paid" name="amount_paid"
+                                           value="{{ old('amount_paid', 0) }}" min="0" step="1"
+                                           class="field-control" style="padding-left:3rem">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Summary (desktop sticky) --}}
+                <div class="summary-panel hidden lg:block">
+                    <div class="summary-gradient">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-receipt text-indigo-200"></i>
+                            <span class="font-black text-white text-sm uppercase tracking-wider">Order Summary</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Products</span>
+                            <span class="val" id="summaryItemCount">0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Lines</span>
+                            <span class="val" id="summaryLineCount">0 items</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span class="val" id="summarySubtotal">UGX 0</span>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <div class="text-xs text-indigo-300 uppercase font-bold tracking-widest mb-1">Grand Total</div>
+                            <div class="summary-total-val" id="summaryTotal">UGX 0</div>
+                        </div>
+
+                        <button id="submitBtn" type="submit" class="save-btn">
+                            <span id="submitLabel"><i class="fas fa-check-circle"></i> Save Purchase</span>
+                            <span id="submitSpinner" class="hidden" style="display:none">
+                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Saving...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+            </div><!-- /left col -->
+
+            {{-- ──────────────────────────────── --}}
+            {{-- RIGHT: PRODUCTS                  --}}
+            {{-- ──────────────────────────────── --}}
+            <div class="lg:col-span-2">
+                <div class="po-card">
+                    <div class="po-card-header">
+                        <div class="icon-wrap bg-indigo-100"><i class="fas fa-boxes text-indigo-600"></i></div>
+                        <span class="font-bold text-gray-700 text-sm">Purchase Items</span>
+                        <span id="itemBadge"
+                              class="ml-auto bg-indigo-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full">0</span>
+                    </div>
+                    <div class="po-card-body">
+
+                        {{-- Items container --}}
+                        <div id="itemsContainer" class="space-y-3 mb-4">
+                            {{-- Item cards injected by JS --}}
+                        </div>
+
+                        {{-- Empty state --}}
+                        <div id="emptyItems" class="empty-items">
+                            <div class="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                                <i class="fas fa-cubes text-2xl text-indigo-300"></i>
+                            </div>
+                            <p class="font-semibold text-gray-500 text-sm">No products added yet</p>
+                            <p class="text-xs text-gray-400 mt-1">Click the button below to add products</p>
+                        </div>
+
+                        {{-- Add row button --}}
+                        <button type="button" id="addRowBtn" class="add-item-btn">
+                            <i class="fas fa-plus-circle"></i>
+                            Add Product Row
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /main grid -->
+
     </form>
 </div>
 
+{{-- Mobile sticky total bar --}}
+<div class="mobile-total-bar lg:hidden">
+    <div>
+        <div class="text-white/70 text-xs font-semibold">Grand Total</div>
+        <div class="text-yellow-300 font-black text-lg" id="mobileSummaryTotal">UGX 0</div>
+    </div>
+    <button onclick="document.getElementById('purchaseForm').dispatchEvent(new Event('submit',{cancelable:true,bubbles:true}))"
+            id="mobileSaveBtn"
+            class="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-indigo-700 rounded-xl font-black text-sm shadow-lg transition active:scale-95">
+        <i class="fas fa-check-circle"></i>
+        <span id="mobileSaveLabel">Save Purchase</span>
+    </button>
+</div>
+
 {{-- Product data for JS --}}
+@php
+    $productData = $products->map(function($p) {
+        return [
+            'id'         => $p->id,
+            'name'       => $p->name,
+            'sku'        => $p->sku,
+            'unit'       => $p->unit,
+            'cost_price' => (float) $p->cost_price,
+            'quantity'   => (float) $p->quantity,
+        ];
+    })->values();
+@endphp
 <script>
-    const PRODUCTS = @json($products->map(fn($p) => [
-        'id'         => $p->id,
-        'name'       => $p->name,
-        'sku'        => $p->sku,
-        'unit'       => $p->unit,
-        'cost_price' => (float) $p->cost_price,
-        'quantity'   => (float) $p->quantity,
-    ]));
+    const PRODUCTS = {!! json_encode($productData) !!};
 </script>
 @endsection
 
@@ -202,132 +527,190 @@
 document.addEventListener('DOMContentLoaded', function () {
     let rowIndex = 0;
 
-    const itemsBody   = document.getElementById('itemsBody');
-    const emptyItems  = document.getElementById('emptyItems');
+    const container   = document.getElementById('itemsContainer');
+    const emptyState  = document.getElementById('emptyItems');
     const addRowBtn   = document.getElementById('addRowBtn');
-    const submitBtn   = document.getElementById('submitBtn');
-    const submitLabel = document.getElementById('submitLabel');
-    const submitSpinner = document.getElementById('submitSpinner');
+    const itemBadge   = document.getElementById('itemBadge');
 
-    // Payment status radio styling
-    document.querySelectorAll('.payment-option').forEach(label => {
-        label.querySelector('input').addEventListener('change', function () {
-            document.querySelectorAll('.payment-option').forEach(l => {
-                const c = l.dataset.color;
-                l.classList.remove(`border-${c}-500`, `bg-${c}-50`);
-                l.classList.add('border-gray-200');
-            });
-            label.classList.remove('border-gray-200');
-            const c = label.dataset.color;
-            label.classList.add(`border-${c}-500`, `bg-${c}-50`);
-            document.getElementById('amountPaidWrap').classList.toggle('hidden', this.value !== 'partial');
+    // ── Payment option styling ──────────────────────────
+    document.querySelectorAll('.pay-option').forEach(opt => {
+        const radio = opt.querySelector('input[type=radio]');
+        const status = opt.dataset.status;
+
+        opt.addEventListener('click', () => {
+            radio.checked = true;
+            applyPaymentStyle(status);
         });
     });
 
-    // Build product option HTML
-    function buildProductOptions(selectedId = '') {
-        return PRODUCTS.map(p =>
-            `<option value="${p.id}" data-cost="${p.cost_price}" data-unit="${p.unit || ''}"
-                ${p.id == selectedId ? 'selected' : ''}>
-                ${p.name}${p.sku ? ' [' + p.sku + ']' : ''} — Stock: ${p.quantity}
-            </option>`
-        ).join('');
+    function applyPaymentStyle(active) {
+        document.querySelectorAll('.pay-option').forEach(o => {
+            o.classList.remove('active-paid', 'active-partial', 'active-unpaid');
+        });
+        const target = document.querySelector(`.pay-option[data-status="${active}"]`);
+        if (target) target.classList.add(`active-${active}`);
+        document.getElementById('amountPaidWrap').classList.toggle('hidden', active !== 'partial');
     }
 
+    // Init payment on load
+    const checked = document.querySelector('input[name=payment_status]:checked');
+    if (checked) applyPaymentStyle(checked.value);
+
+    // ── Build product <select> options ──────────────────
+    function buildOptions(selectedId = '') {
+        return '<option value="">— Select product —</option>' +
+            PRODUCTS.map(p =>
+                `<option value="${p.id}" data-cost="${p.cost_price}" data-unit="${p.unit||''}"${p.id == selectedId ? ' selected' : ''}>
+                    ${p.name}${p.sku ? ' ['+p.sku+']' : ''} (Stock: ${p.quantity})
+                </option>`
+            ).join('');
+    }
+
+    // ── Add item card ───────────────────────────────────
     function addRow(productId = '', qty = 1, cost = '') {
         const idx = rowIndex++;
-        const tr = document.createElement('tr');
-        tr.className = 'item-row hover:bg-gray-50 transition-colors';
-        tr.innerHTML = `
-            <td class="px-3 py-2">
-                <select name="items[${idx}][product_id]" required
-                        class="product-select w-full border border-gray-300 rounded-lg px-2 py-2 text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-white">
-                    <option value="">— Select product —</option>
-                    ${buildProductOptions(productId)}
-                </select>
-            </td>
-            <td class="px-3 py-2">
-                <input type="number" name="items[${idx}][quantity]" min="0.01" step="0.01"
-                       value="${qty}" required
-                       class="qty-input w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition">
-            </td>
-            <td class="px-3 py-2">
-                <input type="number" name="items[${idx}][unit_cost]" min="0" step="1"
-                       value="${cost}" required
-                       placeholder="0"
-                       class="cost-input w-full border border-gray-300 rounded-lg px-2 py-2 text-sm text-center focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition">
-            </td>
-            <td class="px-3 py-2 text-right">
-                <span class="line-total font-bold text-gray-800 text-sm">UGX 0</span>
-            </td>
-            <td class="px-3 py-2 text-center">
-                <button type="button" class="remove-row text-red-400 hover:text-red-600 transition">
-                    <i class="fas fa-trash-alt"></i>
+        const card = document.createElement('div');
+        card.className = 'item-card item-row';
+        card.dataset.lineTotal = 0;
+
+        card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:0.625rem;margin-bottom:0.75rem">
+                <div class="item-num">${idx + 1}</div>
+                <div style="flex:1;font-weight:700;font-size:.8rem;color:#374151;">Product ${idx + 1}</div>
+                <button type="button" class="remove-row"
+                        style="width:28px;height:28px;border-radius:8px;background:#fef2f2;color:#ef4444;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:background .2s"
+                        onmouseover="this.style.background='#fee2e2'" onmouseout="this.style.background='#fef2f2'">
+                    <i class="fas fa-trash"></i>
                 </button>
-            </td>`;
+            </div>
 
-        itemsBody.appendChild(tr);
-        emptyItems.classList.add('hidden');
+            <div class="field-wrap">
+                <label>Product <span class="required">*</span></label>
+                <select name="items[${idx}][product_id]" required class="field-control product-select">
+                    ${buildOptions(productId)}
+                </select>
+            </div>
 
-        // Auto-fill cost when product is selected
-        tr.querySelector('.product-select').addEventListener('change', function () {
+            <div class="input-pair">
+                <div class="field-wrap" style="margin-bottom:0">
+                    <label>Quantity <span class="required">*</span></label>
+                    <input type="number" name="items[${idx}][quantity]"
+                           min="0.01" step="0.01" value="${qty}" required
+                           class="field-control qty-input" placeholder="0">
+                </div>
+                <div class="field-wrap" style="margin-bottom:0">
+                    <label>Unit Cost (UGX) <span class="required">*</span></label>
+                    <input type="number" name="items[${idx}][unit_cost]"
+                           min="0" step="1" value="${cost}" required
+                           class="field-control cost-input" placeholder="0">
+                </div>
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:0.625rem;align-items:center;gap:0.5rem">
+                <span style="font-size:.75rem;color:#6b7280;font-weight:600">Line Total:</span>
+                <span class="line-total-badge line-total">UGX 0</span>
+            </div>`;
+
+        container.appendChild(card);
+        emptyState.classList.add('hidden');
+
+        // Event: product change → auto-fill cost
+        card.querySelector('.product-select').addEventListener('change', function () {
             const opt = this.options[this.selectedIndex];
-            const costInput = tr.querySelector('.cost-input');
+            const costInput = card.querySelector('.cost-input');
             if (opt.dataset.cost && parseFloat(opt.dataset.cost) > 0) {
-                costInput.value = opt.dataset.cost;
+                costInput.value = parseFloat(opt.dataset.cost);
             }
-            recalcRow(tr);
+            // Update label
+            const label = card.querySelector('.item-num + div');
+            if (label) label.textContent = this.options[this.selectedIndex].text.split(' (')[0] || `Product ${idx + 1}`;
+            recalcRow(card);
             recalcTotals();
         });
 
-        tr.querySelector('.qty-input').addEventListener('input', () => { recalcRow(tr); recalcTotals(); });
-        tr.querySelector('.cost-input').addEventListener('input', () => { recalcRow(tr); recalcTotals(); });
+        card.querySelector('.qty-input').addEventListener('input', () => { recalcRow(card); recalcTotals(); });
+        card.querySelector('.cost-input').addEventListener('input', () => { recalcRow(card); recalcTotals(); });
 
-        tr.querySelector('.remove-row').addEventListener('click', () => {
-            tr.remove();
-            if (itemsBody.querySelectorAll('.item-row').length === 0) {
-                emptyItems.classList.remove('hidden');
-            }
-            recalcTotals();
+        card.querySelector('.remove-row').addEventListener('click', () => {
+            card.style.opacity = '0';
+            card.style.transform = 'scale(.96)';
+            card.style.transition = 'all .15s';
+            setTimeout(() => {
+                card.remove();
+                renumberCards();
+                recalcTotals();
+                if (container.querySelectorAll('.item-row').length === 0) {
+                    emptyState.classList.remove('hidden');
+                }
+            }, 150);
         });
 
-        if (productId) { recalcRow(tr); recalcTotals(); }
+        if (productId) { recalcRow(card); recalcTotals(); }
+        recalcTotals();
     }
 
-    function recalcRow(tr) {
-        const qty  = parseFloat(tr.querySelector('.qty-input').value) || 0;
-        const cost = parseFloat(tr.querySelector('.cost-input').value) || 0;
+    function renumberCards() {
+        container.querySelectorAll('.item-row').forEach((card, i) => {
+            const numEl = card.querySelector('.item-num');
+            if (numEl) numEl.textContent = i + 1;
+        });
+    }
+
+    function recalcRow(card) {
+        const qty  = parseFloat(card.querySelector('.qty-input').value)  || 0;
+        const cost = parseFloat(card.querySelector('.cost-input').value) || 0;
         const total = qty * cost;
-        tr.querySelector('.line-total').textContent = 'UGX ' + total.toLocaleString('en-UG', { maximumFractionDigits: 0 });
-        tr.dataset.lineTotal = total;
+        card.dataset.lineTotal = total;
+        card.querySelector('.line-total').textContent = 'UGX ' + fmt(total);
+    }
+
+    function fmt(n) {
+        return Math.round(n).toLocaleString('en-UG');
     }
 
     function recalcTotals() {
-        const rows = itemsBody.querySelectorAll('.item-row');
+        const cards = container.querySelectorAll('.item-row');
         let subtotal = 0;
-        rows.forEach(r => { subtotal += parseFloat(r.dataset.lineTotal || 0); });
+        cards.forEach(c => { subtotal += parseFloat(c.dataset.lineTotal || 0); });
 
-        document.getElementById('summaryItemCount').textContent = rows.length;
-        document.getElementById('summarySubtotal').textContent = 'UGX ' + subtotal.toLocaleString('en-UG', { maximumFractionDigits: 0 });
-        document.getElementById('summaryTotal').textContent = 'UGX ' + subtotal.toLocaleString('en-UG', { maximumFractionDigits: 0 });
+        const count = cards.length;
+        itemBadge.textContent = count;
+
+        if (document.getElementById('summaryItemCount'))
+            document.getElementById('summaryItemCount').textContent = count;
+        if (document.getElementById('summaryLineCount'))
+            document.getElementById('summaryLineCount').textContent = count + (count === 1 ? ' item' : ' items');
+        if (document.getElementById('summarySubtotal'))
+            document.getElementById('summarySubtotal').textContent = 'UGX ' + fmt(subtotal);
+        if (document.getElementById('summaryTotal'))
+            document.getElementById('summaryTotal').textContent = 'UGX ' + fmt(subtotal);
+        if (document.getElementById('mobileSummaryTotal'))
+            document.getElementById('mobileSummaryTotal').textContent = 'UGX ' + fmt(subtotal);
     }
 
     addRowBtn.addEventListener('click', () => addRow());
 
-    // Add first row automatically
+    // Auto-add first row
     addRow();
 
-    // Spinner on submit
+    // ── Submit spinner ──────────────────────────────────
     document.getElementById('purchaseForm').addEventListener('submit', function (e) {
-        const rows = itemsBody.querySelectorAll('.item-row');
+        const rows = container.querySelectorAll('.item-row');
         if (rows.length === 0) {
             e.preventDefault();
-            alert('Please add at least one product to the purchase.');
+            alert('Please add at least one product before saving.');
             return;
         }
-        submitLabel.classList.add('hidden');
-        submitSpinner.classList.remove('hidden');
-        submitBtn.style.pointerEvents = 'none';
+
+        const submitLabel   = document.getElementById('submitLabel');
+        const submitSpinner = document.getElementById('submitSpinner');
+        const submitBtn     = document.getElementById('submitBtn');
+        const mobileLabel   = document.getElementById('mobileSaveLabel');
+
+        if (submitLabel)   { submitLabel.style.display = 'none'; }
+        if (submitSpinner) { submitSpinner.style.display = 'flex'; submitSpinner.style.alignItems = 'center'; submitSpinner.style.gap = '0.375rem'; }
+        if (submitBtn)     { submitBtn.style.pointerEvents = 'none'; }
+        if (mobileLabel)   { mobileLabel.textContent = 'Saving…'; }
     });
 });
 </script>
