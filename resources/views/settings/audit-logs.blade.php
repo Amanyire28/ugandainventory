@@ -61,16 +61,34 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
                             {{ $log->model_id ?? '-' }}
                         </td>
-                        <td class="px-6 py-4 text-xs text-gray-600 max-w-md">
-                            @if($log->old_values)
-                                <pre class="bg-gray-50 p-2 rounded block whitespace-pre-wrap break-all max-h-32 overflow-y-auto font-mono text-[10px] leading-relaxed border border-gray-100">{{ json_encode($log->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                        <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
+                            @if(is_array($log->old_values))
+                                <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
+                                    @foreach($log->old_values as $key => $val)
+                                        <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
+                                            <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
+                                            <span class="text-gray-800 font-bold">{{ is_array($val) ? json_encode($val) : $val }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif($log->old_values)
+                                <span class="text-gray-700 font-mono">{{ $log->old_values }}</span>
                             @else
                                 <span class="text-gray-400">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-xs text-gray-600 max-w-md">
-                            @if($log->new_values)
-                                <pre class="bg-gray-50 p-2 rounded block whitespace-pre-wrap break-all max-h-32 overflow-y-auto font-mono text-[10px] leading-relaxed border border-gray-100">{{ json_encode($log->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
+                        <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
+                            @if(is_array($log->new_values))
+                                <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
+                                    @foreach($log->new_values as $key => $val)
+                                        <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
+                                            <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
+                                            <span class="text-gray-800 font-bold">{{ is_array($val) ? json_encode($val) : $val }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif($log->new_values)
+                                <span class="text-gray-700 font-mono">{{ $log->new_values }}</span>
                             @else
                                 <span class="text-gray-400">-</span>
                             @endif
