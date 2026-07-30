@@ -43,12 +43,9 @@
             <i class="fas fa-check-circle mr-1"></i>Paid Invoices
         </a>
         <a id="tab-unpaid" href="{{ route('invoices.unpaid') }}" class="tab-link px-4 py-2 rounded-lg whitespace-nowrap {{ $status === 'unpaid' ? 'bg-yellow-500 text-white font-semibold shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" data-tab="unpaid">
-            <i class="fas fa-hourglass-half mr-1"></i>Unpaid Invoices
+            <i class="fas fa-hourglass-half mr-1"></i>Unpaid / Partial
         </a>
-        <a id="tab-customers" href="{{ route('invoices.customersWithInvoices') }}" class="tab-link px-4 py-2 rounded-lg whitespace-nowrap {{ $status === 'customers' ? 'bg-indigo-600 text-white font-semibold shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" data-tab="customers">
-            <i class="fas fa-users mr-1"></i>Customers with Invoices
-        </a>
-        <a id="tab-creditors" href="{{ route('invoices.creditors') }}" class="tab-link px-4 py-2 rounded-lg whitespace-nowrap {{ $status === 'creditors' ? 'bg-indigo-600 text-white font-semibold shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" data-tab="creditors">
+        <a id="tab-creditors" href="{{ route('invoices.creditors') }}" class="tab-link px-4 py-2 rounded-lg whitespace-nowrap {{ $status === 'creditors' ? 'bg-red-600 text-white font-semibold shadow' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}" data-tab="creditors">
             <i class="fas fa-user-clock mr-1"></i>Creditors
         </a>
     </div>
@@ -88,12 +85,10 @@
 
     {{-- Table results --}}
     <div id="invoicesTable" class="overflow-x-auto">
-        @if(($status ?? '') === 'customers')
-            @include('invoices.partials.customers-table', ['customers' => $customers])
-        @elseif(($status ?? '') === 'creditors')
-            @include('invoices.partials.creditors-table', ['customers' => $customers])
+        @if(($status ?? '') === 'creditors')
+            @include('invoices.partials.creditors-table', ['customers' => $customers ?? collect()])
         @else
-            @include('invoices.partials.table', ['invoices' => $invoices])
+            @include('invoices.partials.table', ['invoices' => $invoices ?? collect()])
         @endif
     </div>
 </div>
@@ -101,10 +96,9 @@
 @php
     $currentPath = request()->path();
     $initialTab = 'all';
-    if (str_contains($currentPath, 'paid')) $initialTab = 'paid';
+    if (str_contains($currentPath, 'creditors')) $initialTab = 'creditors';
     elseif (str_contains($currentPath, 'unpaid')) $initialTab = 'unpaid';
-    elseif (str_contains($currentPath, 'customers')) $initialTab = 'customers';
-    elseif (str_contains($currentPath, 'creditors')) $initialTab = 'creditors';
+    elseif (str_contains($currentPath, 'paid')) $initialTab = 'paid';
 @endphp
 
 <script>
@@ -129,22 +123,16 @@
                 activeClass: 'bg-green-600 text-white font-semibold shadow'
             },
             'unpaid': {
-                title: 'Unpaid Invoices',
+                title: 'Unpaid / Partial Invoices',
                 subtitle: 'Review invoices that have outstanding balances',
                 search: true,
                 activeClass: 'bg-yellow-500 text-white font-semibold shadow'
-            },
-            'customers': {
-                title: 'Customer Ledgers',
-                subtitle: 'Review financial summaries for customers with invoices',
-                search: false,
-                activeClass: 'bg-indigo-600 text-white font-semibold shadow'
             },
             'creditors': {
                 title: 'Creditor List',
                 subtitle: 'Review customers who currently owe outstanding credit balances',
                 search: false,
-                activeClass: 'bg-indigo-600 text-white font-semibold shadow'
+                activeClass: 'bg-red-600 text-white font-semibold shadow'
             }
         };
 

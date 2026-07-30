@@ -68,16 +68,19 @@ class InvoiceController extends Controller
         }
 
         return view('invoices.index', [
-            'status' => 'paid',
-            'invoices' => $invoices
+            'status'    => 'paid',
+            'invoices'  => $invoices,
+            'customers' => collect(),
         ]);
     }
 
-    // UNPAID AJAX FILTER
+        // UNPAID + PARTIAL AJAX FILTER
     public function unpaid(Request $request)
     {
         $search = $request->query('search');
-        $query = Invoice::with('customer')->where('status', 'unpaid')->orderByDesc('created_at');
+        $query = Invoice::with('customer')
+            ->whereIn('status', ['unpaid', 'partial'])
+            ->orderByDesc('created_at');
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('invoice_number', 'like', "%$search%")
@@ -86,7 +89,7 @@ class InvoiceController extends Controller
                   });
             });
         }
-        $invoices = $query->limit(20)->get();
+        $invoices = $query->limit(50)->get();
 
         if ($request->ajax()) {
             return response()->json([
@@ -95,8 +98,9 @@ class InvoiceController extends Controller
         }
 
         return view('invoices.index', [
-            'status' => 'unpaid',
-            'invoices' => $invoices
+            'status'    => 'unpaid',
+            'invoices'  => $invoices,
+            'customers' => collect(),
         ]);
     }
 
