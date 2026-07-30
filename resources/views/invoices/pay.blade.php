@@ -93,7 +93,7 @@
             <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
                 <i class="fas fa-coins text-green-600 mr-2"></i>Record New Payment
             </h3>
-            <form method="POST" action="{{ route('invoices.pay', $invoice->id) }}" class="space-y-6">
+            <form id="paymentForm" method="POST" action="{{ route('invoices.pay', $invoice->id) }}" class="space-y-6">
                 @csrf
                 
                 <!-- Payment Mode Selector -->
@@ -226,26 +226,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.querySelector('form').addEventListener('submit', function(e) {
-        const checkedRadio = document.querySelector('input[name="payment_type"]:checked');
-        if (checkedRadio.value === 'full') {
-            if (fullAmountInput) fullAmountInput.value = outstanding;
-        } else if (partialInput) {
-            if (fullAmountInput) fullAmountInput.value = '';
-        }
+    const paymentForm = document.getElementById('paymentForm');
+    if (paymentForm) {
+        paymentForm.addEventListener('submit', function(e) {
+            const checkedRadio = document.querySelector('input[name="payment_type"]:checked');
+            if (checkedRadio.value === 'full') {
+                if (fullAmountInput) fullAmountInput.value = outstanding;
+            } else if (partialInput) {
+                if (fullAmountInput) fullAmountInput.value = '';
+            }
 
-        // Show spinner & disable button
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = document.getElementById('btnText');
-        const btnSpinner = document.getElementById('btnSpinner');
-        if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-            submitBtn.classList.add('bg-green-400', 'cursor-not-allowed');
-            if (btnSpinner) btnSpinner.classList.remove('hidden');
-            if (btnText) btnText.textContent = 'Processing...';
-        }
-    });
+            // Show spinner & disable button
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            if (submitBtn) {
+                submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                submitBtn.classList.add('bg-green-400', 'cursor-not-allowed', 'pointer-events-none');
+                if (btnSpinner) btnSpinner.classList.remove('hidden');
+                if (btnText) btnText.textContent = 'Processing...';
+                
+                setTimeout(() => {
+                    submitBtn.disabled = true;
+                }, 10);
+            }
+        });
+    }
 
     if (partialInput) {
         partialInput.addEventListener('input', updateLiveBalance);
