@@ -555,7 +555,7 @@
 <div class="table-card" style="margin-bottom: 32px;">
   <div class="table-card-header">
     <h3 class="table-card-title">
-      <i class="fas fa-user-secret"></i> Administrator Activity Log
+      <i class="fas fa-user-secret"></i> Administrator Logins
     </h3>
   </div>
   <div style="overflow-x: auto;">
