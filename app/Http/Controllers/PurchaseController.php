@@ -94,6 +94,7 @@ class PurchaseController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity'   => 'required|numeric|min:0.01',
             'items.*.unit_cost'  => 'required|numeric|min:0',
+            'items.*.has_vat'    => 'nullable|boolean',
         ]);
 
         DB::beginTransaction();
@@ -108,11 +109,10 @@ class PurchaseController extends Controller
             $subtotal = 0;
             $taxAmount = 0;
             foreach ($validated['items'] as $item) {
-                $product = \App\Models\Product::find($item['product_id']);
                 $lineTotal = $item['quantity'] * $item['unit_cost'];
                 $subtotal += $lineTotal;
 
-                if ($product && (bool) ($product->requires_vat ?? false)) {
+                if (!empty($item['has_vat']) && $item['has_vat'] == 1) {
                     $taxAmount += $lineTotal * 0.18;
                 }
             }

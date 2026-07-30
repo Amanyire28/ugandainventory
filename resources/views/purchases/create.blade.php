@@ -619,20 +619,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             </div>
 
-            <div style="display:flex;justify-content:flex-end;margin-top:0.625rem;align-items:center;gap:0.5rem">
-                <span style="font-size:.75rem;color:#6b7280;font-weight:600">Line Total:</span>
-                <span class="line-total-badge line-total">UGX 0</span>
+            <div style="display:flex;justify-content:space-between;margin-top:0.625rem;align-items:center;">
+                <div style="display:flex; align-items:center; gap:0.5rem">
+                    <input type="checkbox" name="items[${idx}][has_vat]" value="1" class="vat-toggle" id="vat_${idx}">
+                    <label for="vat_${idx}" style="font-size:0.8rem; font-weight:600; color:#4b5563; cursor:pointer;">Apply 18% VAT</label>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.5rem">
+                    <span style="font-size:.75rem;color:#6b7280;font-weight:600">Line Total:</span>
+                    <span class="line-total-badge line-total">UGX 0</span>
+                </div>
             </div>`;
 
         container.appendChild(card);
         emptyState.classList.add('hidden');
 
-        // Event: product change → auto-fill cost
+        // Event: product change → auto-fill cost and VAT default
         card.querySelector('.product-select').addEventListener('change', function () {
             const opt = this.options[this.selectedIndex];
             const costInput = card.querySelector('.cost-input');
+            const vatToggle = card.querySelector('.vat-toggle');
             if (opt.dataset.cost && parseFloat(opt.dataset.cost) > 0) {
                 costInput.value = parseFloat(opt.dataset.cost);
+            }
+            if (opt.dataset.vat) {
+                vatToggle.checked = (opt.dataset.vat === 'true' || opt.dataset.vat === '1');
             }
             // Update label
             const label = card.querySelector('.item-num + div');
@@ -643,6 +653,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         card.querySelector('.qty-input').addEventListener('input', () => { recalcRow(card); recalcTotals(); });
         card.querySelector('.cost-input').addEventListener('input', () => { recalcRow(card); recalcTotals(); });
+        card.querySelector('.vat-toggle').addEventListener('change', () => { recalcRow(card); recalcTotals(); });
 
         card.querySelector('.remove-row').addEventListener('click', () => {
             card.style.opacity = '0';
@@ -673,8 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const qty  = parseFloat(card.querySelector('.qty-input').value)  || 0;
         const cost = parseFloat(card.querySelector('.cost-input').value) || 0;
         const total = qty * cost;
-        const select = card.querySelector('.product-select');
-        const isVat = select.options[select.selectedIndex]?.dataset.vat === 'true';
+        const isVat = card.querySelector('.vat-toggle').checked;
         card.dataset.lineTotal = total;
         card.dataset.lineVat = isVat ? (total * 0.18) : 0;
         card.querySelector('.line-total').textContent = 'UGX ' + fmt(total);
