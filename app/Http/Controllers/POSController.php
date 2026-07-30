@@ -98,7 +98,6 @@ class POSController extends Controller
             'items.*.quantity' => ['required', 'numeric', 'min:0.01'],
             'items.*.price' => ['required', 'numeric', 'min:0'],
             'discount' => ['nullable', 'numeric', 'min:0'],
-            'add_tax' => ['nullable', 'boolean'],
             'amount_paid' => ['required', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:500'],
         ];
@@ -158,11 +157,8 @@ class POSController extends Controller
 
             $discount = $validated['discount'] ?? 0;
             
-            // Tax calculation (Per-item VAT or manual tax)
+            // Tax calculation (Per-item VAT only)
             $taxAmount = $autoVat;
-            if ($taxAmount == 0 && isset($validated['add_tax']) && $validated['add_tax'] == true) {
-                $taxAmount = max(0, ($subtotal - $discount) * 0.18);
-            }
             
             $total = $subtotal - $discount + $taxAmount;
 

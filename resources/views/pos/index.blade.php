@@ -910,7 +910,6 @@ async function processSale() {
                 price: item.price
             })),
             discount: parseFloat(document.getElementById('discountAmount').value) || 0,
-            add_tax: true,
             notes: document.getElementById('saleNotes').value || null,
             _token: '{{ csrf_token() }}',
             payment_type: paymentType
