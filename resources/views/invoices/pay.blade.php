@@ -242,13 +242,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const btnSpinner = document.getElementById('btnSpinner');
             if (submitBtn) {
                 submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                submitBtn.classList.add('bg-green-400', 'cursor-not-allowed', 'pointer-events-none');
+                submitBtn.classList.add('bg-green-700', 'pointer-events-none');
                 if (btnSpinner) btnSpinner.classList.remove('hidden');
                 if (btnText) btnText.textContent = 'Processing...';
-                
-                setTimeout(() => {
-                    submitBtn.disabled = true;
-                }, 10);
             }
         });
     }

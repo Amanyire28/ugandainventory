@@ -291,9 +291,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const spinner = document.getElementById('cashierSpinner');
             const text = document.getElementById('cashierBtnText');
             if (btn) {
-                btn.disabled = true;
                 btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                btn.classList.add('bg-green-400', 'cursor-not-allowed');
+                btn.classList.add('bg-green-700', 'pointer-events-none');
                 if (spinner) spinner.classList.remove('hidden');
                 if (text) text.innerHTML = 'Processing...';
             }
