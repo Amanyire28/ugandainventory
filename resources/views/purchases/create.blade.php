@@ -215,9 +215,13 @@
         z-index: 50;
         box-shadow: 0 -4px 20px rgba(79,70,229,.3);
     }
+    .summary-panel {
+        display: block;
+    }
     @media (max-width: 1023px) {
         .mobile-total-bar { display: flex; align-items: center; justify-content: space-between; }
         .po-page { padding-bottom: 5rem; }
+        .summary-panel { display: none !important; }
     }
 
     /* Add item button */
@@ -411,7 +415,7 @@
                 </div>
 
                 {{-- Summary (desktop sticky) --}}
-                <div class="summary-panel hidden lg:block">
+                <div class="summary-panel">
                     <div class="summary-gradient">
                         <div class="flex items-center gap-2 mb-4">
                             <i class="fas fa-receipt text-indigo-200"></i>
@@ -487,14 +491,6 @@
                         </button>
                     </div>
                 </div>
-
-                {{-- Desktop Bottom Save Button (Duplicate for better UX) --}}
-                <div class="hidden lg:flex justify-end mt-6">
-                    <button type="submit" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 transform active:scale-95" onclick="document.getElementById('submitBtn').click(); event.preventDefault();">
-                        <i class="fas fa-check-circle"></i>
-                        Save Purchase
-                    </button>
-                </div>
             </div>
 
         </div><!-- /main grid -->
@@ -503,7 +499,7 @@
 </div>
 
 {{-- Mobile sticky total bar --}}
-<div class="mobile-total-bar lg:hidden">
+<div class="mobile-total-bar">
     <div>
         <div class="text-white/70 text-xs font-semibold">Grand Total</div>
         <div class="text-yellow-300 font-black text-lg" id="mobileSummaryTotal">UGX 0</div>
