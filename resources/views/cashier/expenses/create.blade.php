@@ -8,7 +8,7 @@
   @endif
 
   <div class="card p-6">
-    <form method="POST" action="{{ route('cashier.expenses.store') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form id="cashierExpenseForm" method="POST" action="{{ route('cashier.expenses.store') }}" class="grid grid-cols-1 md:grid-cols-2 gap-4">
       @csrf
       <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700">Spent By</label>
@@ -35,11 +35,36 @@
         <textarea name="notes" class="mt-1 w-full border rounded p-2" rows="3">{{ old('notes') }}</textarea>
         @error('notes')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
       </div>
-
+ 
       <div class="md:col-span-2 flex items-center justify-end gap-2">
-        <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded">Save Expense</button>
+        <button type="submit" id="cashierSubmitBtn" class="px-4 py-2 bg-indigo-600 text-white rounded flex items-center justify-center">
+            <svg id="cashierSpinner" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span id="cashierBtnText">Save Expense</span>
+        </button>
         <a href="{{ route('cashier.expenses.my') }}" class="px-4 py-2 bg-gray-100 text-gray-800 rounded">Cancel</a>
       </div>
     </form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('cashierExpenseForm');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const btn = document.getElementById('cashierSubmitBtn');
+            const spinner = document.getElementById('cashierSpinner');
+            const text = document.getElementById('cashierBtnText');
+            if (btn) {
+                btn.style.setProperty('background-color', '#4338ca', 'important');
+                btn.style.setProperty('color', '#ffffff', 'important');
+                btn.classList.add('pointer-events-none');
+                if (spinner) spinner.classList.remove('hidden');
+                if (text) text.textContent = 'Saving...';
+            }
+        });
+    }
+});
+</script>
   </div>
 @endsection
