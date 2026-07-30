@@ -467,6 +467,27 @@
                     </a>
                 @endif
 
+                <!-- Purchases Accordion -->
+                <div class="accordion-group">
+                    <div onclick="toggleAccordion(event, 'purchases')" class="accordion-header flex items-center justify-between space-x-3 p-3 rounded-lg {{ request()->routeIs('purchases.*') ? 'bg-indigo-700' : '' }} sidebar-icon-only">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-shopping-bag text-lg flex-shrink-0"></i>
+                            <span class="sidebar-text">Purchases</span>
+                        </div>
+                        <i class="fas fa-chevron-down accordion-icon text-xs sidebar-text {{ request()->routeIs('purchases.*') ? '' : 'collapsed' }}"></i>
+                    </div>
+                    <div id="purchases" class="accordion-content {{ request()->routeIs('purchases.*') ? '' : 'collapsed' }} space-y-1">
+                        <a href="{{ route('purchases.create') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('purchases.create') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                            <i class="fas fa-plus text-sm flex-shrink-0"></i>
+                            <span class="sidebar-text">Record Purchase</span>
+                        </a>
+                        <a href="{{ route('purchases.index') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg {{ request()->routeIs('purchases.index') ? 'bg-indigo-800' : 'hover:bg-indigo-800' }}">
+                            <i class="fas fa-list text-sm flex-shrink-0"></i>
+                            <span class="sidebar-text">All Purchases</span>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Expenses Accordion -->
                 @if(auth()->user()->business->hasFeature('expenses'))
                     <div class="accordion-group">

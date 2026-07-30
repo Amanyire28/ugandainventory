@@ -266,7 +266,13 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     // ========================================
     // PURCHASES (Role checked in controller)
     // ========================================
-    //Route::resource('purchases', PurchaseController::class);
+    Route::prefix('purchases')->name('purchases.')->group(function () {
+        Route::get('/',          [PurchaseController::class, 'index'])->name('index');
+        Route::get('/create',    [PurchaseController::class, 'create'])->name('create');
+        Route::post('/',         [PurchaseController::class, 'store'])->name('store');
+        Route::get('/{purchase}', [PurchaseController::class, 'show'])->name('show');
+        Route::delete('/{purchase}', [PurchaseController::class, 'destroy'])->name('destroy');
+    });
 
     // ========================================
     // CASHIER ROUTES (Isolated System)
