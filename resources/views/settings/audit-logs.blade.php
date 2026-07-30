@@ -10,6 +10,60 @@
 @endsection
 
 @section('content')
+@php
+    $formatLog = function($action, $values) {
+        if (!$values) {
+            return '-';
+        }
+        if (!is_array($values)) {
+            return $values;
+        }
+
+        // 1. For sales/invoices/payments/transfers
+        if (str_contains($action, 'sale') || str_contains($action, 'invoice') || str_contains($action, 'payment') || str_contains($action, 'transfer')) {
+            $total = $values['total'] ?? $values['amount'] ?? $values['subtotal'] ?? null;
+            $ref = $values['sale_number'] ?? $values['invoice_number'] ?? $values['transfer_number'] ?? $values['reference'] ?? null;
+            $method = $values['payment_method'] ?? null;
+            
+            $parts = [];
+            if ($total !== null) $parts[] = 'Total: UGX ' . number_format($total, 0);
+            if ($method) $parts[] = '(' . ucfirst($method) . ')';
+            if ($ref) $parts[] = '[' . $ref . ']';
+            
+            return count($parts) > 0 ? implode(' ', $parts) : '-';
+        }
+
+        // 2. For price adjustment
+        if (str_contains($action, 'price') || str_contains($action, 'rate')) {
+            $price = $values['selling_price'] ?? $values['cost_price'] ?? null;
+            if ($price !== null) {
+                return 'Price: UGX ' . number_format($price, 0);
+            }
+        }
+
+        // 3. For stock adjustment/reconciliation/transfers (quantity)
+        if (str_contains($action, 'stock') || str_contains($action, 'quantity') || str_contains($action, 'reconciliation')) {
+            $qty = $values['quantity'] ?? $values['qty'] ?? null;
+            if ($qty !== null) {
+                return 'Qty: ' . number_format($qty, 0);
+            }
+        }
+
+        // 4. Default fallback: show top 2 attributes as a single line
+        $parts = [];
+        $ignored = ['business_id', 'location_id', 'user_id', 'id', 'created_at', 'updated_at', 'role_id', 'slug', 'image', 'is_system_role', 'password', 'remember_token', 'email_verified_at', 'business_category_id'];
+        foreach ($values as $k => $v) {
+            if (in_array($k, $ignored) || is_null($v) || is_array($v) || is_object($v)) continue;
+            if (is_numeric($v) && (str_contains($k, 'price') || str_contains($k, 'total') || str_contains($k, 'amount') || str_contains($k, 'discount') || str_contains($k, 'debit') || str_contains($k, 'credit') || str_contains($k, 'balance'))) {
+                $v = 'UGX ' . number_format($v, 0);
+            }
+            $parts[] = ucwords(str_replace('_', ' ', $k)) . ': ' . $v;
+            if (count($parts) >= 2) break;
+        }
+        return count($parts) > 0 ? implode(', ', $parts) : '-';
+    };
+@endphp
+
 <div class="bg-white rounded-xl shadow-lg p-6">
     <div class="flex justify-between items-center mb-6">
         <div>
@@ -61,57 +115,11 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
                             {{ $log->model_id ?? '-' }}
                         </td>
-                        <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
-                            @if(is_array($log->old_values))
-                                @php
-                                    $ignoredKeys = ['business_id', 'location_id', 'user_id', 'id', 'created_at', 'updated_at', 'role_id', 'password', 'remember_token', 'email_verified_at', 'business_category_id', 'slug', 'image', 'is_system_role'];
-                                @endphp
-                                <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
-                                    @foreach($log->old_values as $key => $val)
-                                        @if(in_array($key, $ignoredKeys) || is_null($val)) @continue @endif
-                                        <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
-                                            <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
-                                            <span class="text-gray-800 font-bold">
-                                                @if(is_numeric($val) && (str_contains($key, 'price') || str_contains($key, 'total') || str_contains($key, 'amount') || str_contains($key, 'discount') || str_contains($key, 'debit') || str_contains($key, 'credit') || str_contains($key, 'balance')))
-                                                    UGX {{ number_format($val, 0) }}
-                                                @else
-                                                    {{ is_array($val) ? json_encode($val) : $val }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @elseif($log->old_values)
-                                <span class="text-gray-700 font-mono">{{ $log->old_values }}</span>
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
+                        <td class="px-6 py-4 text-sm text-gray-700 font-mono whitespace-nowrap">
+                            {{ $formatLog($log->action, $log->old_values) }}
                         </td>
-                        <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
-                            @if(is_array($log->new_values))
-                                @php
-                                    $ignoredKeys = ['business_id', 'location_id', 'user_id', 'id', 'created_at', 'updated_at', 'role_id', 'password', 'remember_token', 'email_verified_at', 'business_category_id', 'slug', 'image', 'is_system_role'];
-                                @endphp
-                                <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
-                                    @foreach($log->new_values as $key => $val)
-                                        @if(in_array($key, $ignoredKeys) || is_null($val)) @continue @endif
-                                        <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
-                                            <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
-                                            <span class="text-gray-800 font-bold">
-                                                @if(is_numeric($val) && (str_contains($key, 'price') || str_contains($key, 'total') || str_contains($key, 'amount') || str_contains($key, 'discount') || str_contains($key, 'debit') || str_contains($key, 'credit') || str_contains($key, 'balance')))
-                                                    UGX {{ number_format($val, 0) }}
-                                                @else
-                                                    {{ is_array($val) ? json_encode($val) : $val }}
-                                                @endif
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @elseif($log->new_values)
-                                <span class="text-gray-700 font-mono">{{ $log->new_values }}</span>
-                            @else
-                                <span class="text-gray-400">-</span>
-                            @endif
+                        <td class="px-6 py-4 text-sm text-gray-900 font-semibold font-mono whitespace-nowrap">
+                            {{ $formatLog($log->action, $log->new_values) }}
                         </td>
                     </tr>
                 @empty
