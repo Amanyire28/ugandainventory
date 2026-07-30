@@ -63,11 +63,21 @@
                         </td>
                         <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
                             @if(is_array($log->old_values))
+                                @php
+                                    $ignoredKeys = ['business_id', 'location_id', 'user_id', 'id', 'created_at', 'updated_at', 'role_id', 'password', 'remember_token', 'email_verified_at', 'business_category_id', 'slug', 'image', 'is_system_role'];
+                                @endphp
                                 <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
                                     @foreach($log->old_values as $key => $val)
+                                        @if(in_array($key, $ignoredKeys) || is_null($val)) @continue @endif
                                         <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
                                             <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
-                                            <span class="text-gray-800 font-bold">{{ is_array($val) ? json_encode($val) : $val }}</span>
+                                            <span class="text-gray-800 font-bold">
+                                                @if(is_numeric($val) && (str_contains($key, 'price') || str_contains($key, 'total') || str_contains($key, 'amount') || str_contains($key, 'discount') || str_contains($key, 'debit') || str_contains($key, 'credit') || str_contains($key, 'balance')))
+                                                    UGX {{ number_format($val, 0) }}
+                                                @else
+                                                    {{ is_array($val) ? json_encode($val) : $val }}
+                                                @endif
+                                            </span>
                                         </div>
                                     @endforeach
                                 </div>
@@ -79,11 +89,21 @@
                         </td>
                         <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">
                             @if(is_array($log->new_values))
+                                @php
+                                    $ignoredKeys = ['business_id', 'location_id', 'user_id', 'id', 'created_at', 'updated_at', 'role_id', 'password', 'remember_token', 'email_verified_at', 'business_category_id', 'slug', 'image', 'is_system_role'];
+                                @endphp
                                 <div class="space-y-1 font-mono text-[10px] max-h-32 overflow-y-auto bg-gray-50 p-2 rounded border border-gray-100">
                                     @foreach($log->new_values as $key => $val)
+                                        @if(in_array($key, $ignoredKeys) || is_null($val)) @continue @endif
                                         <div class="flex justify-between py-0.5 border-b border-gray-100 last:border-0">
                                             <span class="text-gray-400 font-semibold uppercase tracking-wider mr-2">{{ str_replace('_', ' ', $key) }}:</span>
-                                            <span class="text-gray-800 font-bold">{{ is_array($val) ? json_encode($val) : $val }}</span>
+                                            <span class="text-gray-800 font-bold">
+                                                @if(is_numeric($val) && (str_contains($key, 'price') || str_contains($key, 'total') || str_contains($key, 'amount') || str_contains($key, 'discount') || str_contains($key, 'debit') || str_contains($key, 'credit') || str_contains($key, 'balance')))
+                                                    UGX {{ number_format($val, 0) }}
+                                                @else
+                                                    {{ is_array($val) ? json_encode($val) : $val }}
+                                                @endif
+                                            </span>
                                         </div>
                                     @endforeach
                                 </div>
