@@ -241,8 +241,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
             if (submitBtn) {
-                submitBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                submitBtn.classList.add('bg-green-700', 'pointer-events-none');
+                submitBtn.style.setProperty('background-color', '#15803d', 'important');
+                submitBtn.style.setProperty('color', '#ffffff', 'important');
+                submitBtn.classList.add('pointer-events-none');
                 if (btnSpinner) btnSpinner.classList.remove('hidden');
                 if (btnText) btnText.textContent = 'Processing...';
             }
