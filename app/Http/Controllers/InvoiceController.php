@@ -519,8 +519,11 @@ public function pay(Request $request, $id)
 
     // Log Payment Audit
     \App\Models\AuditLog::log('invoice_payment', Invoice::class, $invoice->id, null, [
-        'amount_paid' => $amountToPay,
-        'invoice_status' => $newStatus,
+        'invoice_number'  => $invoice->invoice_number,
+        'amount_paid'     => $amountToPay,
+        'invoice_status'  => $newStatus,
+        'payment_method'  => 'Cash',
+        'total'           => $amountToPay,
     ]);
 
     // ========== ADDED CODE: fetch the latest payment for this invoice ==========

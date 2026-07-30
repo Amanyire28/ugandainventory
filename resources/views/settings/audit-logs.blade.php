@@ -29,6 +29,12 @@
             $ref = $old['sale_number'] ?? $old['invoice_number'] ?? $old['transfer_number'] ?? $old['name'] ?? $old['sku'] ?? '-';
         }
 
+        if ($ref === '-') {
+            if ($log->model && $log->model_id) {
+                $ref = class_basename($log->model) . ' #' . $log->model_id;
+            }
+        }
+
         // 2. Resolve Amount & Payment Method for transactions
         if (str_contains($action, 'sale') || str_contains($action, 'invoice') || str_contains($action, 'payment')) {
             $valArray = is_array($new) ? $new : (is_array($old) ? $old : []);
@@ -36,9 +42,13 @@
                 $amount = 'UGX ' . number_format($valArray['total'], 0);
             } elseif (isset($valArray['amount'])) {
                 $amount = 'UGX ' . number_format($valArray['amount'], 0);
+            } elseif (isset($valArray['amount_paid'])) {
+                $amount = 'UGX ' . number_format($valArray['amount_paid'], 0);
             }
             if (isset($valArray['payment_method'])) {
                 $method = ucfirst($valArray['payment_method']);
+            } else {
+                $method = 'Cash'; // default to Cash
             }
         }
 
@@ -76,6 +86,8 @@
             $oldVal = '-';
             if (isset($new['status'])) {
                 $newVal = ucfirst($new['status']);
+            } elseif (isset($new['invoice_status'])) {
+                $newVal = ucfirst($new['invoice_status']);
             } elseif (isset($new['is_active'])) {
                 $newVal = $new['is_active'] ? 'Active' : 'Inactive';
             } elseif (isset($new['selling_price'])) {
