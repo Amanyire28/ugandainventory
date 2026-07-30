@@ -13,14 +13,14 @@
         background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 2rem;
     }
     .table-card {
-        background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden;
+        background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow-x: auto; width: 100%;
     }
-    table { width: 100%; border-collapse: collapse; }
+    table { width: 100%; min-width: 100%; border-collapse: collapse; table-layout: fixed; }
     th {
         background: #f8fafc; padding: 1rem 1.5rem; text-align: left; font-size: 0.75rem; font-weight: 700;
         text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; border-bottom: 1px solid #e2e8f0;
     }
-    td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.875rem; vertical-align: top; }
+    td { padding: 1rem 1.5rem; border-bottom: 1px solid #f1f5f9; color: #334155; font-size: 0.875rem; vertical-align: top; word-wrap: break-word; word-break: break-word; }
     tr:last-child td { border-bottom: none; }
     tr:hover { background: #f8fafc; }
     .badge {
@@ -32,6 +32,50 @@
     .details-pre {
         background: #f8fafc; padding: 0.5rem; border-radius: 6px; font-size: 0.75rem; color: #475569; margin: 0;
         white-space: pre-wrap; font-family: monospace; border: 1px solid #e2e8f0; max-height: 100px; overflow-y: auto;
+    }
+    .diff-table {
+        width: 100%; border-collapse: collapse; font-size: 0.75rem; border-radius: 6px; overflow: hidden; border: 1px solid #e2e8f0;
+    }
+    .diff-table th {
+        background: #f1f5f9; padding: 6px 10px; font-weight: 600; color: #475569; text-transform: none; letter-spacing: normal;
+    }
+    .diff-table td {
+        padding: 6px 10px; border-bottom: 1px solid #e2e8f0; color: #334155; font-family: monospace;
+        word-break: break-all;
+    }
+    .diff-table tr:last-child td { border-bottom: none; }
+    .diff-value-old { background: #fee2e2; color: #991b1b; }
+    .diff-value-new { background: #dcfce7; color: #166534; }
+    .diff-value-none { color: #94a3b8; font-style: italic; }
+    .details-toggle {
+        cursor: pointer;
+        padding: 0.5rem 0.75rem;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        color: #4f46e5;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        user-select: none;
+        transition: background 0.2s;
+    }
+    .details-toggle:hover { background: #f1f5f9; }
+    
+    .expandable-row {
+        display: none;
+        background: #fcfcfc;
+    }
+    .expandable-row.open {
+        display: table-row;
+    }
+    .diff-container {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.02);
     }
 </style>
 @endpush
@@ -67,14 +111,14 @@
 </div>
 
 <div class="table-card">
-    <table>
+    <table style="width: 100%; table-layout: fixed;">
         <thead>
             <tr>
-                <th>Timestamp</th>
-                <th>Actor</th>
-                <th>Action</th>
-                <th>Model Affected</th>
-                <th style="width: 30%">Details / Changes</th>
+                <th style="width: 15%">Timestamp</th>
+                <th style="width: 25%">Actor</th>
+                <th style="width: 15%">Action</th>
+                <th style="width: 25%">Model Affected</th>
+                <th style="width: 20%">Details / Changes</th>
             </tr>
         </thead>
         <tbody>
@@ -111,11 +155,60 @@
                     </td>
                     <td>
                         @if(!empty($log->new_values) || !empty($log->old_values))
-                            <pre class="details-pre">@if(!empty($log->new_values))NEW: {{ json_encode($log->new_values, JSON_PRETTY_PRINT) }}
-@endif
-@if(!empty($log->old_values))OLD: {{ json_encode($log->old_values, JSON_PRETTY_PRINT) }}@endif</pre>
+                            @php
+                                $oldVals = is_array($log->old_values) ? $log->old_values : [];
+                                $newVals = is_array($log->new_values) ? $log->new_values : [];
+                                
+                                $allKeys = [];
+                                $ignored = ['id', 'created_at', 'updated_at', 'deleted_at', 'password', 'remember_token'];
+                                
+                                if (!empty($oldVals) && !empty($newVals)) {
+                                    // Update action: only show what changed
+                                    foreach ($newVals as $k => $v) {
+                                        if (!in_array($k, $ignored) && (!array_key_exists($k, $oldVals) || $oldVals[$k] != $v)) {
+                                            $allKeys[] = $k;
+                                        }
+                                    }
+                                } else {
+                                    // Create or Delete action: show all non-ignored fields
+                                    $rawKeys = array_unique(array_merge(array_keys($oldVals), array_keys($newVals)));
+                                    $allKeys = array_filter($rawKeys, fn($k) => !in_array($k, $ignored));
+                                }
+                                sort($allKeys);
+                            @endphp
+                            <button type="button" class="details-toggle" onclick="var r = document.getElementById('details-{{ $log->id }}'); r.style.display = (r.style.display === 'none' || r.style.display === '') ? 'block' : 'none';">
+                                <i class="fas fa-list-ul"></i> View {{ count($allKeys) }} Changes
+                            </button>
+                            
+                            <div id="details-{{ $log->id }}" style="display: none; margin-top: 0.5rem; background: #f8fafc; border-radius: 6px; padding: 0.5rem; border: 1px solid #e2e8f0; max-height: 250px; overflow-y: auto;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 0.75rem; font-family: monospace;">
+                                    @foreach($allKeys as $key)
+                                        <tr>
+                                            <td style="padding: 4px; font-weight: 600; color: #475569; width: 40%; vertical-align: top;">{{ $key }}</td>
+                                            <td style="padding: 4px; vertical-align: top; word-break: break-all;">
+                                                @php 
+                                                    $hasOld = array_key_exists($key, $oldVals);
+                                                    $hasNew = array_key_exists($key, $newVals);
+                                                    $oVal = $hasOld ? (is_array($oldVals[$key]) ? json_encode($oldVals[$key]) : (string)$oldVals[$key]) : 'null';
+                                                    $nVal = $hasNew ? (is_array($newVals[$key]) ? json_encode($newVals[$key]) : (string)$newVals[$key]) : 'null';
+                                                @endphp
+
+                                                @if(!empty($oldVals) && !empty($newVals))
+                                                    <span class="diff-value-old" style="padding: 2px 4px; border-radius: 4px;">{{ $oVal }}</span>
+                                                    <i class="fas fa-arrow-right" style="color: #94a3b8; font-size: 0.6rem; margin: 0 4px;"></i>
+                                                    <span class="diff-value-new" style="padding: 2px 4px; border-radius: 4px;">{{ $nVal }}</span>
+                                                @elseif(!empty($newVals))
+                                                    <span class="diff-value-new" style="padding: 2px 4px; border-radius: 4px;">{{ $nVal }}</span>
+                                                @elseif(!empty($oldVals))
+                                                    <span class="diff-value-old" style="padding: 2px 4px; border-radius: 4px;">{{ $oVal }}</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </table>
+                            </div>
                         @else
-                            <span style="color: #94a3b8; font-size: 0.75rem;">No detailed changes recorded.</span>
+                            <span style="color: #94a3b8; font-size: 0.75rem;">No detailed changes.</span>
                         @endif
                     </td>
                 </tr>
@@ -136,4 +229,5 @@
         </div>
     @endif
 </div>
+
 @endsection

@@ -77,12 +77,6 @@
                 </div>
             </div>
 
-            <!-- Product Image -->
-            <div class="mb-4">
-                <img src="{{ $product->image_url }}" 
-                     alt="{{ $product->name }}" 
-                     class="w-full h-40 object-cover rounded-lg">
-            </div>
 
             <!-- Product Info -->
             <h4 class="font-bold text-lg text-gray-900 mb-2">{{ $product->name }}</h4>
@@ -135,14 +129,9 @@
                             </span>
                         </td>
                         <td class="px-4 py-3">
-                            <div class="flex items-center">
-                                <img src="{{ $product->image_url }}" 
-                                     alt="{{ $product->name }}" 
-                                     class="w-10 h-10 rounded object-cover mr-3">
-                                <div>
-                                    <p class="font-semibold text-gray-900">{{ $product->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $product->sku }}</p>
-                                </div>
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ $product->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $product->sku }}</p>
                             </div>
                         </td>
                         <td class="px-4 py-3 text-sm text-gray-600">{{ $product->category->name ?? 'N/A' }}</td>
