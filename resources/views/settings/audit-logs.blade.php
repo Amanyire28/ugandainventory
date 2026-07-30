@@ -61,18 +61,18 @@
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
                             {{ $log->model_id ?? '-' }}
                         </td>
-                        <td class="px-6 py-4 text-xs font-mono text-gray-600 max-w-xs truncate" title="{{ json_encode($log->old_values) }}">
+                        <td class="px-6 py-4 text-xs text-gray-600 max-w-md">
                             @if($log->old_values)
-                                <code class="bg-gray-50 p-1 rounded block overflow-hidden text-ellipsis">{{ json_encode($log->old_values) }}</code>
+                                <pre class="bg-gray-50 p-2 rounded block whitespace-pre-wrap break-all max-h-32 overflow-y-auto font-mono text-[10px] leading-relaxed border border-gray-100">{{ json_encode($log->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
                             @else
-                                -
+                                <span class="text-gray-400">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-xs font-mono text-gray-600 max-w-xs truncate" title="{{ json_encode($log->new_values) }}">
+                        <td class="px-6 py-4 text-xs text-gray-600 max-w-md">
                             @if($log->new_values)
-                                <code class="bg-gray-50 p-1 rounded block overflow-hidden text-ellipsis">{{ json_encode($log->new_values) }}</code>
+                                <pre class="bg-gray-50 p-2 rounded block whitespace-pre-wrap break-all max-h-32 overflow-y-auto font-mono text-[10px] leading-relaxed border border-gray-100">{{ json_encode($log->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) }}</pre>
                             @else
-                                -
+                                <span class="text-gray-400">-</span>
                             @endif
                         </td>
                     </tr>
