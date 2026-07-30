@@ -487,6 +487,14 @@
                         </button>
                     </div>
                 </div>
+
+                {{-- Desktop Bottom Save Button (Duplicate for better UX) --}}
+                <div class="hidden lg:flex justify-end mt-6">
+                    <button type="submit" class="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black text-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 transform active:scale-95" onclick="document.getElementById('submitBtn').click(); event.preventDefault();">
+                        <i class="fas fa-check-circle"></i>
+                        Save Purchase
+                    </button>
+                </div>
             </div>
 
         </div><!-- /main grid -->
