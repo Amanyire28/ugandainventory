@@ -39,6 +39,16 @@
         </a>
     </div>
 
+    {{-- Audit Traceability Note --}}
+    <div class="mb-4 flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+        <i class="fas fa-info-circle mt-0.5 text-amber-500 flex-shrink-0"></i>
+        <span>
+            <strong>Audit Note:</strong> Voided sales are displayed below for traceability and accountability purposes but are
+            <strong>excluded from all revenue, COGS, gross profit, net profit, and VAT reports</strong>.
+            Their stock has been returned to inventory and any customer balance has been corrected.
+        </span>
+    </div>
+
     <!-- Sales Table -->
     <div class="overflow-x-auto">
         <table class="min-w-full">

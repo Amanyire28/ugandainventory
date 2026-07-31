@@ -76,6 +76,26 @@ class Sale extends Model
     }
 
     // Scopes
+
+    /**
+     * Exclude voided sales from all financial queries.
+     * Use this scope on every revenue, COGS, profit, and report query.
+     */
+    public function scopeNotVoided($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('status')->orWhere('status', '!=', 'voided');
+        });
+    }
+
+    /**
+     * Return only voided sales (for audit / traceability views).
+     */
+    public function scopeVoided($query)
+    {
+        return $query->where('status', 'voided');
+    }
+
     public function scopeToday($query)
     {
         return $query->whereDate('sale_date', today());

@@ -72,7 +72,13 @@ class SaleController extends Controller
         ]);
 
         DB::transaction(function () use ($sale, $validated, $user) {
-            // 1. Mark Sale as Voided
+
+            // ── Capture pre-void state for audit ──────────────────────────────
+            $originalTotal   = $sale->total;
+            $originalTaxAmount = $sale->tax_amount ?? 0;
+            $stockRestored   = [];
+
+            // 1. Mark Sale as Voided ──────────────────────────────────────────
             $sale->update([
                 'status'      => 'voided',
                 'void_reason' => $validated['void_reason'],
@@ -80,50 +86,113 @@ class SaleController extends Controller
                 'voided_by'   => $user->id,
             ]);
 
-            // 2. Restock Product Quantities Back to Inventory
+            // 2. Restock items back to both products.quantity AND inventory table
             $sale->load('items.product');
             foreach ($sale->items as $item) {
                 if ($item->product) {
-                    $item->product->increment('quantity', $item->quantity);
+                    $qty = (float) $item->quantity;
 
+                    // (a) Restore denormalised product total quantity
+                    $item->product->increment('quantity', $qty);
+
+                    // (b) Restore location-aware inventory record
+                    if ($sale->location_id) {
+                        \App\Models\Inventory::getOrCreate(
+                            $sale->business_id,
+                            $item->product_id,
+                            $sale->location_id
+                        )->addStock($qty);
+                    }
+
+                    // (c) Record inventory transaction for traceability
                     \App\Models\InventoryTransaction::create([
-                        'business_id' => $sale->business_id,
-                        'product_id' => $item->product_id,
-                        'transaction_type' => 'ADJUSTMENT',
-                        'quantity_in' => $item->quantity,
-                        'quantity_out' => 0,
-                        'reference_type' => Sale::class,
-                        'reference_id' => $sale->id,
-                        'description' => "Voided Sale #{$sale->sale_number} restock",
-                        'created_by' => $user->id,
+                        'business_id'      => $sale->business_id,
+                        'product_id'       => $item->product_id,
+                        'transaction_type' => 'VOID_RESTOCK',
+                        'quantity_in'      => $qty,
+                        'quantity_out'     => 0,
+                        'reference_type'   => Sale::class,
+                        'reference_id'     => $sale->id,
+                        'description'      => "Void restock — Sale #{$sale->sale_number} reversed",
+                        'created_by'       => $user->id,
+                    ]);
+
+                    $stockRestored[] = [
+                        'product'  => $item->product->name,
+                        'quantity' => $qty,
+                    ];
+                }
+            }
+
+            // 3. Reverse customer balance if sale had a linked customer ────────
+            if ($sale->customer_id) {
+                // Find the original customer transaction for this sale
+                $originalTx = \App\Models\CustomerTransaction::where('sale_id', $sale->id)
+                    ->whereIn('transaction_type', ['SALE', 'INVOICE', 'CREDIT'])
+                    ->orderByDesc('id')
+                    ->first();
+
+                // Determine outstanding amount created by the original sale
+                $originalDebit  = $originalTx ? (float) $originalTx->debit  : $originalTotal;
+                $originalCredit = $originalTx ? (float) $originalTx->credit : 0;
+                $outstandingFromSale = $originalDebit - $originalCredit; // > 0 means customer still owes
+
+                // Get current running balance
+                $prevBal = \App\Models\CustomerTransaction::where('customer_id', $sale->customer_id)
+                    ->orderByDesc('id')
+                    ->value('balance') ?? 0;
+
+                if ($outstandingFromSale > 0) {
+                    // Credit sale or partial payment — reverse the outstanding balance
+                    $newBal = max(0, $prevBal - $outstandingFromSale);
+                    \App\Models\CustomerTransaction::create([
+                        'customer_id'      => $sale->customer_id,
+                        'sale_id'          => $sale->id,
+                        'transaction_type' => 'VOID_REVERSAL',
+                        'debit'            => 0,
+                        'credit'           => $outstandingFromSale,
+                        'balance'          => $newBal,
+                        'notes'            => "Void & Reversal of Sale #{$sale->sale_number} — outstanding balance reduced by UGX " . number_format($outstandingFromSale, 0),
+                    ]);
+                } else {
+                    // Fully-paid cash sale — no outstanding balance was created;
+                    // record a VOID_REFUND note for audit completeness
+                    \App\Models\CustomerTransaction::create([
+                        'customer_id'      => $sale->customer_id,
+                        'sale_id'          => $sale->id,
+                        'transaction_type' => 'VOID_REFUND',
+                        'debit'            => 0,
+                        'credit'           => 0,
+                        'balance'          => $prevBal,
+                        'notes'            => "Cash refund — Void of Sale #{$sale->sale_number} (UGX " . number_format($originalTotal, 0) . " refunded)",
                     ]);
                 }
             }
 
-            // Record Customer Void Transaction
-            if ($sale->customer_id) {
-                $prevBal = \App\Models\CustomerTransaction::where('customer_id', $sale->customer_id)
-                    ->orderBy('id', 'desc')
-                    ->value('balance') ?? 0;
-                \App\Models\CustomerTransaction::create([
-                    'customer_id' => $sale->customer_id,
-                    'sale_id' => $sale->id,
-                    'transaction_type' => 'VOID',
-                    'debit' => 0,
-                    'credit' => 0,
-                    'balance' => $prevBal,
-                    'notes' => "Voided Sale #{$sale->sale_number}",
-                ]);
-            }
-
-            // Audit Log
-            \App\Models\AuditLog::log('void_sale', Sale::class, $sale->id, null, [
-                'sale_number' => $sale->sale_number,
-                'void_reason' => $validated['void_reason'],
-            ]);
+            // 4. Comprehensive Audit Log ────────────────────────────────────────
+            \App\Models\AuditLog::log('void_sale', Sale::class, $sale->id,
+                [
+                    'status'         => 'completed',
+                    'total'          => $originalTotal,
+                    'tax_amount'     => $originalTaxAmount,
+                    'payment_status' => $sale->payment_status,
+                    'payment_method' => $sale->payment_method,
+                ],
+                [
+                    'status'         => 'voided',
+                    'void_reason'    => $validated['void_reason'],
+                    'voided_by'      => $user->name,
+                    'voided_at'      => now()->toDateTimeString(),
+                    'revenue_reversed' => $originalTotal,
+                    'vat_reversed'     => $originalTaxAmount,
+                    'stock_restored'   => $stockRestored,
+                    'sale_number'      => $sale->sale_number,
+                    'customer_id'      => $sale->customer_id,
+                ]
+            );
         });
 
-        return back()->with('success', "Sale #{$sale->sale_number} has been voided successfully. Items have been restored to inventory.");
+        return back()->with('success', "Sale #{$sale->sale_number} has been voided and fully reversed. Revenue, VAT, and stock have been corrected.");
     }
 
     /**
@@ -177,15 +246,16 @@ class SaleController extends Controller
 
         $sales = $query->latest('sale_date')->get();
 
-        // ✅ CALCULATE STATS
-        $totalSales = $sales->count();
-        $totalAmount = $sales->sum('total');
-        $totalItems = $sales->sum(function($sale) {
+        // ✅ CALCULATE STATS — excluding voided sales
+        $totalSales  = $sales->filter(fn($s) => !$s->isVoided())->count();
+        $totalAmount = $sales->filter(fn($s) => !$s->isVoided())->sum('total');
+        $totalItems  = $sales->filter(fn($s) => !$s->isVoided())->sum(function ($sale) {
             return $sale->items->sum('quantity');
         });
 
-        // Hourly breakdown
+        // Hourly breakdown — exclude voided
         $hourlyData = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->when($userRole === 'cashier', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -199,8 +269,9 @@ class SaleController extends Controller
             ->orderBy('hour')
             ->get();
 
-        // Payment method breakdown
+        // Payment method breakdown — exclude voided
         $paymentBreakdown = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->when($userRole === 'cashier', function($q) use ($user) {
                 $q->where('user_id', $user->id);
             })
@@ -243,12 +314,12 @@ class SaleController extends Controller
 
         $sales = $query->latest('sale_date')->get();
 
-        // ✅ CALCULATE STATS
-        $totalSales = $sales->count();
-        $totalAmount = $sales->sum('total');
+        // ✅ CALCULATE STATS — excluding voided sales
+        $totalSales  = $sales->filter(fn($s) => !$s->isVoided())->count();
+        $totalAmount = $sales->filter(fn($s) => !$s->isVoided())->sum('total');
 
-        // Daily breakdown
-        $dailyBreakdown = $sales->groupBy(function($sale) {
+        // Daily breakdown — exclude voided
+        $dailyBreakdown = $sales->filter(fn($s) => !$s->isVoided())->groupBy(function ($sale) {
             return $sale->sale_date->format('Y-m-d');
         })->map(function($daySales) {
             return [
@@ -287,19 +358,19 @@ class SaleController extends Controller
 
         $sales = $query->latest('sale_date')->get();
 
-        // ✅ CALCULATE STATS
-        $totalSales = $sales->count();
-        $totalAmount = $sales->sum('total');
+        // ✅ CALCULATE STATS — excluding voided sales
+        $totalSales  = $sales->filter(fn($s) => !$s->isVoided())->count();
+        $totalAmount = $sales->filter(fn($s) => !$s->isVoided())->sum('total');
 
-        // Weekly breakdown
+        // Weekly breakdown — exclude voided
         $weeklyBreakdown = [];
         for ($i = 0; $i < 5; $i++) {
             $weekStart = now()->startOfMonth()->addWeeks($i);
             $weekEnd = now()->startOfMonth()->addWeeks($i)->endOfWeek();
-            
+
             if ($weekStart->month !== now()->month) continue;
-            
-            $weekSales = $sales->filter(function($sale) use ($weekStart, $weekEnd) {
+
+            $weekSales = $sales->filter(fn($s) => !$s->isVoided())->filter(function ($sale) use ($weekStart, $weekEnd) {
                 return $sale->sale_date->between($weekStart, $weekEnd);
             });
             
@@ -327,6 +398,7 @@ class SaleController extends Controller
         $userRole = $user->role->name;
 
         $query = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereDate('sale_date', today())
             ->with(['customer', 'user', 'items.product']);
 
@@ -352,6 +424,7 @@ class SaleController extends Controller
         $weekEnd = now()->endOfWeek();
 
         $query = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$weekStart, $weekEnd])
             ->with(['customer', 'user', 'items.product']);
 
@@ -377,6 +450,7 @@ class SaleController extends Controller
         $monthEnd = now()->endOfMonth();
 
         $query = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$monthStart, $monthEnd])
             ->with(['customer', 'user', 'items.product']);
 

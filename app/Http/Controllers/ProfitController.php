@@ -34,7 +34,7 @@ class ProfitController extends Controller
         // ALL TIME STATS (For Cards - Initial Load)
         // ==========================================
         
-        $allTimeSalesQuery = Sale::where('business_id', $businessId);
+        $allTimeSalesQuery = Sale::where('business_id', $businessId)->notVoided();
         
         if (! $canViewAll) {
             $allTimeSalesQuery->where('user_id', $user->id);
@@ -45,7 +45,8 @@ class ProfitController extends Controller
         $allTimeCostQuery = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.business_id', $businessId);
+            ->where('sales.business_id', $businessId)
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); });
 
         if (!$canViewAll) {
             $allTimeCostQuery->where('sales.user_id', $user->id);
@@ -68,6 +69,7 @@ class ProfitController extends Controller
         // ==========================================
         
         $salesQuery = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$start, $end]);
 
         if (!$canViewAll) {
@@ -85,7 +87,8 @@ class ProfitController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
-            ->whereBetween('sales.sale_date', [$start, $end]);
+            ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); });
 
         if (!$canViewAll) {
             $costQuery->where('sales.user_id', $user->id);
@@ -140,21 +143,37 @@ class ProfitController extends Controller
         // DAILY PROFIT BREAKDOWN
         // ==========================================
         
-        $dailyProfit = DB::table('sales')
-            ->leftJoin('sale_items', 'sales.id', '=', 'sale_items.sale_id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+        // Daily Revenue Query (no joins to prevent duplicate counting of sales.total)
+        $dailyRevenue = DB::table('sales')
+            ->where('business_id', $businessId)
+            ->whereBetween('sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('status')->orWhere('status', '!=', 'voided'); })
+            ->when(!$canViewAll, fn($q) => $q->where('user_id', $user->id))
+            ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
+            ->select(
+                DB::raw('DATE(sale_date) as date'),
+                DB::raw('SUM(total) as revenue')
+            )
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        // Daily Cost Query
+        $dailyCost = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
                 DB::raw('DATE(sales.sale_date) as date'),
-                DB::raw('SUM(sales.total) as revenue'),
                 DB::raw('SUM(COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity) as cost')
             )
             ->groupBy('date')
-            ->orderBy('date')
-            ->get();
+            ->get()
+            ->keyBy('date');
 
         // Add expenses per day
         $dailyExpenses = Expense::where('business_id', $businessId)
@@ -169,12 +188,21 @@ class ProfitController extends Controller
             ->get()
             ->keyBy('date');
 
-        $dailyProfit = $dailyProfit->map(function($item) use ($dailyExpenses) {
-            $expenses = $dailyExpenses->get($item->date)->expenses ??  0;
-            $item->expenses = $expenses;
-            $item->gross_profit = $item->revenue - $item->cost;
-            $item->profit = $item->gross_profit - $expenses; // Net profit
-            return $item;
+        // Combine daily data
+        $allDates = $dailyRevenue->keys()->merge($dailyCost->keys())->merge($dailyExpenses->keys())->unique()->sort();
+        $dailyProfit = $allDates->map(function($date) use ($dailyRevenue, $dailyCost, $dailyExpenses) {
+            $revenue = (float) ($dailyRevenue->get($date)->revenue ?? 0);
+            $cost = (float) ($dailyCost->get($date)->cost ?? 0);
+            $expenses = (float) ($dailyExpenses->get($date)->expenses ?? 0);
+            
+            return (object)[
+                'date' => $date,
+                'revenue' => $revenue,
+                'cost' => $cost,
+                'expenses' => $expenses,
+                'gross_profit' => $revenue - $cost,
+                'profit' => $revenue - $cost - $expenses
+            ];
         });
 
         // ==========================================
@@ -216,17 +244,32 @@ class ProfitController extends Controller
             ];
         })->keyBy('month');
 
-        // Get revenue and cost per month
-        $monthlySales = DB::table('sales')
-            ->leftJoin('sale_items', 'sales.id', '=', 'sale_items.sale_id')
-            ->leftJoin('products', 'sale_items.product_id', '=', 'products.id')
+        // Get revenue per month (no joins)
+        $monthlySalesRevenue = DB::table('sales')
+            ->where('business_id', $businessId)
+            ->whereBetween('sale_date', [$yearStart, $yearEnd])
+            ->where(function($q) { $q->whereNull('status')->orWhere('status', '!=', 'voided'); })
+            ->when(!$canViewAll, fn($q) => $q->where('user_id', $user->id))
+            ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
+            ->select(
+                DB::raw('MONTH(sale_date) as month'),
+                DB::raw('SUM(total) as revenue')
+            )
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
+        // Get cost per month
+        $monthlySalesCost = DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$yearStart, $yearEnd])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
                 DB::raw('MONTH(sales.sale_date) as month'),
-                DB::raw('SUM(sales.total) as revenue'),
                 DB::raw('SUM(COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity) as cost')
             )
             ->groupBy('month')
@@ -247,15 +290,16 @@ class ProfitController extends Controller
             ->keyBy('month');
 
         // Combine data
-        $monthlyTrend = $monthlyTrend->map(function($item) use ($monthlySales, $monthlyExpensesData) {
-            $sales = $monthlySales->get($item->month);
-            $expenses = $monthlyExpensesData->get($item->month);
+        $monthlyTrend = $monthlyTrend->map(function($item) use ($monthlySalesRevenue, $monthlySalesCost, $monthlyExpensesData) {
+            $revenue = (float) ($monthlySalesRevenue->get($item->month)->revenue ?? 0);
+            $cost = (float) ($monthlySalesCost->get($item->month)->cost ?? 0);
+            $expenses = (float) ($monthlyExpensesData->get($item->month)->expenses ?? 0);
             
-            $item->revenue = $sales->revenue ??  0;
-            $item->cost = $sales->cost ?? 0;
-            $item->expenses = $expenses->expenses ?? 0;
-            $item->gross_profit = $item->revenue - $item->cost;
-            $item->net_profit = $item->gross_profit - $item->expenses;
+            $item->revenue = $revenue;
+            $item->cost = $cost;
+            $item->expenses = $expenses;
+            $item->gross_profit = $revenue - $cost;
+            $item->net_profit = $item->gross_profit - $expenses;
             
             return $item;
         })->values();
@@ -291,6 +335,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
             ->select(
@@ -329,6 +374,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(! $canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
@@ -365,6 +411,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
@@ -401,6 +448,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
             ->select(
@@ -436,6 +484,7 @@ class ProfitController extends Controller
 
         // This Week
         $thisWeekRevenue = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$thisWeekStart, now()])
             ->when(!$canViewAll, fn($q) => $q->where('user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
@@ -446,6 +495,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$thisWeekStart, now()])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
             ->sum(DB::raw('products.cost_price * sale_items.quantity'));
@@ -460,6 +510,7 @@ class ProfitController extends Controller
 
         // Last Week
         $lastWeekRevenue = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$lastWeekStart, $lastWeekEnd])
             ->when(!$canViewAll, fn($q) => $q->where('user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
@@ -470,6 +521,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$lastWeekStart, $lastWeekEnd])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->sum(DB::raw('products.cost_price * sale_items.quantity'));
@@ -494,12 +546,14 @@ class ProfitController extends Controller
         $monthEnd = now()->endOfMonth();
 
         $monthTotalSales = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$monthStart, $monthEnd])
             ->when(! $canViewAll, fn($q) => $q->where('user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
             ->count();
 
         $monthRevenue = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$monthStart, $monthEnd])
             ->when(! $canViewAll, fn($q) => $q->where('user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('user_id', $selectedCashierId))
@@ -510,6 +564,7 @@ class ProfitController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$monthStart, $monthEnd])
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
             ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->sum(DB::raw('products.cost_price * sale_items.quantity'));
@@ -529,6 +584,7 @@ class ProfitController extends Controller
         $cashierPerformance = collect();
         if ($canViewAll && ! $selectedCashierId) {
             $revenues = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereBetween('sale_date', [$start, $end])
                 ->select(
                     'user_id',
@@ -544,6 +600,7 @@ class ProfitController extends Controller
                 ->join('products', 'sale_items.product_id', '=', 'products.id')
                 ->where('sales.business_id', $businessId)
                 ->whereBetween('sales.sale_date', [$start, $end])
+                ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
                 ->select(
                     'sales.user_id',
                     DB::raw('SUM(products.cost_price * sale_items.quantity) as cost')

@@ -4,12 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="app-version" content="{{ config('pwa.version') }}">
+    <link rel="manifest" href="/manifest.json">
     <title>@yield('title', 'Dashboard') - {{ auth()->user()->business->name }}</title>
   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => {
+                        console.log('Service Worker registered:', reg.scope);
+                        
+                        // Initial update check
+                        if (navigator.onLine) {
+                            reg.update().catch(() => {});
+                        }
+                        
+                        // Listen for updates
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            if (newWorker) {
+                                newWorker.addEventListener('statechange', () => {
+                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                        window.dispatchEvent(new CustomEvent('pwa-update-available', { detail: reg }));
+                                    }
+                                });
+                            }
+                        });
+                    })
+                    .catch(err => console.error('Service Worker registration failed:', err));
+            });
+
+            // Listen for reload message from SW
+            navigator.serviceWorker.addEventListener('message', event => {
+                if (event.data && event.data.type === 'VERSION_ACTIVATED') {
+                    localStorage.setItem('pwa_just_updated', 'true');
+                    localStorage.setItem('pwa_active_version', event.data.version);
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -559,6 +600,10 @@
                             <a href="{{ route('reports.top-selling') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
                                 <i class="fas fa-fire text-sm flex-shrink-0"></i>
                                 <span class="sidebar-text">Top Selling</span>
+                            </a>
+                            <a href="{{ route('reports.stock-movement') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
+                                <i class="fas fa-boxes text-sm flex-shrink-0"></i>
+                                <span class="sidebar-text">Stock Movement</span>
                             </a>
                             <a href="{{ route('reports.custom') }}" class="flex items-center space-x-3 p-3 pl-12 rounded-lg hover:bg-indigo-800">
                                 <i class="fas fa-calendar-check text-sm flex-shrink-0"></i>

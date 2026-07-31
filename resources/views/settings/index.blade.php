@@ -1085,6 +1085,9 @@
                                 @endif
                             </div>
 
+                            <!-- PWA Update Status Widget -->
+                            <div class="mb-6" id="pwa-update-widget-container"></div>
+
                             <!-- Subscription Information -->
                             <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-6">
                                 <h3 class="text-lg font-bold text-gray-900 mb-4">
@@ -1302,6 +1305,10 @@
 <script>
     // Tab Switching Functionality
     document.addEventListener('DOMContentLoaded', function() {
+        if (window.renderUpdateStatusWidget) {
+            window.renderUpdateStatusWidget('pwa-update-widget-container');
+        }
+
         const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
 

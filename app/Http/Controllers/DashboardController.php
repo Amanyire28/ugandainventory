@@ -23,8 +23,8 @@ class DashboardController extends Controller
         $selectedYear = $request->get('year', now()->year);
         
         
-        // Base query (role-aware)
-        $salesQuery = Sale::where('business_id', $businessId);
+        // Base query (role-aware) — EXCLUDE voided sales from all financial KPIs
+        $salesQuery = Sale::where('business_id', $businessId)->notVoided();
         if (in_array($userRole, ['cashier', 'staff'])) {
             $salesQuery->where('user_id', $user->id);
         }
@@ -170,6 +170,7 @@ class DashboardController extends Controller
             $topSellingProducts = Product::where('products.business_id', $businessId)
                 ->join('sale_items', 'products.id', '=', 'sale_items.product_id')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+                ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
                 ->select(
                     'products.id',
                     'products.name',
@@ -190,6 +191,7 @@ class DashboardController extends Controller
                 ->join('products', 'sale_items.product_id', '=', 'products.id')
                 ->join('categories', 'products.category_id', '=', 'categories.id')
                 ->where('sales.business_id', $businessId)
+                ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
                 ->select('categories.name', DB::raw('COALESCE(SUM(sale_items.total), 0) as revenue'))
                 ->groupBy('categories.name')
                 ->orderByDesc('revenue')->get();
@@ -198,7 +200,8 @@ class DashboardController extends Controller
             $activeStaff = User::where('business_id', $businessId)->where('is_active', true)->count();
 
             $topStaffPerformance = User::where('business_id', $businessId)
-                ->withCount('sales')->withSum('sales', 'total')
+                ->withCount(['sales' => function($q) { $q->notVoided(); }])
+                ->withSum(['sales' => function($q) { $q->notVoided(); }], 'total')
                 ->having('sales_count', '>', 0)
                 ->orderByDesc('sales_sum_total')
                 ->limit(10)->get();
@@ -325,7 +328,11 @@ class DashboardController extends Controller
         $query = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.business_id', $businessId);
+            ->where('sales.business_id', $businessId)
+            ->where(function($q) {
+                // Exclude voided sales from COGS
+                $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided');
+            });
 
         if ($startDate) $query->where('sales.sale_date', '>=', $startDate);
         if ($endDate) $query->where('sales.sale_date', '<=', $endDate);
@@ -361,6 +368,7 @@ class DashboardController extends Controller
         }
 
         $rows = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [$weekStart, $weekEnd])
             ->select(DB::raw('DATE(sale_date) as d'), DB::raw('COALESCE(SUM(total),0) as revenue'))
             ->groupBy('d')->get();
@@ -457,6 +465,7 @@ class DashboardController extends Controller
             $endDate = $date->copy()->endOfDay();
 
             $revenue = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereBetween('sale_date', [$startDate, $endDate])->sum('total');
 
             $cogs = $this->calculateCOGS($businessId, $startDate, $endDate);
@@ -485,6 +494,7 @@ class DashboardController extends Controller
             $weekEnd = now()->subWeeks($i)->endOfWeek();
 
             $revenue = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereBetween('sale_date', [$weekStart, $weekEnd])->sum('total');
 
             $cogs = $this->calculateCOGS($businessId, $weekStart, $weekEnd);
@@ -513,6 +523,7 @@ class DashboardController extends Controller
             $monthEnd = Carbon::create($year, $i, 1)->endOfMonth();
 
             $revenue = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereBetween('sale_date', [$monthStart, $monthEnd])->sum('total');
 
             $cogs = $this->calculateCOGS($businessId, $monthStart, $monthEnd);
@@ -547,6 +558,7 @@ class DashboardController extends Controller
     private function getDailySalesTrend($businessId)
     {
         $trend = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereBetween('sale_date', [now()->subDays(6)->startOfDay(), now()->endOfDay()])
             ->select(
                 DB::raw('DATE(sale_date) as date'),
@@ -565,6 +577,7 @@ class DashboardController extends Controller
             $weekEnd = now()->subWeeks($i)->endOfWeek();
 
             $weekStats = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereBetween('sale_date', [$weekStart, $weekEnd])
                 ->select(
                     DB::raw('COUNT(*) as count'),
@@ -584,6 +597,7 @@ class DashboardController extends Controller
     private function getMonthlySalesTrend($businessId, $year)
     {
         $monthlyData = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $year)
             ->select(
                 DB::raw('MONTH(sale_date) as month'),
@@ -611,6 +625,7 @@ class DashboardController extends Controller
             $year = now()->subYears($i)->year;
 
             $yearStats = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereYear('sale_date', $year)
                 ->select(
                     DB::raw('COUNT(*) as count'),
@@ -661,7 +676,8 @@ class DashboardController extends Controller
         $query = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.business_id', $businessId);
+            ->where('sales.business_id', $businessId)
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); });
 
         if ($startDate && $endDate) {
             $query->whereBetween('sales.sale_date', [$startDate, $endDate]);
@@ -690,7 +706,8 @@ class DashboardController extends Controller
         $query = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
-            ->where('sales.business_id', $businessId);
+            ->where('sales.business_id', $businessId)
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); });
 
         if ($startDate && $endDate) {
             $query->whereBetween('sales.sale_date', [$startDate, $endDate]);
@@ -718,7 +735,8 @@ class DashboardController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->join('categories', 'products.category_id', '=', 'categories.id')
-            ->where('sales.business_id', $businessId);
+            ->where('sales.business_id', $businessId)
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); });
 
         if ($startDate && $endDate) {
             $query->whereBetween('sales.sale_date', [$startDate, $endDate]);
@@ -753,6 +771,7 @@ class DashboardController extends Controller
         $previousYear = $selectedYear - 1;
 
         $annualStats = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $selectedYear)
             ->select(
                 DB::raw('COUNT(*) as total_sales'),
@@ -772,6 +791,7 @@ class DashboardController extends Controller
         $annualProfitMargin = $totalRevenue > 0 ? ($annualProfit / $totalRevenue) * 100 : 0;
 
         $previousYearStats = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $previousYear)
             ->select(
                 DB::raw('COUNT(*) as total_sales'),
@@ -800,6 +820,7 @@ class DashboardController extends Controller
             : 0;
 
         $monthlyData = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $selectedYear)
             ->select(
                 DB::raw('MONTH(sale_date) as month'),
@@ -837,11 +858,13 @@ class DashboardController extends Controller
             $topStaff = User::where('business_id', $businessId)
                 ->withSum(['sales' => function ($q) use ($selectedYear, $month) {
                     $q->whereYear('sale_date', $selectedYear)
-                        ->whereMonth('sale_date', $month);
+                        ->whereMonth('sale_date', $month)
+                        ->notVoided();
                 }], 'total')
                 ->withCount(['sales' => function ($q) use ($selectedYear, $month) {
                     $q->whereYear('sale_date', $selectedYear)
-                        ->whereMonth('sale_date', $month);
+                        ->whereMonth('sale_date', $month)
+                        ->notVoided();
                 }])
                 ->having('sales_count', '>', 0)
                 ->orderByDesc('sales_sum_total')
@@ -864,6 +887,7 @@ class DashboardController extends Controller
 
         foreach ($quarters as $quarter => $data) {
             $quarterStats = Sale::where('business_id', $businessId)
+                ->notVoided()
                 ->whereYear('sale_date', $selectedYear)
                 ->whereIn(DB::raw('MONTH(sale_date)'), $data['months'])
                 ->select(
@@ -887,6 +911,7 @@ class DashboardController extends Controller
         $worstMonth = $monthlyData->where('revenue', '>', 0)->sortBy('revenue')->first();
 
         $paymentMethods = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $selectedYear)
             ->select(
                 'payment_method',
@@ -899,6 +924,7 @@ class DashboardController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.business_id', $businessId)
             ->whereYear('sales.sale_date', $selectedYear)
+            ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
             ->select(
                 'products.id',
                 'products.name',
@@ -910,10 +936,10 @@ class DashboardController extends Controller
 
         $topCustomers = Customer::where('business_id', $businessId)
             ->withCount(['sales' => function ($q) use ($selectedYear) {
-                $q->whereYear('sale_date', $selectedYear);
+                $q->whereYear('sale_date', $selectedYear)->notVoided();
             }])
             ->withSum(['sales' => function ($q) use ($selectedYear) {
-                $q->whereYear('sale_date', $selectedYear);
+                $q->whereYear('sale_date', $selectedYear)->notVoided();
             }], 'total')
             ->having('sales_count', '>', 0)
             ->orderByDesc('sales_sum_total')
@@ -921,16 +947,17 @@ class DashboardController extends Controller
 
         $topStaff = User::where('business_id', $businessId)
             ->withCount(['sales' => function ($q) use ($selectedYear) {
-                $q->whereYear('sale_date', $selectedYear);
+                $q->whereYear('sale_date', $selectedYear)->notVoided();
             }])
             ->withSum(['sales' => function ($q) use ($selectedYear) {
-                $q->whereYear('sale_date', $selectedYear);
+                $q->whereYear('sale_date', $selectedYear)->notVoided();
             }], 'total')
             ->having('sales_count', '>', 0)
             ->orderByDesc('sales_sum_total')
             ->limit(10)->get();
 
         $uniqueCustomers = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $selectedYear)
             ->whereNotNull('customer_id')
             ->distinct('customer_id')
@@ -986,6 +1013,7 @@ class DashboardController extends Controller
         $selectedYear = $request->get('year', now()->year);
 
         $sales = Sale::where('business_id', $businessId)
+            ->notVoided()
             ->whereYear('sale_date', $selectedYear)
             ->with(['customer', 'user'])
             ->orderBy('sale_date')

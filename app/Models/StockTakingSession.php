@@ -18,11 +18,13 @@ class StockTakingSession extends Model
         'initiated_by',
         'closed_by',
         'closed_at',
+        'period_month',
     ];
 
     protected $casts = [
         'session_date' => 'datetime',
-        'closed_at' => 'datetime',
+        'closed_at'    => 'datetime',
+        'period_month' => 'date',
     ];
 
     // Relationships
@@ -44,5 +46,10 @@ class StockTakingSession extends Model
     public function adjustments(): HasMany
     {
         return $this->hasMany(StockAdjustment::class);
+    }
+
+    public function inventoryPeriods(): HasMany
+    {
+        return $this->hasMany(InventoryPeriod::class, 'stock_taking_session_id');
     }
 }

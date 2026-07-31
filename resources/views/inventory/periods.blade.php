@@ -1,237 +1,342 @@
 @extends('layouts.app')
 
 @section('title', 'Period Closing History')
-@section('page-title', 'Inventory Period History')
+@section('page-title')
+    <i class="fas fa-history text-purple-600 mr-2"></i>Period Closing & Inventory Reconciliation
+@endsection
 
 @section('content')
-<div class="grid grid-cols-1 gap-6">
-  <div class="bg-white rounded-xl shadow-sm p-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-6">
-      <i class="fas fa-history text-purple-600 mr-2"></i>Period Closing History
-    </h2>
+<div class="space-y-6">
 
-    @if($periods->isEmpty())
-      <div class="text-center py-12">
-        <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
-        <p class="text-gray-500">No periods have been closed yet.</p>
-        <p class="text-sm text-gray-400 mt-2">Periods are automatically closed at 11:59 PM on the last day of each month.</p>
-      </div>
-    @else
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50 border-b">
-            <tr>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700 w-8"></th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700">Product</th>
-              <th class="px-4 py-3 text-left font-semibold text-gray-700">Period</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Opening</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Purchases</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Sales</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Adjustments</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Calculated</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Physical</th>
-              <th class="px-4 py-3 text-right font-semibold text-gray-700">Variance</th>
-              <th class="px-4 py-3 text-center font-semibold text-gray-700">Status</th>
-              <th class="px-4 py-3 text-center font-semibold text-gray-700">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y">
-            @forelse($periods as $period)
-              <tr class="hover:bg-gray-50 cursor-pointer" onclick="toggleRow({{ $period->id }})">
-                <td class="px-4 py-3 text-center">
-                  <i class="fas fa-chevron-down transition-transform duration-200" id="chevron-{{ $period->id }}"></i>
-                </td>
-                <td class="px-4 py-3 text-gray-800 font-medium">
-                  <a href="{{ route('inventory.show', $period->product_id) }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">
-                    {{ $period->product->name }}
-                  </a>
-                </td>
-                <td class="px-4 py-3 text-gray-600">
-                  {{ $period->period_start->format('M d, Y') }} - {{ $period->period_end->format('M d, Y') }}
-                </td>
-                <td class="px-4 py-3 text-right text-gray-700">{{ number_format($period->opening_stock, 2) }}</td>
-                <td class="px-4 py-3 text-right text-green-600 font-semibold">+{{ number_format($period->purchases, 2) }}</td>
-                <td class="px-4 py-3 text-right text-red-600 font-semibold">-{{ number_format($period->sales, 2) }}</td>
-                <td class="px-4 py-3 text-right font-semibold">
-                  @if($period->adjustments > 0)
-                    <span class="text-amber-600">+{{ number_format($period->adjustments, 2) }}</span>
-                  @elseif($period->adjustments < 0)
-                    <span class="text-orange-600">{{ number_format($period->adjustments, 2) }}</span>
-                  @else
-                    <span class="text-gray-500">0</span>
-                  @endif
-                </td>
-                <td class="px-4 py-3 text-right text-gray-700 font-semibold">{{ number_format($period->calculated_stock, 2) }}</td>
-                <td class="px-4 py-3 text-right text-gray-700 font-semibold">
-                  @if($period->physical_count)
-                    {{ number_format($period->physical_count, 2) }}
-                  @else
-                    <span class="text-gray-400">-</span>
-                  @endif
-                </td>
-                <td class="px-4 py-3 text-right font-semibold">
-                  @if($period->variance == 0)
-                    <span class="badge bg-green-100 text-green-700">✓ Match</span>
-                  @elseif($period->variance > 0)
-                    <span class="badge bg-amber-100 text-amber-700">
-                      <i class="fas fa-arrow-up mr-1"></i>{{ number_format($period->variance, 2) }}
-                    </span>
-                  @else
-                    <span class="badge bg-red-100 text-red-700">
-                      <i class="fas fa-arrow-down mr-1"></i>{{ number_format(abs($period->variance), 2) }}
-                    </span>
-                  @endif
-                </td>
-                <td class="px-4 py-3 text-center">
-                  <span class="badge bg-blue-100 text-blue-700">
-                    <i class="fas fa-lock mr-1"></i>{{ ucfirst($period->status) }}
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-center">
-                  <a href="{{ route('inventory.reconciliation', $period->id) }}" class="text-indigo-600 hover:text-indigo-800 hover:underline" onclick="event.stopPropagation()">
-                    <i class="fas fa-eye mr-1"></i>View
-                  </a>
-                </td>
-              </tr>
-              
-              <!-- Expandable Detail Row -->
-              <tr id="detail-{{ $period->id }}" class="hidden">
-                <td colspan="12" class="px-4 py-6 bg-gray-50">
-                  <div class="space-y-4">
-                    <!-- Reconciliation Breakdown -->
-                    <div class="bg-white rounded-lg p-6 border border-gray-200">
-                      <h4 class="text-lg font-bold text-gray-800 mb-4">
-                        <i class="fas fa-balance-scale text-indigo-600 mr-2"></i>Stock Reconciliation
-                      </h4>
-                      
-                      <!-- Step 1: System Calculation -->
-                      <div class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                        <p class="text-sm font-semibold text-gray-700 mb-3">Step 1: System Calculated Stock</p>
-                        <div class="space-y-2 text-sm">
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">Opening Stock (from products.opening_stock)</span>
-                            <span class="font-semibold text-blue-600">{{ number_format($period->opening_stock, 2) }} units</span>
-                          </div>
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">+ Purchases (sum of all purchase_items)</span>
-                            <span class="font-semibold text-green-600">+{{ number_format($period->purchases, 2) }} units</span>
-                          </div>
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">- Sales (sum of all sale_items)</span>
-                            <span class="font-semibold text-red-600">-{{ number_format($period->sales, 2) }} units</span>
-                          </div>
-                          <div class="border-t pt-2 mt-2 font-bold text-base">
-                            <div class="flex justify-between items-center">
-                              <span class="text-gray-800">= System Calculated Stock</span>
-                              <span class="text-indigo-600">{{ number_format($period->calculated_stock, 2) }} units</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Step 2: Physical Count & Variance -->
-                      @if($period->physical_count)
-                      <div class="mb-6 p-4 {{ $period->variance < 0 ? 'bg-red-50 border-l-4 border-red-500' : 'bg-green-50 border-l-4 border-green-500' }} rounded-lg">
-                        <p class="text-sm font-semibold text-gray-700 mb-3">Step 2: Physical Count & Variance</p>
-                        <div class="space-y-2 text-sm">
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">Physical Count (from stock_adjustments)</span>
-                            <span class="font-semibold {{ $period->variance < 0 ? 'text-red-600' : 'text-green-600' }}">{{ number_format($period->physical_count, 2) }} units</span>
-                          </div>
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">- System Calculated Stock</span>
-                            <span class="font-semibold text-indigo-600">{{ number_format($period->calculated_stock, 2) }} units</span>
-                          </div>
-                          <div class="border-t pt-2 mt-2 font-bold text-base">
-                            <div class="flex justify-between items-center">
-                              <span class="text-gray-800">= Variance ({{ $period->variance < 0 ? 'Loss' : 'Gain' }})</span>
-                              <span class="{{ $period->variance < 0 ? 'text-red-600' : 'text-green-600' }}">
-                                {{ $period->variance >= 0 ? '+' : '' }}{{ number_format($period->variance, 2) }} units 
-                                <span class="text-xs">({{ number_format($period->variance_percentage, 2) }}%)</span>
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Step 3: Final Reconciliation -->
-                      <div class="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
-                        <p class="text-sm font-semibold text-gray-700 mb-3">Step 3: Final Reconciliation</p>
-                        <div class="space-y-2 text-sm">
-                          <div class="flex justify-between items-center">
-                            <span class="text-gray-700">Reconciliation Adjustment</span>
-                            <span class="font-semibold {{ $period->variance < 0 ? 'text-red-600' : 'text-green-600' }}">
-                              {{ $period->variance >= 0 ? '+' : '' }}{{ number_format($period->variance, 2) }} units
-                            </span>
-                          </div>
-                          <div class="border-t pt-2 mt-2 font-bold text-base">
-                            <div class="flex justify-between items-center">
-                              <span class="text-gray-800">= Final Accepted Stock</span>
-                              <span class="text-purple-600">{{ number_format($period->physical_count, 2) }} units</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      @else
-                      <div class="p-4 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
-                        <p class="text-sm text-yellow-800">
-                          <i class="fas fa-exclamation-triangle mr-2"></i>Physical count not yet recorded. 
-                          System calculated stock ({{ number_format($period->calculated_stock, 2) }} units) is being used.
-                        </p>
-                      </div>
-                      @endif
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="12" class="px-4 py-8 text-center text-gray-500">
-                  No periods found
-                </td>
-              </tr>
-            @endforelse
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Summary Statistics -->
-      <div class="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
-          <p class="text-gray-600 text-sm">Total Periods Closed</p>
-          <p class="text-2xl font-bold text-blue-600 mt-1">{{ $periods->count() }}</p>
-        </div>
-        
-        <div class="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
-          <p class="text-gray-600 text-sm">Perfect Matches</p>
-          <p class="text-2xl font-bold text-green-600 mt-1">{{ $periods->where('variance', 0)->count() }}</p>
-        </div>
-        
-        <div class="bg-amber-50 rounded-lg p-4 border-l-4 border-amber-500">
-          <p class="text-gray-600 text-sm">Total Overstock</p>
-          <p class="text-2xl font-bold text-amber-600 mt-1">{{ number_format($periods->where('variance', '>', 0)->sum('variance'), 0) }}</p>
-        </div>
-        
-        <div class="bg-red-50 rounded-lg p-4 border-l-4 border-red-500">
-          <p class="text-gray-600 text-sm">Total Shortage</p>
-          <p class="text-2xl font-bold text-red-600 mt-1">{{ number_format(abs($periods->where('variance', '<', 0)->sum('variance')), 0) }}</p>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div class="mt-6">
-        {{ $periods->links() }}
-      </div>
+    @if(session('success'))
+    <div class="p-4 bg-green-50 border-l-4 border-green-500 rounded-lg text-green-800 flex items-center space-x-2">
+        <i class="fas fa-check-circle text-green-500"></i>
+        <span>{{ session('success') }}</span>
+    </div>
     @endif
-  </div>
+
+    @if(session('error'))
+    <div class="p-4 bg-red-50 border-l-4 border-red-500 rounded-lg text-red-800 flex items-center space-x-2">
+        <i class="fas fa-exclamation-circle text-red-500"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
+    <!-- Close Month Control Panel -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-calendar-check text-purple-600 mr-2"></i>Close Accounting Period
+        </h3>
+        
+        <form method="POST" action="{{ route('stock-taking.close-month') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            @csrf
+            
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Year</label>
+                <select name="year" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    @php $currentYear = now()->year; @endphp
+                    @for($y = $currentYear; $y >= $currentYear - 3; $y--)
+                        <option value="{{ $y }}" {{ old('year', $currentYear) == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Month</label>
+                <select name="month" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    @php $currentMonth = now()->month; @endphp
+                    @for($m = 1; $m <= 12; $m++)
+                        @php $date = Carbon\Carbon::create(2020, $m, 1); @endphp
+                        <option value="{{ $m }}" {{ old('month', $currentMonth) == $m ? 'selected' : '' }}>
+                            {{ $date->format('F') }}
+                        </option>
+                    @endfor
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-2">Reconciliation Session (Optional)</label>
+                <select name="session_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                    <option value="">-- No Stock Take (Use System Quantities) --</option>
+                    @foreach($closedSessions as $sess)
+                        <option value="{{ $sess->id }}">
+                            Session #{{ $sess->id }} ({{ $sess->session_date->format('M d, Y') }}) - {{ $sess->adjustments->count() }} items
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="w-full flex items-center justify-center space-x-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow transition">
+                    <i class="fas fa-lock"></i>
+                    <span>Execute Month Close</span>
+                </button>
+            </div>
+        </form>
+        <p class="text-xs text-gray-500 mt-2">
+            <i class="fas fa-info-circle mr-1"></i>Closing a period calculates official closing stock balances and locks the records. Voided sales are automatically excluded from calculations.
+        </p>
+    </div>
+
+    <!-- Period Closing History Table -->
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-history text-purple-600 mr-2"></i>Accounting Period History
+        </h3>
+
+        @if($periods->isEmpty())
+        <div class="text-center py-12">
+            <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
+            <p class="text-gray-500">No accounting periods have been closed yet.</p>
+            <p class="text-xs text-gray-400 mt-2">Select a month above to perform your first monthly close.</p>
+        </div>
+        @else
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-3 py-3 text-left font-semibold text-gray-700 w-8"></th>
+                        <th class="px-3 py-3 text-left font-semibold text-gray-700">Product</th>
+                        <th class="px-3 py-3 text-left font-semibold text-gray-700">Period</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Opening</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Purchases</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Sales</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">System Calculated</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Physical</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700 text-red-600">Stock Loss</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700 text-green-600">Stock Gain</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Closing</th>
+                        <th class="px-3 py-3 text-right font-semibold text-gray-700">Adj Value</th>
+                        <th class="px-3 py-3 text-center font-semibold text-gray-700">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-150">
+                    @foreach($periods as $period)
+                    <tr class="hover:bg-gray-50 cursor-pointer transition" onclick="toggleRow({{ $period->id }})">
+                        <td class="px-3 py-4 text-center">
+                            <i class="fas fa-chevron-down text-gray-400 transition-transform duration-200" id="chevron-{{ $period->id }}"></i>
+                        </td>
+                        <td class="px-3 py-4 text-gray-800 font-semibold">
+                            <a href="{{ route('inventory.show', $period->product_id) }}" class="text-indigo-600 hover:underline" onclick="event.stopPropagation()">
+                                {{ $period->product->name }}
+                            </a>
+                            <div class="text-xs text-gray-400 font-normal">SKU: {{ $period->product->sku }}</div>
+                        </td>
+                        <td class="px-3 py-4 text-gray-600">
+                            {{ $period->period_start->format('M Y') }}
+                        </td>
+                        <td class="px-3 py-4 text-right text-gray-700">{{ number_format($period->opening_stock, 1) }}</td>
+                        <td class="px-3 py-4 text-right text-green-600 font-semibold">+{{ number_format($period->purchases, 1) }}</td>
+                        <td class="px-3 py-4 text-right text-red-600 font-semibold">-{{ number_format($period->sales, 1) }}</td>
+                        <td class="px-3 py-4 text-right text-gray-700 font-semibold">{{ number_format($period->calculated_stock, 1) }}</td>
+                        <td class="px-3 py-4 text-right text-gray-700 font-semibold">
+                            {{ $period->physical_count !== null ? number_format($period->physical_count, 1) : '-' }}
+                        </td>
+                        <td class="px-3 py-4 text-right">
+                            @if($period->variance < -0.001)
+                                <span class="text-red-600 font-bold">{{ number_format(abs($period->variance), 1) }}</span>
+                            @else
+                                <span class="text-gray-300">-</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-4 text-right">
+                            @if($period->variance > 0.001)
+                                <span class="text-green-600 font-bold">+{{ number_format($period->variance, 1) }}</span>
+                            @else
+                                <span class="text-gray-300">-</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-4 text-right text-gray-900 font-bold bg-gray-50">{{ number_format($period->closing_stock, 1) }}</td>
+                        <td class="px-3 py-4 text-right">
+                            @if($period->adjustment_value < -0.01)
+                                <span class="text-red-700 font-semibold">UGX -{{ number_format(abs($period->adjustment_value), 0) }}</span>
+                            @elseif($period->adjustment_value > 0.01)
+                                <span class="text-green-700 font-semibold">UGX +{{ number_format($period->adjustment_value, 0) }}</span>
+                            @else
+                                <span class="text-gray-400">UGX 0</span>
+                            @endif
+                        </td>
+                        <td class="px-3 py-4 text-center">
+                            @if($period->status === 'locked')
+                                <span class="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <i class="fas fa-lock mr-1"></i>Locked
+                                </span>
+                            @elseif($period->status === 'reconciled')
+                                <span class="px-2.5 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <i class="fas fa-check-double mr-1"></i>Reconciled
+                                </span>
+                            @elseif($period->status === 'pending_reconciliation')
+                                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold uppercase tracking-wider animate-pulse">
+                                    <i class="fas fa-hourglass-half mr-1"></i>Pending
+                                </span>
+                            @else
+                                <span class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <i class="fas fa-folder-open mr-1"></i>Open
+                                </span>
+                            @endif
+                        </td>
+                    </tr>
+                    
+                    <!-- Expandable Detail Row -->
+                    <tr id="detail-{{ $period->id }}" class="hidden bg-gray-50 border-l-4 border-purple-500">
+                        <td colspan="13" class="px-6 py-6">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <!-- Stock Calculations Detail -->
+                                <div class="bg-white p-4 rounded-xl shadow-sm border">
+                                    <h4 class="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
+                                        <i class="fas fa-calculator text-blue-500 mr-2"></i>Stock Equation (Qty)
+                                    </h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Opening Quantity</span>
+                                            <span class="font-semibold">{{ number_format($period->opening_stock, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">+ Purchases Quantity</span>
+                                            <span class="font-semibold text-green-600">+{{ number_format($period->purchases, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">- Sales Quantity</span>
+                                            <span class="font-semibold text-red-600">-{{ number_format($period->sales, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">± prior Adjustments</span>
+                                            <span class="font-semibold">{{ $period->adjustments >= 0 ? '+' : '' }}{{ number_format($period->adjustments, 2) }}</span>
+                                        </div>
+                                        <div class="flex justify-between border-t pt-2 font-bold text-indigo-600">
+                                            <span>Expected System Stock</span>
+                                            <span>{{ number_format($period->calculated_stock, 2) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Financial Value Calculations -->
+                                <div class="bg-white p-4 rounded-xl shadow-sm border">
+                                    <h4 class="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
+                                        <i class="fas fa-coins text-yellow-500 mr-2"></i>Financial Reconciliation
+                                    </h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Opening Stock Value</span>
+                                            <span class="font-semibold">UGX {{ number_format($period->opening_stock_value, 0) }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">+ Purchases Value</span>
+                                            <span class="font-semibold">UGX {{ number_format($period->purchases_value, 0) }}</span>
+                                        </div>
+                                        <div class="flex justify-between text-red-500">
+                                            <span>- Sales Cost Value</span>
+                                            <span class="font-semibold">UGX -{{ number_format($period->sales_cost_value, 0) }}</span>
+                                        </div>
+                                        <div class="flex justify-between border-t pt-2 font-bold text-purple-600">
+                                            <span>Closing Stock Value</span>
+                                            <span>UGX {{ number_format($period->closing_stock_value, 0) }}</span>
+                                        </div>
+                                        <div class="flex justify-between border-t pt-1 font-bold {{ $period->adjustment_value < 0 ? 'text-red-600' : 'text-green-600' }}">
+                                            <span>Adjustment Value</span>
+                                            <span>UGX {{ $period->adjustment_value >= 0 ? '+' : '' }}{{ number_format($period->adjustment_value, 0) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Audit Metadata -->
+                                <div class="bg-white p-4 rounded-xl shadow-sm border">
+                                    <h4 class="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center">
+                                        <i class="fas fa-file-invoice text-purple-500 mr-2"></i>Audit Information
+                                    </h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Reconciliation Source</span>
+                                            @if($period->session)
+                                                <a href="{{ route('stock-taking.session', $period->stock_taking_session_id) }}" class="text-indigo-600 hover:underline font-bold">
+                                                    Stock Take #{{ $period->stock_taking_session_id }}
+                                                </a>
+                                            @else
+                                                <span class="text-gray-600 italic">System Auto-Close</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Closed By</span>
+                                            <span class="font-semibold">{{ $period->closer->name ?? 'System' }}</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">Closed Timestamp</span>
+                                            <span class="font-semibold">{{ $period->closed_at ? $period->closed_at->format('M d, Y H:i') : '-' }}</span>
+                                        </div>
+                                        <div class="text-xs text-gray-500 border-t pt-2 leading-relaxed">
+                                            <strong>Note:</strong> Approved closing records are read-only and immutable. Corrective entries can only be posted via new stock-taking or count sheets.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-6">
+            {{ $periods->links() }}
+        </div>
+        @endif
+    </div>
+
+    <!-- Historical Monthly Aggregates Summary -->
+    @if(!empty($monthlySummary))
+    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-file-contract text-indigo-600 mr-2"></i>Monthly Financial Summary Reports
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            @foreach($monthlySummary as $month)
+            <div class="bg-gray-50 rounded-xl p-5 border border-gray-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h4 class="font-bold text-gray-800 text-lg">{{ $month['month_label'] }}</h4>
+                    <span class="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-bold">
+                        {{ $month['products'] }} Products
+                    </span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-sm mt-3">
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-semibold">Total Stock Loss</p>
+                        <p class="text-lg font-bold text-red-600">-{{ number_format($month['total_loss'], 1) }} units</p>
+                        <p class="text-xs font-semibold text-red-500">UGX -{{ number_format($month['total_loss_value'], 0) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 uppercase font-semibold">Total Stock Gain</p>
+                        <p class="text-lg font-bold text-green-600">+{{ number_format($month['total_gain'], 1) }} units</p>
+                        <p class="text-xs font-semibold text-green-500">UGX +{{ number_format($month['total_gain_value'], 0) }}</p>
+                    </div>
+                </div>
+                
+                @if($month['has_physical_count'])
+                <div class="mt-4 pt-3 border-t border-gray-200 text-xs text-gray-500 flex items-center">
+                    <i class="fas fa-clipboard-check text-green-500 mr-1.5"></i> Reconciled using physical stock count sessions
+                </div>
+                @else
+                <div class="mt-4 pt-3 border-t border-gray-200 text-xs text-gray-400 flex items-center italic">
+                    <i class="fas fa-server text-gray-400 mr-1.5"></i> Reconciled using system stock totals (no physical sheet)
+                </div>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
 </div>
 
 <script>
-  function toggleRow(periodId) {
-    const detailRow = document.getElementById('detail-' + periodId);
-    const chevron = document.getElementById('chevron-' + periodId);
-    
-    detailRow.classList.toggle('hidden');
-    chevron.classList.toggle('rotate-180');
-  }
+    function toggleRow(periodId) {
+        const detailRow = document.getElementById('detail-' + periodId);
+        const chevron = document.getElementById('chevron-' + periodId);
+        
+        detailRow.classList.toggle('hidden');
+        chevron.classList.toggle('rotate-180');
+    }
 </script>
+@endsection

@@ -103,9 +103,6 @@
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
                             <div class="flex items-center">
-                                <img src="{{ $product->image_url }}" 
-                                     alt="{{ $product->name }}" 
-                                     class="w-10 h-10 rounded object-cover mr-3">
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ $product->name }}</p>
                                     <p class="text-xs text-gray-500">{{ $product->unit }}</p>

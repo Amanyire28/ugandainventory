@@ -35,11 +35,14 @@ class StockReconciliationService
             })
             ->sum('quantity');
 
-        // 3. Sales (sum of all sale_items in period)
+        // 3. Sales (sum of all sale_items in period — voided sales excluded)
         $sales = $product->saleItems()
             ->whereHas('sale', function ($q) use ($product, $periodStart, $periodEnd) {
                 $q->where('business_id', $product->business_id)
-                    ->whereBetween('created_at', [$periodStart, $periodEnd]);
+                    ->whereBetween('created_at', [$periodStart, $periodEnd])
+                    ->where(function ($sq) {
+                        $sq->whereNull('status')->orWhere('status', '!=', 'voided');
+                    });
             })
             ->sum('quantity');
 
@@ -58,13 +61,20 @@ class StockReconciliationService
         // 6. Variance (Loss/Gain)
         $variance = 0;
         $variancePercentage = 0;
-        
+        $stockLoss = 0;
+        $stockGain = 0;
+
         if ($physicalCount !== null) {
             $variance = $physicalCount - $systemCalculatedStock;
-            $variancePercentage = $systemCalculatedStock > 0 
-                ? ($variance / $systemCalculatedStock) * 100 
+            $variancePercentage = $systemCalculatedStock > 0
+                ? ($variance / $systemCalculatedStock) * 100
                 : 0;
+            $stockLoss = $variance < -0.001 ? abs($variance) : 0;
+            $stockGain = $variance > 0.001 ? $variance : 0;
         }
+
+        // 6a. Adjustment value (financial impact = variance qty × product cost price)
+        $adjustmentValue = $variance * (float) $product->cost_price;
 
         // 7. Final Accepted Stock
         $finalAcceptedStock = $physicalCount ?? $systemCalculatedStock;
@@ -75,9 +85,9 @@ class StockReconciliationService
         return [
             // Original data
             'opening_stock' => (float) $openingStock,
-            'purchases' => (float) $purchases,
-            'sales' => (float) $sales,
-            
+            'purchases'     => (float) $purchases,
+            'sales'         => (float) $sales,
+
             // System calculated
             'system_calculated_stock' => (float) $systemCalculatedStock,
             'system_label' => self::formatStockLine(
@@ -89,34 +99,37 @@ class StockReconciliationService
                 $sales,
                 $systemCalculatedStock
             ),
-            
+
             // Physical count & variance
-            'physical_count' => $physicalCount ? (float) $physicalCount : null,
-            'variance' => (float) $variance,
+            'physical_count'      => $physicalCount ? (float) $physicalCount : null,
+            'variance'            => (float) $variance,
             'variance_percentage' => (float) $variancePercentage,
+            'stock_loss'          => (float) $stockLoss,
+            'stock_gain'          => (float) $stockGain,
+            'adjustment_value'    => (float) $adjustmentValue,
             'variance_label' => self::formatVarianceLine(
-                'Variance (Loss)',
+                'Variance (Loss/Gain)',
                 $physicalCount,
                 $systemCalculatedStock,
                 $variance,
                 $variancePercentage
             ),
-            
+
             // Final reconciliation
             'reconciliation_adjustment' => (float) $reconciliationAdjustment,
-            'final_accepted_stock' => (float) $finalAcceptedStock,
-            
+            'final_accepted_stock'      => (float) $finalAcceptedStock,
+
             // Status
             'is_reconciled' => $physicalCount !== null,
-            'has_variance' => abs($variance) > 0.01, // Using small threshold for float comparison
-            'is_loss' => $variance < -0.01,
-            'is_gain' => $variance > 0.01,
-            
+            'has_variance'  => abs($variance) > 0.01,
+            'is_loss'       => $variance < -0.01,
+            'is_gain'       => $variance > 0.01,
+
             // Metadata
-            'latest_adjustment' => $latestAdjustment,
-            'adjustment_date' => $latestAdjustment?->adjustment_date,
-            'adjustment_reason' => $latestAdjustment?->reason,
-            'adjustment_notes' => $latestAdjustment?->notes,
+            'latest_adjustment'   => $latestAdjustment,
+            'adjustment_date'     => $latestAdjustment?->adjustment_date,
+            'adjustment_reason'   => $latestAdjustment?->reason,
+            'adjustment_notes'    => $latestAdjustment?->notes,
         ];
     }
 
@@ -264,11 +277,186 @@ class StockReconciliationService
             'total_variance' => $totalVariance,
             'overall_variance_percentage' => $overallVariancePercentage,
             'total_reconciled_items' => $totalReconciled,
-            'items_with_loss' => $itemsWithLoss,
-            'items_with_gain' => $itemsWithGain,
-            'total_loss_amount' => $totalLoss,
-            'total_gain_amount' => $totalGain,
             'total_items' => count($reconciliations),
+        ];
+    }
+
+    /**
+     * Get dynamic stock state for any product and date range.
+     * Calculates:
+     * - opening_stock: dynamically rolled forward from latest locked period (or product opening_stock)
+     * - purchases: sum of purchase items in range
+     * - sales: sum of sales items in range (excluding voided)
+     * - adjustments: sum of adjustment/late adjustments in range (excluding MONTH_CLOSE)
+     * - closing_stock: opening + purchases - sales + adjustments
+     * - value equivalents
+     */
+    public static function getInventoryStateForRange(\App\Models\Product $product, Carbon $startDate, Carbon $endDate): array
+    {
+        $businessId = $product->business_id;
+
+        // 1. Find the latest locked period ending before $startDate
+        $lastLocked = \App\Models\InventoryPeriod::where('product_id', $product->id)
+            ->where('is_locked', true)
+            ->where('period_end', '<', $startDate->toDateString())
+            ->orderBy('period_end', 'desc')
+            ->first();
+
+        // 2. Set base date and quantity
+        if ($lastLocked) {
+            $baseStock = (float) $lastLocked->closing_stock;
+            $baseDate = Carbon::parse($lastLocked->period_end)->endOfDay();
+        } else {
+            $baseStock = (float) $product->opening_stock;
+            $baseDate = Carbon::parse($product->created_at)->subDay()->startOfDay();
+        }
+
+        // 3. Roll forward base stock to the day before $startDate
+        $rollStart = $baseDate->copy();
+        $rollEnd = $startDate->copy()->subSecond();
+
+        $rollPurchases = 0;
+        $rollSales = 0;
+        $rollAdjustments = 0;
+
+        if ($rollEnd->greaterThanOrEqualTo($rollStart)) {
+            $rollPurchases = (float) $product->purchaseItems()
+                ->whereHas('purchase', function ($q) use ($businessId, $rollStart, $rollEnd) {
+                    $q->where('business_id', $businessId)
+                      ->whereBetween('created_at', [$rollStart, $rollEnd]);
+                })
+                ->sum('quantity');
+
+            $rollSales = (float) $product->saleItems()
+                ->whereHas('sale', function ($q) use ($businessId, $rollStart, $rollEnd) {
+                    $q->where('business_id', $businessId)
+                      ->whereBetween('sale_date', [$rollStart, $rollEnd])
+                      ->where(function ($sq) {
+                          $sq->whereNull('status')->orWhere('status', '!=', 'voided');
+                      });
+                })
+                ->sum('quantity');
+
+            $rollAdjustments = (float) \App\Models\InventoryTransaction::where('business_id', $businessId)
+                ->where('product_id', $product->id)
+                ->whereIn('transaction_type', ['ADJUSTMENT', 'LATE_ADJUSTMENT'])
+                ->whereBetween('created_at', [$rollStart, $rollEnd])
+                ->selectRaw('SUM(quantity_in) - SUM(quantity_out) as net')
+                ->value('net') ?? 0;
+        }
+
+        $openingStock = $baseStock + $rollPurchases - $rollSales + $rollAdjustments;
+
+        // 4. Calculate activities within the selected range (inclusive)
+        $rangeStart = $startDate->copy()->startOfDay();
+        $rangeEnd = $endDate->copy()->endOfDay();
+
+        $purchases = (float) $product->purchaseItems()
+            ->whereHas('purchase', function ($q) use ($businessId, $rangeStart, $rangeEnd) {
+                $q->where('business_id', $businessId)
+                  ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+            })
+            ->sum('quantity');
+
+        $sales = (float) $product->saleItems()
+            ->whereHas('sale', function ($q) use ($businessId, $rangeStart, $rangeEnd) {
+                $q->where('business_id', $businessId)
+                  ->whereBetween('sale_date', [$rangeStart, $rangeEnd])
+                  ->where(function ($sq) {
+                      $sq->whereNull('status')->orWhere('status', '!=', 'voided');
+                  });
+            })
+            ->sum('quantity');
+
+        $adjustments = (float) \App\Models\InventoryTransaction::where('business_id', $businessId)
+            ->where('product_id', $product->id)
+            ->whereIn('transaction_type', ['ADJUSTMENT', 'LATE_ADJUSTMENT'])
+            ->whereBetween('created_at', [$rangeStart, $rangeEnd])
+            ->selectRaw('SUM(quantity_in) - SUM(quantity_out) as net')
+            ->value('net') ?? 0;
+
+        $calculatedStock = $openingStock + $purchases - $sales + $adjustments;
+
+        // 5. Look for any locked counts ending on or within the range to finalize closing stock
+        $rangeLocked = \App\Models\InventoryPeriod::where('product_id', $product->id)
+            ->where('is_locked', true)
+            ->whereBetween('period_end', [$rangeStart->toDateString(), $rangeEnd->toDateString()])
+            ->orderBy('period_end', 'desc')
+            ->first();
+
+        $physicalCount = null;
+        $variance = 0;
+        $closingStock = $calculatedStock;
+
+        if ($rangeLocked) {
+            $physicalCount = $rangeLocked->physical_count ? (float) $rangeLocked->physical_count : null;
+            $postLockedStart = Carbon::parse($rangeLocked->period_end)->endOfDay();
+            
+            $postPurchases = 0;
+            $postSales = 0;
+            $postAdjustments = 0;
+
+            if ($rangeEnd->greaterThan($postLockedStart)) {
+                $postPurchases = (float) $product->purchaseItems()
+                    ->whereHas('purchase', function ($q) use ($businessId, $postLockedStart, $rangeEnd) {
+                        $q->where('business_id', $businessId)
+                          ->whereBetween('created_at', [$postLockedStart, $rangeEnd]);
+                    })
+                    ->sum('quantity');
+
+                $postSales = (float) $product->saleItems()
+                    ->whereHas('sale', function ($q) use ($businessId, $postLockedStart, $rangeEnd) {
+                        $q->where('business_id', $businessId)
+                          ->whereBetween('sale_date', [$postLockedStart, $rangeEnd])
+                          ->where(function ($sq) {
+                              $sq->whereNull('status')->orWhere('status', '!=', 'voided');
+                          });
+                    })
+                    ->sum('quantity');
+
+                $postAdjustments = (float) \App\Models\InventoryTransaction::where('business_id', $businessId)
+                    ->where('product_id', $product->id)
+                    ->whereIn('transaction_type', ['ADJUSTMENT', 'LATE_ADJUSTMENT'])
+                    ->whereBetween('created_at', [$postLockedStart, $rangeEnd])
+                    ->selectRaw('SUM(quantity_in) - SUM(quantity_out) as net')
+                    ->value('net') ?? 0;
+            }
+
+            $closingStock = (float) $rangeLocked->closing_stock + $postPurchases - $postSales + $postAdjustments;
+            $variance = (float) $rangeLocked->variance;
+        }
+
+        $costPrice = (float) $product->cost_price;
+        $openingStockValue = $openingStock * $costPrice;
+        $purchasesValue = (float) ($product->purchaseItems()
+            ->whereHas('purchase', function ($q) use ($businessId, $rangeStart, $rangeEnd) {
+                $q->where('business_id', $businessId)
+                  ->whereBetween('created_at', [$rangeStart, $rangeEnd]);
+            })
+            ->selectRaw('SUM(quantity * unit_cost) as val')
+            ->value('val') ?? ($purchases * $costPrice));
+        $salesCostValue = $sales * $costPrice;
+        $closingStockValue = $closingStock * $costPrice;
+        $adjustmentValue = $variance * $costPrice;
+
+        return [
+            'opening_stock' => $openingStock,
+            'purchases' => $purchases,
+            'sales' => $sales,
+            'adjustments' => $adjustments,
+            'calculated_stock' => $calculatedStock,
+            'physical_count' => $physicalCount,
+            'closing_stock' => $closingStock,
+            'variance' => $variance,
+            'stock_loss' => $variance < -0.001 ? abs($variance) : 0.0,
+            'stock_gain' => $variance > 0.001 ? $variance : 0.0,
+            
+            // Financial Values
+            'opening_stock_value' => $openingStockValue,
+            'purchases_value' => $purchasesValue,
+            'sales_cost_value' => $salesCostValue,
+            'closing_stock_value' => $closingStockValue,
+            'adjustment_value' => $adjustmentValue,
         ];
     }
 }

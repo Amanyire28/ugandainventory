@@ -175,6 +175,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
         Route::post('/session', [InventoryController::class, 'createSession'])->name('create-session');
         Route::post('/record', [InventoryController::class, 'recordCount'])->name('record-count');
         Route::post('/close-session/{id}', [InventoryController::class, 'closeSession'])->name('close-session');
+        Route::post('/close-month', [InventoryController::class, 'closeMonth'])->name('close-month');
     });
 
     // ========================================
@@ -198,6 +199,7 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
         Route::get('/top-selling', [ReportController::class, 'topSelling'])->name('top-selling');
         Route::get('/custom', [ReportController::class, 'custom'])->name('custom');
         Route::post('/generate', [ReportController::class, 'generate'])->name('generate');
+        Route::get('/stock-movement', [ReportController::class, 'stockMovement'])->name('stock-movement');
     });
 
     // ========================================
