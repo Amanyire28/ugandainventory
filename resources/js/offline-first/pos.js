@@ -228,18 +228,12 @@ window.processSale = async function() {
         document.getElementById('newCustomerAddress').value = '';
         calculateChange();
 
-        // Show offline success message
-        const toast = document.createElement('div');
-        toast.className = 'fixed top-4 right-4 bg-indigo-600 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 z-50';
-        toast.innerHTML = `
-            <i class="fas fa-wifi-slash text-xl text-yellow-300"></i>
-            <div>
-                <p class="font-semibold">Sale Saved Offline!</p>
-                <p class="text-sm text-indigo-100">Transaction queued for synchronization.</p>
-            </div>
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+        // Show standard success message
+        if (typeof window.showSuccessToast === 'function') {
+            window.showSuccessToast('Sale completed successfully!');
+        } else if (typeof showSuccessToast === 'function') {
+            showSuccessToast('Sale completed successfully!');
+        }
 
     } catch (e) {
         console.error('Offline sale processing failed:', e);
