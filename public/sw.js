@@ -1,4 +1,4 @@
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const CACHE_NAME = `dukaflow-cache-v${VERSION}`;
 const PRE_CACHE_ASSETS = [
   '/offline.html',
@@ -56,8 +56,11 @@ self.addEventListener('fetch', event => {
       fetch(req)
         .then(response => {
           // Clone and cache the successfully fetched page for offline loading
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+          // Ensure we do NOT cache pages that are redirects or point to login to prevent login redirect cache poisoning
+          if (response.status === 200 && !response.redirected && !response.url.includes('/login')) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(req, clone));
+          }
           return response;
         })
         .catch(async () => {

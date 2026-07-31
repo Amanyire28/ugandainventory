@@ -42,12 +42,13 @@ function generateSalt() {
 
 export async function loginUser(email, password, deviceName, deviceUuid, appVersion) {
     const isOnline = window.navigator.onLine;
+    const cleanEmail = email.trim().toLowerCase();
 
     if (isOnline) {
         try {
             // Online Login - authenticate with Laravel server
             const response = await axios.post('/api/offline/login', {
-                email,
+                email: cleanEmail,
                 password,
                 device_name: deviceName,
                 device_uuid: deviceUuid,
@@ -61,7 +62,7 @@ export async function loginUser(email, password, deviceName, deviceUuid, appVers
 
                 // Store credentials locally
                 const cachedUser = {
-                    email,
+                    email: cleanEmail,
                     salt,
                     password_hash: localHash,
                     token: data.token,
@@ -77,7 +78,7 @@ export async function loginUser(email, password, deviceName, deviceUuid, appVers
                 // Save token in axios headers
                 window.axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
                 localStorage.setItem('pwa_token', data.token);
-                localStorage.setItem('pwa_user_email', email);
+                localStorage.setItem('pwa_user_email', cleanEmail);
                 localStorage.setItem('pwa_device_uuid', deviceUuid);
                 localStorage.setItem('pwa_device_name', deviceName);
 
@@ -95,7 +96,7 @@ export async function loginUser(email, password, deviceName, deviceUuid, appVers
     }
 
     // Offline Login - verify locally
-    const cachedUser = await getStoreItem('cached_user', email);
+    const cachedUser = await getStoreItem('cached_user', cleanEmail);
     if (!cachedUser) {
         return { 
             success: false, 
