@@ -26,7 +26,7 @@ export function initOfflineUI() {
 function createBannerElement() {
     if (document.getElementById('pwa-offline-banner')) return;
 
-    bannerElement = document.createElement('div');
+    bannerElement = document.createElement('header');
     bannerElement.id = 'pwa-offline-banner';
     bannerElement.style.cssText = `
         position: fixed;
