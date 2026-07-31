@@ -841,7 +841,7 @@ function exactAmount() {
 
 function showSuccessToast(message) {
     const toastId = 'toast-' + Date.now();
-    const toast = document.createElement('div');
+    const toast = document.createElement('aside');
     toast.id = toastId;
     toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-slideIn z-50';
     toast.innerHTML = `
@@ -862,7 +862,7 @@ function showSuccessToast(message) {
 
 function showErrorToast(message) {
     const toastId = 'toast-' + Date.now();
-    const toast = document.createElement('div');
+    const toast = document.createElement('aside');
     toast.id = toastId;
     toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-slideIn z-50';
     toast.innerHTML = `

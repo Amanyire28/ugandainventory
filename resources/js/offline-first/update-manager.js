@@ -79,7 +79,7 @@ export async function checkVersionUpdate() {
 function showUpdateNotification(reg) {
     if (document.getElementById('pwa-update-toast')) return;
 
-    const toast = document.createElement('div');
+    const toast = document.createElement('aside');
     toast.id = 'pwa-update-toast';
     toast.style.cssText = `
         position: fixed;
@@ -137,7 +137,7 @@ function showUpdateNotification(reg) {
 async function showSyncRequiredNotification(reg, pending) {
     if (document.getElementById('pwa-sync-update-toast')) return;
 
-    const toast = document.createElement('div');
+    const toast = document.createElement('aside');
     toast.id = 'pwa-sync-update-toast';
     toast.style.cssText = `
         position: fixed;
@@ -225,7 +225,7 @@ export function listenForUpdates() {
         
         // Show update success banner
         setTimeout(() => {
-            const toast = document.createElement('div');
+            const toast = document.createElement('aside');
             toast.className = 'fixed bottom-6 left-6 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg flex items-center space-x-3 z-50 animate-slideIn';
             toast.innerHTML = `
                 <i class="fas fa-check-circle text-xl"></i>
