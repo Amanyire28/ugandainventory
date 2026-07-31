@@ -36,9 +36,9 @@ function createBannerElement() {
         z-index: 99999;
         text-align: center;
         font-family: 'Inter', system-ui, sans-serif;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
-        padding: 10px 20px;
+        padding: 6px 16px;
         box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         display: none;
@@ -52,11 +52,11 @@ function createBannerElement() {
     const style = document.createElement('style');
     style.innerHTML = `
         body.pwa-banner-visible {
-            margin-top: 40px !important;
+            margin-top: 32px !important;
         }
         #pwa-offline-banner .spinner {
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border: 2px solid #ffffff;
             border-bottom-color: transparent;
             border-radius: 50%;
@@ -85,7 +85,7 @@ export async function updateUIStatus(syncState = null) {
         bannerElement.style.color = '#ffffff';
         bannerElement.innerHTML = `
             <i class="fa-solid fa-circle-nodes"></i>
-            <span>🔴 Offline Mode — You are working offline. <strong>${pendingCount}</strong> pending transaction${pendingCount !== 1 ? 's' : ''} queued.</span>
+            <span>Offline Mode${pendingCount > 0 ? ` (${pendingCount} pending)` : ''}</span>
         `;
         document.body.classList.add('pwa-banner-visible');
     } else if (syncState === 'syncing') {
