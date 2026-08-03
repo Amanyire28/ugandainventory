@@ -307,15 +307,11 @@ class StockReconciliationService
             $baseStock = (float) $lastLocked->closing_stock;
             $baseDate  = Carbon::parse($lastLocked->period_end)->endOfDay();
         } else {
-            // No locked period exists — derive opening from the inventory ledger instead
-            // of trusting product.opening_stock, which may reflect stock added via
-            // purchases that would be double-counted in the roll-forward.
-            //
-            // Strategy: start from 0 at the product creation date and roll forward
-            // all ledger transactions (purchases, sales, adjustments) up to the
-            // day before the report period starts. This gives a true opening balance
-            // without double-counting.
-            $baseStock = 0.0;
+            // No locked period — use the product's recorded opening stock as the base.
+            // The initial ADJUSTMENT transaction created at product setup is excluded
+            // from the adjustments query below (via 'Initial%' description filter)
+            // so it won't be double-counted here.
+            $baseStock = (float) $product->opening_stock;
             $baseDate  = Carbon::parse($product->created_at)->subDay()->startOfDay();
         }
 
@@ -348,6 +344,10 @@ class StockReconciliationService
             $rollAdjustments = (float) \App\Models\InventoryTransaction::where('business_id', $businessId)
                 ->where('product_id', $product->id)
                 ->whereIn('transaction_type', ['ADJUSTMENT', 'LATE_ADJUSTMENT'])
+                // Exclude the initial opening-stock transaction — it is already
+                // captured in product.opening_stock (baseStock) and must not be
+                // double-counted in the roll-forward calculation.
+                ->where('description', 'not like', 'Initial%')
                 ->whereBetween('created_at', [$rollStart, $rollEnd])
                 ->selectRaw('SUM(quantity_in) - SUM(quantity_out) as net')
                 ->value('net') ?? 0;
@@ -379,6 +379,10 @@ class StockReconciliationService
         $adjustments = (float) \App\Models\InventoryTransaction::where('business_id', $businessId)
             ->where('product_id', $product->id)
             ->whereIn('transaction_type', ['ADJUSTMENT', 'LATE_ADJUSTMENT'])
+            // Exclude the initial opening-stock transaction — it is already
+            // captured in product.opening_stock (openingStock) and must not be
+            // double-counted in the range adjustments calculation.
+            ->where('description', 'not like', 'Initial%')
             ->whereBetween('created_at', [$rangeStart, $rangeEnd])
             ->selectRaw('SUM(quantity_in) - SUM(quantity_out) as net')
             ->value('net') ?? 0;
