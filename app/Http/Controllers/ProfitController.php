@@ -95,7 +95,7 @@ class ProfitController extends Controller
         }
 
         if ($selectedCashierId) {
-            $costQuery->where('sales. user_id', $selectedCashierId);
+            $costQuery->where('sales.user_id', $selectedCashierId);
         }
 
         $totalCost = $costQuery->sum(DB::raw('COALESCE(sale_items.cost_price_at_sale, products.cost_price) * sale_items.quantity'));
@@ -336,15 +336,15 @@ class ProfitController extends Controller
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
             ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
-            ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
-            ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
+            ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
+            ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
                 'products.id',
                 'products.name as product_name',
                 'products.sku as product_sku',
                 'products.cost_price as buying_price',
                 DB::raw('AVG(sale_items.unit_price) as unit_price'),
-                DB::raw('SUM(sale_items. quantity) as total_quantity'),
+                DB::raw('SUM(sale_items.quantity) as total_quantity'),
                 DB::raw('SUM(
                     CASE 
                         WHEN sales.subtotal > 0 
@@ -387,7 +387,7 @@ class ProfitController extends Controller
                 DB::raw('SUM(
                     CASE 
                         WHEN sales.subtotal > 0 
-                        THEN (sale_items.total / sales.subtotal) * sales. total
+                        THEN (sale_items.total / sales.subtotal) * sales.total
                         ELSE sale_items.total
                     END
                 ) as total_revenue'),
@@ -423,8 +423,8 @@ class ProfitController extends Controller
                 DB::raw('COUNT(DISTINCT sales.id) as number_of_sales'),
                 DB::raw('SUM(
                     CASE 
-                        WHEN sales. subtotal > 0 
-                        THEN (sale_items. total / sales.subtotal) * sales.total
+                        WHEN sales.subtotal > 0 
+                        THEN (sale_items.total / sales.subtotal) * sales.total
                         ELSE sale_items.total
                     END
                 ) as total_revenue'),
@@ -449,15 +449,15 @@ class ProfitController extends Controller
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$start, $end])
             ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
-            ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
-            ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
+            ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
+            ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->select(
                 'products.name as product_name',
                 DB::raw('SUM(sale_items.quantity) as total_quantity'),
                 DB::raw('SUM(
                     CASE 
                         WHEN sales.subtotal > 0 
-                        THEN (sale_items.total / sales.subtotal) * sales. total
+                        THEN (sale_items.total / sales.subtotal) * sales.total
                         ELSE sale_items.total
                     END
                 ) as total_revenue'),
@@ -496,8 +496,8 @@ class ProfitController extends Controller
             ->where('sales.business_id', $businessId)
             ->whereBetween('sales.sale_date', [$thisWeekStart, now()])
             ->where(function($q) { $q->whereNull('sales.status')->orWhere('sales.status', '!=', 'voided'); })
-            ->when(!$canViewAll, fn($q) => $q->where('sales. user_id', $user->id))
-            ->when($selectedCashierId, fn($q) => $q->where('sales. user_id', $selectedCashierId))
+            ->when(!$canViewAll, fn($q) => $q->where('sales.user_id', $user->id))
+            ->when($selectedCashierId, fn($q) => $q->where('sales.user_id', $selectedCashierId))
             ->sum(DB::raw('products.cost_price * sale_items.quantity'));
 
         $thisWeekExpenses = Expense::where('business_id', $businessId)

@@ -50,8 +50,11 @@ class POSController extends Controller
             ->take(5)
             ->get();
 
-        // Use same POS view for both owner and cashier
-        return view('pos.index', compact('products', 'categories', 'customers', 'recentSales'));
+        // Use role-specific POS view — cashiers get their simplified layout,
+        // all other roles get the full owner/manager POS with void and admin features
+        $view = ($userRole === 'cashier') ? 'cashier.pos' : 'pos.index';
+
+        return view($view, compact('products', 'categories', 'customers', 'recentSales'));
     }
 
     /**
