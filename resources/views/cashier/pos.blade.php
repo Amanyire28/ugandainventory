@@ -50,7 +50,8 @@ const allProducts = [
         sku: '{{ addslashes($product->sku ?? "") }}',
         price: {{ $product->selling_price }},
         stock: {{ $product->quantity }},
-        unit: '{{ addslashes($product->unit) }}'
+        unit: '{{ addslashes($product->unit) }}',
+        requiresVat: {{ ($product->requires_vat ?? false) ? 'true' : 'false' }}
     },
     @endforeach
 ];
@@ -276,14 +277,14 @@ function openMobileCheckout()  { document.getElementById('checkoutPanel').classL
 function closeMobileCheckout() { document.getElementById('checkoutPanel').classList.remove('mobile-panel-open'); document.getElementById('checkoutPanelBackdrop').classList.add('hidden'); }
 
 // ── Cart ──────────────────────────────────────────────────────────────────
-function addToCart(id, name, price, unit, maxStock) {
+function addToCart(id, name, price, unit, maxStock, requiresVat) {
     if (maxStock <= 0) { alert('Out of stock!'); return; }
     const existing = cart.find(i => i.id === id);
     if (existing) {
         if (existing.quantity + 1 > maxStock) { alert('Maximum stock: ' + maxStock); return; }
         existing.quantity++;
     } else {
-        cart.push({ id, name, price, quantity: 1, unit, maxStock });
+        cart.push({ id, name, price, quantity: 1, unit, maxStock, requiresVat: !!requiresVat });
     }
     renderCart(); updateTotals();
 }
@@ -313,12 +314,19 @@ function renderCart() {
     if (btn) btn.disabled = false;
     if (bar) bar.classList.remove('translate-y-full');
     const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
-    const totalVal   = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    // Mobile bar total must include VAT so it matches the checkout panel
+    const discount   = parseFloat(document.getElementById('discountAmount').value) || 0;
+    const autoVat    = cart.reduce((s, i) => i.requiresVat ? s + (i.price * i.quantity * 0.18) : s, 0);
+    const totalVal   = cart.reduce((s, i) => s + i.price * i.quantity, 0) - discount + autoVat;
     if (count)  count.textContent  = totalItems + ' item' + (totalItems !== 1 ? 's' : '');
     if (mTotal) mTotal.textContent = totalVal.toLocaleString();
     tbody.innerHTML = cart.map(item => `
         <tr class="hover:bg-gray-50">
-            <td class="px-4 py-3 font-semibold text-gray-900">${item.name}<span class="text-xs text-gray-500 block">Stock: ${item.maxStock} ${item.unit}</span></td>
+            <td class="px-4 py-3 font-semibold text-gray-900">
+                ${item.name}
+                <span class="text-xs text-gray-500 block">Stock: ${item.maxStock} ${item.unit}</span>
+                ${item.requiresVat ? '<span class="inline-block text-xs bg-orange-100 text-orange-700 font-bold px-1.5 py-0.5 rounded mt-0.5">VAT 18%</span>' : '<span class="inline-block text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded mt-0.5">Tax exempt</span>'}
+            </td>
             <td class="px-4 py-3 text-right text-gray-800 font-medium">UGX ${item.price.toLocaleString()}</td>
             <td class="px-4 py-3">
                 <div class="flex items-center justify-center space-x-2">
@@ -327,7 +335,10 @@ function renderCart() {
                     <button type="button" onclick="updateQuantity(${item.id},${item.quantity+1})" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200"><i class="fas fa-plus text-xs"></i></button>
                 </div>
             </td>
-            <td class="px-4 py-3 text-right font-bold text-green-600">UGX ${(item.price*item.quantity).toLocaleString()}</td>
+            <td class="px-4 py-3 text-right font-bold text-green-600">
+                UGX ${(item.price*item.quantity).toLocaleString()}
+                ${item.requiresVat ? `<span class="text-xs text-orange-600 block font-normal">+VAT UGX ${(item.price*item.quantity*0.18).toLocaleString()}</span>` : ''}
+            </td>
             <td class="px-4 py-3 text-center"><button type="button" onclick="removeFromCart(${item.id})" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200"><i class="fas fa-trash-alt text-sm"></i></button></td>
         </tr>`).join('');
 }
@@ -336,12 +347,14 @@ function renderCart() {
 function updateTotals() {
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
-    // VAT is auto-calculated server-side per product; show 0 client-side unless checkbox checked
-    const addTax = document.getElementById('addTaxCheckbox') && document.getElementById('addTaxCheckbox').checked;
-    const tax    = addTax ? Math.max(0, subtotal - discount) * 0.18 : 0;
-    const total  = subtotal - discount + tax;
+    // Auto-VAT per product — mirrors server logic in POSController::process()
+    // Only products with requiresVat === true trigger 18% VAT
+    const autoVat = cart.reduce((s, i) => {
+        return i.requiresVat ? s + (i.price * i.quantity * 0.18) : s;
+    }, 0);
+    const total = subtotal - discount + autoVat;
     document.getElementById('subtotalAmount').textContent = subtotal.toLocaleString();
-    document.getElementById('taxAmount').textContent      = tax.toLocaleString();
+    document.getElementById('taxAmount').textContent      = autoVat.toLocaleString();
     document.getElementById('totalAmount').textContent    = total.toLocaleString();
     calculateChange();
 }
@@ -507,7 +520,7 @@ function initSearch() {
         const item = e.target.closest('.search-result-item');
         if (!item) return;
         const p = allProducts.find(p => p.id === parseInt(item.dataset.id));
-        if (p) { addToCart(p.id, p.name, p.price, p.unit, p.stock); input.value = ''; dd.classList.add('hidden'); input.focus(); }
+        if (p) { addToCart(p.id, p.name, p.price, p.unit, p.stock, p.requiresVat); input.value = ''; dd.classList.add('hidden'); input.focus(); }
     });
 
     document.addEventListener('click', e => { if (!input.contains(e.target) && !dd.contains(e.target)) dd.classList.add('hidden'); });
@@ -519,7 +532,7 @@ function initSearch() {
             if (e.key==='ArrowUp')   { e.preventDefault(); idx=(idx-1+items.length)%items.length; highlightItem(items,idx); return; }
             if (e.key==='Enter') {
                 e.preventDefault();
-                const a = items[idx]; if (a) { const p = allProducts.find(p=>p.id===parseInt(a.dataset.id)); if(p){addToCart(p.id,p.name,p.price,p.unit,p.stock); input.value=''; dd.classList.add('hidden'); input.focus();} }
+                const a = items[idx]; if (a) { const p = allProducts.find(p=>p.id===parseInt(a.dataset.id)); if(p){addToCart(p.id,p.name,p.price,p.unit,p.stock,p.requiresVat); input.value=''; dd.classList.add('hidden'); input.focus();} }
                 return;
             }
             if (e.key==='Escape') { input.value=''; dd.classList.add('hidden'); input.focus(); return; }
