@@ -996,7 +996,7 @@ public function updateUser(Request $request, User $user)
             }
         }
 
-        return view('Admin.reports.revenue', compact(
+        return view('admin.reports.revenue', compact(
             'businesses',
             'start_date',
             'end_date',
@@ -1055,7 +1055,7 @@ public function updateUser(Request $request, User $user)
         $businesses = Business::orderBy('name')->get();
         $packages   = Package::where('is_active', true)->orderBy('name')->get();
 
-        return view('Admin.payments.index', compact(
+        return view('admin.payments.index', compact(
             'payments', 'start_date', 'end_date', 'status', 'pkg',
             'biz_id', 'totalCollected', 'totalPending', 'totalCount',
             'packageRevenue', 'businesses', 'packages', 'pendingFromBusinesses'

@@ -1,4 +1,4 @@
-@extends('Admin.layout')
+@extends('admin.layout')
 
 @section('title', 'Revenue Performance - Admin Panel')
 
