@@ -34,15 +34,13 @@
             overflow-y: auto !important;
             display: flex !important;
         }
-        #checkoutPanel.mobile-panel-open {
-            transform: translateY(0) !important;
-        }
+        #checkoutPanel.mobile-panel-open { transform: translateY(0) !important; }
     }
     #mobileCartBar { display: none !important; }
     @media (max-width: 1023px) { #mobileCartBar { display: flex !important; } }
 </style>
 
-<!-- Product data for JS -->
+<!-- Product data -->
 <script>
 const allProducts = [
     @foreach($products as $product)
@@ -58,19 +56,15 @@ const allProducts = [
 ];
 </script>
 
-<form id="posForm" method="POST" class="h-full">
-    @csrf
-    <input type="hidden" name="payment_type" id="payment_type" value="cash">
-
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-hidden relative">
     <!-- Mobile backdrop -->
     <div id="checkoutPanelBackdrop" onclick="closeMobileCheckout()"
          class="hidden fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
 
-    <!-- LEFT: Products & Search -->
+    <!-- LEFT: Search + cart -->
     <div class="lg:col-span-2 flex flex-col h-full min-h-0 space-y-4 pb-16 lg:pb-0">
 
-        <!-- Search bar -->
+        <!-- Search -->
         <div class="bg-white rounded-xl shadow-lg p-4 flex-shrink-0">
             <div class="relative w-full">
                 <input type="text" id="productSearch" autocomplete="off"
@@ -135,7 +129,7 @@ const allProducts = [
                     class="text-gray-400 hover:text-gray-700 text-xl font-bold p-1">&times;</button>
         </div>
 
-        <!-- Customer section -->
+        <!-- Customer -->
         <div class="border-b pb-3 flex-shrink-0">
             <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center">
                 <i class="fas fa-user-circle text-green-600 mr-2"></i>Customer
@@ -155,7 +149,7 @@ const allProducts = [
                 </label>
             </div>
             <div id="existingCustomerDiv" class="hidden mt-2">
-                <select id="existingCustomerId" name="customer_id"
+                <select id="existingCustomerId"
                         class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-green-500">
                     <option value="">Select Customer</option>
                     @foreach($customers as $customer)
@@ -163,14 +157,14 @@ const allProducts = [
                     @endforeach
                 </select>
             </div>
-            <div id="newCustomerDiv" class="hidden mt-2 grid grid-cols-2 gap-2 p-2 bg-green-50 rounded-lg text-xs">
-                <input type="text" name="new_customer_name" id="newCustomerName" placeholder="Name *"
+            <div id="newCustomerDiv" class="hidden mt-2 grid grid-cols-2 gap-2 p-2 bg-green-50 rounded-lg">
+                <input type="text" id="newCustomerName" placeholder="Name *"
                        class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs">
-                <input type="text" name="new_customer_phone" id="newCustomerPhone" placeholder="Phone *"
+                <input type="text" id="newCustomerPhone" placeholder="Phone *"
                        class="px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs">
-                <input type="email" name="new_customer_email" id="newCustomerEmail" placeholder="Email"
+                <input type="email" id="newCustomerEmail" placeholder="Email"
                        class="col-span-2 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs">
-                <input type="text" name="new_customer_address" id="newCustomerAddress" placeholder="Address"
+                <input type="text" id="newCustomerAddress" placeholder="Address"
                        class="col-span-2 px-2 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 text-xs">
             </div>
         </div>
@@ -182,35 +176,31 @@ const allProducts = [
             </h3>
             <div class="grid grid-cols-2 gap-2">
                 <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
-                    <input type="radio" name="payment_type_radio" value="cash" checked class="h-3.5 w-3.5 text-indigo-600 mr-1.5">
+                    <input type="radio" name="payment_type" value="cash" checked class="h-3.5 w-3.5 text-indigo-600 mr-1.5">
                     <span>Cash Sale</span>
                 </label>
                 <label class="flex items-center justify-center p-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 text-xs">
-                    <input type="radio" name="payment_type_radio" value="invoice" class="h-3.5 w-3.5 text-indigo-600 mr-1.5">
+                    <input type="radio" name="payment_type" value="invoice" class="h-3.5 w-3.5 text-indigo-600 mr-1.5">
                     <span>Credit Invoice</span>
                 </label>
             </div>
         </div>
 
-        <!-- Totals + payment details + submit -->
+        <!-- Totals + amounts -->
         <div class="flex-1 flex flex-col justify-between pt-4 pb-2 min-h-0">
             <div class="space-y-4 text-sm bg-gray-50 p-3 rounded-lg border border-gray-100">
                 <div class="flex justify-between items-center">
-                    <span class="font-medium text-gray-650">Subtotal:</span>
-                    <span class="font-bold text-gray-950 text-base">UGX <span id="subtotalAmount">0</span></span>
+                    <span class="font-medium text-gray-600">Subtotal:</span>
+                    <span class="font-bold text-gray-900 text-base">UGX <span id="subtotalAmount">0</span></span>
                 </div>
                 <div class="flex justify-between items-center">
-                    <span class="font-medium text-gray-650">Discount:</span>
-                    <input type="number" name="discount" id="discountAmount" value="0" min="0" step="100"
+                    <span class="font-medium text-gray-600">Discount:</span>
+                    <input type="number" id="discountAmount" value="0" min="0" step="100"
                            class="w-32 px-3 py-1.5 border border-gray-300 rounded-lg text-right text-sm font-bold focus:ring-2 focus:ring-green-500">
                 </div>
                 <div class="flex justify-between items-center py-1 border-t border-dashed">
-                    <label class="flex items-center cursor-pointer font-medium text-gray-650">
-                        <input type="checkbox" name="add_tax" id="addTaxCheckbox" value="1"
-                               class="mr-2 h-4 w-4 text-green-600 focus:ring-green-500 rounded">
-                        <span>Add Tax (18%)</span>
-                    </label>
-                    <span class="font-bold text-gray-950 text-base">UGX <span id="taxAmount">0</span></span>
+                    <span class="font-medium text-gray-600">VAT (18%):</span>
+                    <span class="font-bold text-gray-900 text-base">UGX <span id="taxAmount">0</span></span>
                 </div>
                 <div class="flex justify-between items-center text-lg font-extrabold text-green-600 pt-2 border-t">
                     <span>TOTAL:</span>
@@ -221,18 +211,18 @@ const allProducts = [
             <div id="cash-payment-div" class="space-y-3 bg-gray-50 p-3 rounded-lg border border-gray-100 flex-shrink-0 mt-3">
                 <div class="flex items-center justify-between gap-3">
                     <span class="text-xs font-bold text-gray-700 whitespace-nowrap">Amount Paid:</span>
-                    <input type="number" name="amount_paid" id="amountPaid" value="0" min="0" step="100"
+                    <input type="number" id="amountPaid" value="0" min="0" step="100"
                            class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-lg text-right text-base font-extrabold text-gray-900 focus:ring-2 focus:ring-green-500">
                     <button type="button" id="exactAmountBtn"
                             class="px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 rounded-lg text-sm font-bold transition">
                         Exact
                     </button>
                 </div>
-                <div class="p-3 rounded-lg flex justify-between items-center text-sm" id="changeBox">
+                <div class="p-3 rounded-lg bg-green-50 flex justify-between items-center text-sm" id="changeBox">
                     <span class="font-semibold text-gray-600">Change:</span>
                     <span class="text-base font-extrabold text-green-600">UGX <span id="changeAmount">0</span></span>
                 </div>
-                <textarea name="notes" id="saleNotes" rows="2"
+                <textarea id="saleNotes" rows="2"
                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500"
                           placeholder="Notes (Optional)..."></textarea>
             </div>
@@ -242,7 +232,7 @@ const allProducts = [
                 <i class="fas fa-info-circle mr-1.5"></i> Credit Sale — items will be added to invoice.
             </div>
 
-            <button type="submit" id="checkoutBtn"
+            <button onclick="processSale()" id="checkoutBtn"
                     class="mt-3 w-full py-3.5 bg-green-600 text-white rounded-lg hover:bg-green-700
                            font-extrabold text-base shadow-lg transition
                            disabled:bg-gray-300 disabled:cursor-not-allowed
@@ -268,56 +258,45 @@ const allProducts = [
         </button>
     </div>
 </div>
-</form>
+
+<!-- Receipt modal -->
+<div id="receiptModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full" id="receiptContent"></div>
+</div>
+
 @endsection
 
 @push('scripts')
 <script>
 let cart = [];
+let isProcessingSale = false;
 
-// ── Mobile drawer ─────────────────────────────────────────────────────────────
-function openMobileCheckout() {
-    document.getElementById('checkoutPanel').classList.add('mobile-panel-open');
-    document.getElementById('checkoutPanelBackdrop').classList.remove('hidden');
-}
-function closeMobileCheckout() {
-    document.getElementById('checkoutPanel').classList.remove('mobile-panel-open');
-    document.getElementById('checkoutPanelBackdrop').classList.add('hidden');
-}
+// ── Mobile drawer ─────────────────────────────────────────────────────────
+function openMobileCheckout()  { document.getElementById('checkoutPanel').classList.add('mobile-panel-open'); document.getElementById('checkoutPanelBackdrop').classList.remove('hidden'); }
+function closeMobileCheckout() { document.getElementById('checkoutPanel').classList.remove('mobile-panel-open'); document.getElementById('checkoutPanelBackdrop').classList.add('hidden'); }
 
-// ── Cart operations ───────────────────────────────────────────────────────────
+// ── Cart ──────────────────────────────────────────────────────────────────
 function addToCart(id, name, price, unit, maxStock) {
-    if (maxStock <= 0) { alert('Cannot add! Product is out of stock.'); return; }
+    if (maxStock <= 0) { alert('Out of stock!'); return; }
     const existing = cart.find(i => i.id === id);
     if (existing) {
-        if (existing.quantity + 1 > maxStock) {
-            alert('Cannot add more! Maximum stock available: ' + maxStock); return;
-        }
+        if (existing.quantity + 1 > maxStock) { alert('Maximum stock: ' + maxStock); return; }
         existing.quantity++;
     } else {
         cart.push({ id, name, price, quantity: 1, unit, maxStock });
     }
     renderCart(); updateTotals();
 }
-
-function removeFromCart(id) {
-    cart = cart.filter(i => i.id !== id);
-    renderCart(); updateTotals();
-}
-
-function updateQuantity(id, newQty) {
+function removeFromCart(id) { cart = cart.filter(i => i.id !== id); renderCart(); updateTotals(); }
+function updateQuantity(id, val) {
     const item = cart.find(i => i.id === id);
     if (!item) return;
-    if (newQty > item.maxStock) { alert('Cannot exceed available stock: ' + item.maxStock); renderCart(); return; }
-    if (newQty <= 0) { removeFromCart(id); return; }
-    item.quantity = parseFloat(newQty);
-    renderCart(); updateTotals();
+    const q = parseFloat(val);
+    if (q > item.maxStock) { alert('Cannot exceed stock: ' + item.maxStock); renderCart(); return; }
+    if (q <= 0) { removeFromCart(id); return; }
+    item.quantity = q; renderCart(); updateTotals();
 }
-
-function clearCart() {
-    if (!cart.length) return;
-    if (confirm('Clear all items from cart?')) { cart = []; renderCart(); updateTotals(); }
-}
+function clearCart() { if (!cart.length) return; if (confirm('Clear cart?')) { cart = []; renderCart(); updateTotals(); } }
 
 function renderCart() {
     const tbody  = document.getElementById('cartItemsTable');
@@ -325,241 +304,255 @@ function renderCart() {
     const bar    = document.getElementById('mobileCartBar');
     const count  = document.getElementById('mobileCartCount');
     const mTotal = document.getElementById('mobileCartTotal');
-
     if (!cart.length) {
-        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-12 text-center text-gray-400">
-            <i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>
-            No products selected. Search above to add.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-12 text-center text-gray-400"><i class="fas fa-shopping-basket text-5xl mb-3 block text-gray-300"></i>No products selected.</td></tr>`;
         if (btn) btn.disabled = true;
         if (bar) bar.classList.add('translate-y-full');
         return;
     }
-
     if (btn) btn.disabled = false;
-
-    // Show mobile bar
     if (bar) bar.classList.remove('translate-y-full');
     const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
     const totalVal   = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     if (count)  count.textContent  = totalItems + ' item' + (totalItems !== 1 ? 's' : '');
     if (mTotal) mTotal.textContent = totalVal.toLocaleString();
-
     tbody.innerHTML = cart.map(item => `
-        <tr class="hover:bg-gray-50 transition">
-            <td class="px-4 py-3 font-semibold text-gray-900">
-                ${item.name}
-                <span class="text-xs text-gray-500 block font-mono">Stock: ${item.maxStock} ${item.unit}</span>
-            </td>
+        <tr class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-semibold text-gray-900">${item.name}<span class="text-xs text-gray-500 block">Stock: ${item.maxStock} ${item.unit}</span></td>
             <td class="px-4 py-3 text-right text-gray-800 font-medium">UGX ${item.price.toLocaleString()}</td>
             <td class="px-4 py-3">
                 <div class="flex items-center justify-center space-x-2">
-                    <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity - 1})"
-                            class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center border border-gray-200">
-                        <i class="fas fa-minus text-xs"></i>
-                    </button>
-                    <input type="number" value="${item.quantity}" min="1" max="${item.maxStock}"
-                           onchange="updateQuantity(${item.id}, this.value)"
-                           class="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-green-500">
-                    <button type="button" onclick="updateQuantity(${item.id}, ${item.quantity + 1})"
-                            class="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center border border-gray-200">
-                        <i class="fas fa-plus text-xs"></i>
-                    </button>
+                    <button type="button" onclick="updateQuantity(${item.id},${item.quantity-1})" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200"><i class="fas fa-minus text-xs"></i></button>
+                    <input type="number" value="${item.quantity}" min="1" max="${item.maxStock}" onchange="updateQuantity(${item.id},this.value)" class="w-16 px-2 py-1.5 border border-gray-300 rounded-lg text-center font-bold text-sm focus:ring-2 focus:ring-green-500">
+                    <button type="button" onclick="updateQuantity(${item.id},${item.quantity+1})" class="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200"><i class="fas fa-plus text-xs"></i></button>
                 </div>
             </td>
-            <td class="px-4 py-3 text-right font-bold text-green-600">
-                UGX ${(item.price * item.quantity).toLocaleString()}
-            </td>
-            <td class="px-4 py-3 text-center">
-                <button type="button" onclick="removeFromCart(${item.id})"
-                        class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200">
-                    <i class="fas fa-trash-alt text-sm"></i>
-                </button>
-            </td>
+            <td class="px-4 py-3 text-right font-bold text-green-600">UGX ${(item.price*item.quantity).toLocaleString()}</td>
+            <td class="px-4 py-3 text-center"><button type="button" onclick="removeFromCart(${item.id})" class="p-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg border border-red-200"><i class="fas fa-trash-alt text-sm"></i></button></td>
         </tr>`).join('');
 }
 
-// ── Totals ────────────────────────────────────────────────────────────────────
+// ── Totals ────────────────────────────────────────────────────────────────
 function updateTotals() {
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     const discount = parseFloat(document.getElementById('discountAmount').value) || 0;
-    const addTax   = document.getElementById('addTaxCheckbox').checked;
-    const tax      = addTax ? Math.max(0, subtotal - discount) * 0.18 : 0;
-    const total    = subtotal - discount + tax;
+    // VAT is auto-calculated server-side per product; show 0 client-side unless checkbox checked
+    const addTax = document.getElementById('addTaxCheckbox') && document.getElementById('addTaxCheckbox').checked;
+    const tax    = addTax ? Math.max(0, subtotal - discount) * 0.18 : 0;
+    const total  = subtotal - discount + tax;
     document.getElementById('subtotalAmount').textContent = subtotal.toLocaleString();
     document.getElementById('taxAmount').textContent      = tax.toLocaleString();
     document.getElementById('totalAmount').textContent    = total.toLocaleString();
     calculateChange();
 }
-
 function calculateChange() {
-    const total    = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g, '')) || 0;
-    const paid     = parseFloat(document.getElementById('amountPaid').value) || 0;
-    const change   = paid - total;
-    document.getElementById('changeAmount').textContent = Math.max(0, change).toLocaleString();
-    const box  = document.getElementById('changeBox');
-    const span = document.getElementById('changeAmount');
-    if (paid < total && paid > 0) {
-        box.classList.replace('bg-green-50', 'bg-red-50');
-        span.classList.replace('text-green-600', 'text-red-600');
-    } else {
-        box.classList.replace('bg-red-50', 'bg-green-50');
-        span.classList.replace('text-red-600', 'text-green-600');
-    }
+    const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g,'')) || 0;
+    const paid  = parseFloat(document.getElementById('amountPaid').value) || 0;
+    document.getElementById('changeAmount').textContent = Math.max(0, paid - total).toLocaleString();
+    const box = document.getElementById('changeBox'); const span = document.getElementById('changeAmount');
+    if (paid > 0 && paid < total) { box.classList.replace('bg-green-50','bg-red-50'); span.className = 'text-base font-extrabold text-red-600'; }
+    else { box.classList.replace('bg-red-50','bg-green-50'); span.className = 'text-base font-extrabold text-green-600'; }
 }
+function exactAmount() { const t = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g,''))||0; document.getElementById('amountPaid').value = t; calculateChange(); }
 
-function exactAmount() {
-    const total = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g, '')) || 0;
-    document.getElementById('amountPaid').value = total;
-    calculateChange();
-}
-
-// ── Customer fields ───────────────────────────────────────────────────────────
+// ── Customer / payment toggles ─────────────────────────────────────────────
 function toggleCustomerFields() {
     const val = document.querySelector('input[name="customer_option"]:checked').value;
     document.getElementById('existingCustomerDiv').classList.toggle('hidden', val !== 'existing');
     document.getElementById('newCustomerDiv').classList.toggle('hidden', val !== 'new');
 }
-
-// ── Payment type ──────────────────────────────────────────────────────────────
-function setPaymentType() {
-    const val  = document.querySelector('input[name="payment_type_radio"]:checked').value;
-    document.getElementById('payment_type').value = val;
+function togglePaymentType() {
+    const val = document.querySelector('input[name="payment_type"]:checked').value;
     const cash = document.getElementById('cash-payment-div');
     const inv  = document.getElementById('invoiceNotice');
-    const btn  = document.getElementById('checkoutBtnText');
-    if (val === 'invoice') {
-        cash.classList.add('hidden'); inv.classList.remove('hidden');
-        btn.textContent = 'Make Invoice';
-        document.getElementById('posForm').action = "{{ route('cashier.posInvoice') }}";
-    } else {
-        cash.classList.remove('hidden'); inv.classList.add('hidden');
-        btn.textContent = 'Complete Sale';
-        document.getElementById('posForm').action = "{{ route('pos.process') }}";
-    }
+    const lbl  = document.getElementById('checkoutBtnText');
+    if (val === 'invoice') { cash.classList.add('hidden'); inv.classList.remove('hidden'); lbl.textContent = 'Make Invoice'; }
+    else { cash.classList.remove('hidden'); inv.classList.add('hidden'); lbl.textContent = 'Complete Sale'; }
     calculateChange();
 }
 
-// ── Autocomplete search ───────────────────────────────────────────────────────
-function initSearch() {
-    const input    = document.getElementById('productSearch');
-    const dropdown = document.getElementById('searchResultsDropdown');
-    let activeIdx  = 0;
+// ── Process sale (AJAX — same as owner POS) ────────────────────────────────
+async function processSale() {
+    if (isProcessingSale) return;
+    if (!cart.length) { alert('Cart is empty!'); return; }
 
-    input.addEventListener('input', function () {
-        const q = this.value.toLowerCase().trim();
-        if (!q) { dropdown.classList.add('hidden'); dropdown.innerHTML = ''; return; }
-        const matches = allProducts.filter(p =>
-            p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
-        if (!matches.length) {
-            dropdown.innerHTML = '<div class="p-3 text-gray-500 text-sm text-center">No products found</div>';
-            dropdown.classList.remove('hidden'); return;
+    const paymentType    = document.querySelector('input[name="payment_type"]:checked').value;
+    const customerOption = document.querySelector('input[name="customer_option"]:checked').value;
+    const amountPaid     = parseFloat(document.getElementById('amountPaid').value) || 0;
+    const total          = parseFloat(document.getElementById('totalAmount').textContent.replace(/,/g,'')) || 0;
+
+    if (paymentType === 'cash' && amountPaid < total) { alert('Amount paid is less than total!'); return; }
+    if (customerOption === 'existing' && !document.getElementById('existingCustomerId').value) { alert('Please select a customer.'); return; }
+    if (customerOption === 'new') {
+        if (!document.getElementById('newCustomerName').value.trim()) { alert('Enter customer name.'); return; }
+        if (!document.getElementById('newCustomerPhone').value.trim()) { alert('Enter customer phone.'); return; }
+    }
+
+    isProcessingSale = true;
+    const btn = document.getElementById('checkoutBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+
+    const payload = {
+        customer_option: customerOption,
+        items: cart.map(i => ({ product_id: i.id, quantity: i.quantity, price: i.price })),
+        discount: parseFloat(document.getElementById('discountAmount').value) || 0,
+        notes: document.getElementById('saleNotes').value || null,
+        amount_paid: amountPaid,
+        _token: '{{ csrf_token() }}'
+    };
+    if (customerOption === 'existing') payload.customer_id = document.getElementById('existingCustomerId').value;
+    if (customerOption === 'new') {
+        payload.new_customer_name    = document.getElementById('newCustomerName').value.trim();
+        payload.new_customer_phone   = document.getElementById('newCustomerPhone').value.trim();
+        payload.new_customer_email   = document.getElementById('newCustomerEmail').value.trim();
+        payload.new_customer_address = document.getElementById('newCustomerAddress').value.trim();
+    }
+
+    const endpoint = paymentType === 'invoice'
+        ? '{{ route("invoices.pos", [], false) }}'
+        : '{{ route("pos.process", [], false) }}';
+
+    try {
+        const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: JSON.stringify(payload)
+        });
+        const result = await resp.json();
+
+        if (result && result.success) {
+            // Update local stock
+            cart.forEach(item => { const p = allProducts.find(p => p.id === item.id); if (p) p.stock -= item.quantity; });
+            showReceipt(result);
+            // Reset cart & form
+            cart = [];
+            renderCart(); updateTotals();
+            document.querySelector('input[name="customer_option"][value="walk_in"]').checked = true;
+            toggleCustomerFields();
+            document.getElementById('discountAmount').value = 0;
+            document.getElementById('amountPaid').value = 0;
+            document.getElementById('saleNotes').value = '';
+            document.getElementById('existingCustomerId').value = '';
+            document.getElementById('newCustomerName').value = '';
+            document.getElementById('newCustomerPhone').value = '';
+            closeMobileCheckout();
+        } else {
+            alert(result.message || 'Sale failed. Please try again.');
         }
-        dropdown.innerHTML = matches.map((p, idx) => `
-            <div class="search-result-item p-3 border-b border-gray-100 hover:bg-green-50 cursor-pointer flex justify-between items-center ${idx === 0 ? 'bg-green-50 ring-1 ring-green-400 font-semibold' : ''}"
-                 data-id="${p.id}" data-index="${idx}">
-                <div>
-                    <span class="font-semibold text-gray-900">${p.name}</span>
-                    <span class="text-xs text-gray-500 font-mono ml-2">SKU: ${p.sku || 'N/A'}</span>
-                </div>
-                <div class="text-right">
-                    <span class="font-bold text-gray-900">UGX ${p.price.toLocaleString()}</span>
-                    <span class="text-xs text-gray-600 block">Stock: ${p.stock} ${p.unit}</span>
-                </div>
+    } catch (err) {
+        alert('Connection error. Please check your network and try again.');
+    } finally {
+        isProcessingSale = false;
+        btn.disabled = !cart.length;
+        const lbl = document.querySelector('input[name="payment_type"]:checked').value === 'invoice' ? 'Make Invoice' : 'Complete Sale';
+        btn.innerHTML = '<i class="fas fa-check-circle mr-2"></i><span id="checkoutBtnText">' + lbl + '</span>';
+    }
+}
+
+// ── Receipt modal ─────────────────────────────────────────────────────────
+function showReceipt(data) {
+    const modal   = document.getElementById('receiptModal');
+    const content = document.getElementById('receiptContent');
+    if (!modal || !content) { alert('Sale #' + (data.sale_number || data.invoice_number) + ' completed!'); return; }
+    const isSale = !!data.sale_number;
+    content.innerHTML = `
+        <div class="p-6">
+            <div class="text-center mb-6">
+                <i class="fas fa-check-circle text-6xl text-green-500 mb-3"></i>
+                <h2 class="text-2xl font-bold text-gray-900">${isSale ? 'Sale Completed!' : 'Invoice Created!'}</h2>
+                <p class="text-gray-600 font-semibold">${isSale ? 'Sale #' + data.sale_number : 'Invoice #' + data.invoice_number}</p>
+            </div>
+            ${isSale ? `
+            <div class="space-y-3 mb-6 bg-gray-50 p-4 rounded-lg">
+                <div class="flex justify-between"><span class="text-gray-600">Total</span><span class="font-bold">UGX ${(data.total||0).toLocaleString()}</span></div>
+                <div class="flex justify-between"><span class="text-gray-600">Paid</span><span class="font-bold text-green-600">UGX ${(data.amount_paid||0).toLocaleString()}</span></div>
+                <div class="flex justify-between text-lg font-extrabold border-t pt-2"><span>Change</span><span class="text-green-600">UGX ${(data.change||0).toLocaleString()}</span></div>
+            </div>` : ''}
+            <div class="flex gap-3">
+                <a href="${isSale ? '/sales/' + data.sale_id : '/invoices/' + data.invoice_id}" target="_blank"
+                   class="flex-1 py-2.5 bg-indigo-600 text-white rounded-lg text-center font-bold hover:bg-indigo-700 transition">
+                    <i class="fas fa-print mr-1"></i>Print Receipt
+                </a>
+                <button onclick="document.getElementById('receiptModal').classList.add('hidden')"
+                        class="flex-1 py-2.5 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition">
+                    <i class="fas fa-plus-circle mr-1"></i>New Sale
+                </button>
+            </div>
+        </div>`;
+    modal.classList.remove('hidden');
+}
+
+// ── Search autocomplete ───────────────────────────────────────────────────
+function initSearch() {
+    const input = document.getElementById('productSearch');
+    const dd    = document.getElementById('searchResultsDropdown');
+    let idx = 0;
+
+    input.addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        if (!q) { dd.classList.add('hidden'); dd.innerHTML = ''; return; }
+        const matches = allProducts.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)));
+        if (!matches.length) { dd.innerHTML = '<div class="p-3 text-gray-500 text-sm text-center">No products found</div>'; dd.classList.remove('hidden'); return; }
+        dd.innerHTML = matches.map((p, i) => `
+            <div class="search-result-item p-3 border-b border-gray-100 hover:bg-green-50 cursor-pointer flex justify-between ${i===0?'bg-green-50 ring-1 ring-green-400 font-semibold':''}"
+                 data-id="${p.id}">
+                <div><span class="font-semibold text-gray-900">${p.name}</span><span class="text-xs text-gray-500 font-mono ml-2">SKU: ${p.sku||'N/A'}</span></div>
+                <div class="text-right"><span class="font-bold text-gray-900">UGX ${p.price.toLocaleString()}</span><span class="text-xs text-gray-600 block">Stock: ${p.stock} ${p.unit}</span></div>
             </div>`).join('');
-        dropdown.classList.remove('hidden');
-        activeIdx = 0;
+        dd.classList.remove('hidden'); idx = 0;
     });
 
-    dropdown.addEventListener('click', function (e) {
+    dd.addEventListener('click', e => {
         const item = e.target.closest('.search-result-item');
         if (!item) return;
         const p = allProducts.find(p => p.id === parseInt(item.dataset.id));
-        if (p) { addToCart(p.id, p.name, p.price, p.unit, p.stock); input.value = ''; dropdown.classList.add('hidden'); input.focus(); }
+        if (p) { addToCart(p.id, p.name, p.price, p.unit, p.stock); input.value = ''; dd.classList.add('hidden'); input.focus(); }
     });
 
-    document.addEventListener('click', e => {
-        if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.add('hidden');
-    });
+    document.addEventListener('click', e => { if (!input.contains(e.target) && !dd.contains(e.target)) dd.classList.add('hidden'); });
 
-    document.addEventListener('keydown', function (e) {
-        const items = dropdown.querySelectorAll('.search-result-item');
-        if (!dropdown.classList.contains('hidden') && items.length) {
-            if (e.key === 'ArrowDown') { e.preventDefault(); activeIdx = (activeIdx + 1) % items.length; highlightItem(items, activeIdx); return; }
-            if (e.key === 'ArrowUp')   { e.preventDefault(); activeIdx = (activeIdx - 1 + items.length) % items.length; highlightItem(items, activeIdx); return; }
-            if (e.key === 'Enter') {
+    document.addEventListener('keydown', function(e) {
+        const items = dd.querySelectorAll('.search-result-item');
+        if (!dd.classList.contains('hidden') && items.length) {
+            if (e.key==='ArrowDown') { e.preventDefault(); idx=(idx+1)%items.length; highlightItem(items,idx); return; }
+            if (e.key==='ArrowUp')   { e.preventDefault(); idx=(idx-1+items.length)%items.length; highlightItem(items,idx); return; }
+            if (e.key==='Enter') {
                 e.preventDefault();
-                const active = items[activeIdx];
-                if (active) { const p = allProducts.find(p => p.id === parseInt(active.dataset.id)); if (p) { addToCart(p.id, p.name, p.price, p.unit, p.stock); input.value = ''; dropdown.classList.add('hidden'); input.focus(); } }
+                const a = items[idx]; if (a) { const p = allProducts.find(p=>p.id===parseInt(a.dataset.id)); if(p){addToCart(p.id,p.name,p.price,p.unit,p.stock); input.value=''; dd.classList.add('hidden'); input.focus();} }
                 return;
             }
-            if (e.key === 'Escape') { input.value = ''; dropdown.classList.add('hidden'); input.focus(); return; }
+            if (e.key==='Escape') { input.value=''; dd.classList.add('hidden'); input.focus(); return; }
         }
-        // Global shortcuts
-        if (e.key === 'Escape') { input.value = ''; input.focus(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); input.focus(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            e.preventDefault();
-            const btn = document.getElementById('checkoutBtn');
-            if (btn && !btn.disabled) document.getElementById('posForm').requestSubmit();
-        }
+        if (e.key==='Escape') { input.value=''; input.focus(); }
+        if ((e.ctrlKey||e.metaKey)&&e.key==='k') { e.preventDefault(); input.focus(); }
+        if ((e.ctrlKey||e.metaKey)&&e.key==='Enter') { e.preventDefault(); if(!isProcessingSale && cart.length) processSale(); }
     });
 }
 
-function highlightItem(items, idx) {
-    items.forEach((el, i) => {
-        el.classList.toggle('bg-green-50', i === idx);
-        el.classList.toggle('ring-1', i === idx);
-        el.classList.toggle('ring-green-400', i === idx);
-        el.classList.toggle('font-semibold', i === idx);
-        if (i === idx) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    });
+function highlightItem(items, i) {
+    items.forEach((el,j) => { el.classList.toggle('bg-green-50',i===j); el.classList.toggle('ring-1',i===j); el.classList.toggle('ring-green-400',i===j); el.classList.toggle('font-semibold',i===j); if(i===j) el.scrollIntoView({block:'nearest',behavior:'smooth'}); });
 }
 
-// ── DOMContentLoaded ──────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function () {
-    // Reset button (back-button / fresh load)
+// ── Boot ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
     const btn = document.getElementById('checkoutBtn');
-    if (btn) { btn.dataset.submitting = 'false'; btn.disabled = true; btn.innerHTML = '<i class="fas fa-check-circle text-lg"></i> <span id="checkoutBtnText">Complete Sale</span>'; }
-
-    setPaymentType();
+    if (btn) { btn.disabled = true; }
     toggleCustomerFields();
+    togglePaymentType();
     updateTotals();
     initSearch();
 
-    document.querySelectorAll('input[name="payment_type_radio"]').forEach(r => r.addEventListener('change', setPaymentType));
     document.querySelectorAll('input[name="customer_option"]').forEach(r => r.addEventListener('change', toggleCustomerFields));
-    document.getElementById('discountAmount').addEventListener('change', updateTotals);
-    document.getElementById('addTaxCheckbox').addEventListener('change', updateTotals);
+    document.querySelectorAll('input[name="payment_type"]').forEach(r => r.addEventListener('change', togglePaymentType));
+    document.getElementById('discountAmount').addEventListener('input', updateTotals);
     document.getElementById('amountPaid').addEventListener('input', calculateChange);
     document.getElementById('exactAmountBtn').addEventListener('click', exactAmount);
     document.getElementById('clearCartBtn').addEventListener('click', clearCart);
-
-    // Form submit — double-submit guard
-    document.getElementById('posForm').addEventListener('submit', function (e) {
-        const btn = document.getElementById('checkoutBtn');
-        if (btn && btn.dataset.submitting === 'true') { e.preventDefault(); return; }
-        if (btn) { btn.dataset.submitting = 'true'; btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...'; }
-        // Inject hidden item fields
-        this.querySelectorAll('input[name^="items["]').forEach(i => i.remove());
-        cart.forEach(function (item, idx) {
-            ['product_id:id', 'quantity:quantity', 'price:price'].forEach(pair => {
-                const [name, key] = pair.split(':');
-                const inp = document.createElement('input');
-                inp.type  = 'hidden';
-                inp.name  = `items[${idx}][${name}]`;
-                inp.value = item[key];
-                e.target.appendChild(inp);
-            });
-        });
-    });
 });
 
-// Reset button when browser restores page from bfcache (back button)
-window.addEventListener('pageshow', function (e) {
-    if (e.persisted) {
-        const btn = document.getElementById('checkoutBtn');
-        if (btn) { btn.dataset.submitting = 'false'; btn.disabled = !cart.length; btn.innerHTML = '<i class="fas fa-check-circle text-lg"></i> <span id="checkoutBtnText">Complete Sale</span>'; }
-    }
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) { isProcessingSale = false; const btn=document.getElementById('checkoutBtn'); if(btn){btn.disabled=!cart.length; btn.innerHTML='<i class="fas fa-check-circle text-lg"></i> <span id="checkoutBtnText">Complete Sale</span>';} }
 });
 </script>
 @endpush
