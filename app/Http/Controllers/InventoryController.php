@@ -9,6 +9,7 @@ use App\Models\StockTakingSession;
 use App\Models\StockAdjustment;
 use App\Models\InventoryPeriod;
 use App\Models\Inventory;
+use App\Services\InventoryService;
 use App\Services\StockReconciliationService;
 use App\Services\MonthlyClosingService;
 use Illuminate\Http\Request;
@@ -282,64 +283,21 @@ class InventoryController extends Controller
                 $product = Product::find($adjustment->product_id);
                 if (!$product) continue;
 
-                $oldQty = $product->quantity;
-
-                // Apply physical count to products table
-                $product->quantity = $adjustment->physical_count;
-                $product->save();
-
-                // Sync location-aware inventory table
-                $inventory = Inventory::where('business_id', $businessId)
-                    ->where('product_id', $product->id)
-                    ->first();
-                if ($inventory) {
-                    $inventory->quantity = $adjustment->physical_count;
-                    $inventory->save();
-                }
-
-                // Mark adjustment as approved
+                // Mark adjustment approved first
                 $adjustment->update([
                     'status'      => 'approved',
                     'approved_by' => Auth::id(),
                     'approved_at' => now(),
                 ]);
 
-                // Record Inventory Transaction
-                $qtyIn  = $adjustment->variance > 0 ? $adjustment->variance : 0;
-                $qtyOut = $adjustment->variance < 0 ? abs($adjustment->variance) : 0;
-
-                \App\Models\InventoryTransaction::create([
-                    'business_id'      => $businessId,
-                    'product_id'       => $product->id,
-                    'transaction_type' => 'ADJUSTMENT',
-                    'quantity_in'      => $qtyIn,
-                    'quantity_out'     => $qtyOut,
-                    'reference_type'   => StockAdjustment::class,
-                    'reference_id'     => $adjustment->id,
-                    'description'      => sprintf(
-                        'Stock Take Session #%d. System: %.2f → Physical: %.2f (Variance: %+.2f). Notes: %s',
-                        $session->id,
-                        $oldQty,
-                        $adjustment->physical_count,
-                        $adjustment->variance,
-                        $adjustment->notes ?? 'None'
-                    ),
-                    'created_by'       => Auth::id(),
-                ]);
-
-                // Audit Log
-                \App\Models\AuditLog::log(
-                    'stock_adjustment',
-                    Product::class,
-                    $product->id,
-                    ['quantity' => $oldQty],
-                    [
-                        'quantity'       => $adjustment->physical_count,
-                        'variance'       => $adjustment->variance,
-                        'session_id'     => $session->id,
-                        'physical_count' => $adjustment->physical_count,
-                        'system_qty'     => $adjustment->system_quantity,
-                    ]
+                // Apply physical count via InventoryService — locks the product
+                // row before setting absolute quantity, preventing concurrent reads.
+                (new InventoryService())->applyStockAdjustment(
+                    $product,
+                    (float) $adjustment->physical_count,
+                    $adjustment,
+                    $businessId,
+                    Auth::id()
                 );
             }
 

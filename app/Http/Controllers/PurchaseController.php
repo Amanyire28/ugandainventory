@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NumberGenerator;
+use App\Services\InventoryService;
 use App\Models\AuditLog;
 use App\Models\Product;
 use App\Models\Purchase;
@@ -99,11 +101,8 @@ class PurchaseController extends Controller
 
         DB::beginTransaction();
         try {
-            // Generate unique purchase number
-            $lastNumber = Purchase::where('business_id', $businessId)
-                ->orderByDesc('id')->value('purchase_number') ?? 'PO-00000000-0000';
-            $sequence = ((int) substr($lastNumber, -4)) + 1;
-            $purchaseNumber = 'PO-' . now()->format('Ymd') . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+            // Generate purchase number via centralized service (concurrency-safe)
+            $purchaseNumber = (new NumberGenerator())->nextPurchaseNumber($businessId);
 
             // Calculate totals and VAT
             $subtotal = 0;
@@ -133,39 +132,28 @@ class PurchaseController extends Controller
 
             // Create purchase header
             $purchase = Purchase::create([
-                'business_id'    => $businessId,
-                'location_id'    => $locationId,
-                'supplier_id'    => $validated['supplier_id'] ?? null,
-                'user_id'        => $user->id,
-                'purchase_number'=> $purchaseNumber,
-                'purchase_date'  => Carbon::parse($validated['purchase_date']),
-                'subtotal'       => $subtotal,
-                'tax_amount'     => $taxAmount,
-                'total'          => $total,
-                'payment_status' => $validated['payment_status'],
-                'notes'          => $validated['notes'] ?? null,
+                'business_id'     => $businessId,
+                'location_id'     => $locationId,
+                'supplier_id'     => $validated['supplier_id'] ?? null,
+                'user_id'         => $user->id,
+                'purchase_number' => $purchaseNumber,
+                'purchase_date'   => Carbon::parse($validated['purchase_date']),
+                'subtotal'        => $subtotal,
+                'tax_amount'      => $taxAmount,
+                'total'           => $total,
+                'payment_status'  => $validated['payment_status'],
+                'notes'           => $validated['notes'] ?? null,
             ]);
 
-            // Create items & update product stock / cost price
-            foreach ($validated['items'] as $itemData) {
-                $lineTotal = $itemData['quantity'] * $itemData['unit_cost'];
+            // Add stock via InventoryService — locks each product row in ascending
+            // product_id order before incrementing. Creates PurchaseItem records too.
+            $inventoryItems = array_map(fn($i) => [
+                'product_id' => $i['product_id'],
+                'quantity'   => $i['quantity'],
+                'unit_cost'  => $i['unit_cost'],
+            ], $validated['items']);
 
-                PurchaseItem::create([
-                    'purchase_id' => $purchase->id,
-                    'product_id'  => $itemData['product_id'],
-                    'quantity'    => $itemData['quantity'],
-                    'unit_cost'   => $itemData['unit_cost'],
-                    'total'       => $lineTotal,
-                ]);
-
-                // Increment product stock and update cost price
-                $product = Product::find($itemData['product_id']);
-                if ($product && $product->business_id === $businessId) {
-                    $product->increment('quantity', $itemData['quantity']);
-                    // Update cost price to latest purchase cost
-                    $product->update(['cost_price' => $itemData['unit_cost']]);
-                }
-            }
+            (new InventoryService())->addFromPurchase($purchase, $inventoryItems, $user->id);
 
             // Supplier ledger transaction
             if ($validated['supplier_id']) {
@@ -235,14 +223,9 @@ class PurchaseController extends Controller
 
         DB::beginTransaction();
         try {
-            $purchase->load('items.product');
-
-            // Reverse stock for each item
-            foreach ($purchase->items as $item) {
-                if ($item->product && $item->product->business_id === $user->business_id) {
-                    $item->product->decrement('quantity', $item->quantity);
-                }
-            }
+            // Reverse stock via InventoryService — locks each product row
+            // before decrementing to prevent concurrent read-write races.
+            (new InventoryService())->reverseFromPurchaseCancellation($purchase, $user->id);
 
             // Soft-delete
             $purchase->delete();

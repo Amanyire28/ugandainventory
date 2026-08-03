@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Services\InventoryService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB};
 
@@ -74,9 +75,8 @@ class SaleController extends Controller
         DB::transaction(function () use ($sale, $validated, $user) {
 
             // ── Capture pre-void state for audit ──────────────────────────────
-            $originalTotal   = $sale->total;
+            $originalTotal     = $sale->total;
             $originalTaxAmount = $sale->tax_amount ?? 0;
-            $stockRestored   = [];
 
             // 1. Mark Sale as Voided ──────────────────────────────────────────
             $sale->update([
@@ -86,43 +86,10 @@ class SaleController extends Controller
                 'voided_by'   => $user->id,
             ]);
 
-            // 2. Restock items back to both products.quantity AND inventory table
+            // 2. Restore stock via InventoryService — locks each product row
+            //    in ascending product_id order before incrementing.
             $sale->load('items.product');
-            foreach ($sale->items as $item) {
-                if ($item->product) {
-                    $qty = (float) $item->quantity;
-
-                    // (a) Restore denormalised product total quantity
-                    $item->product->increment('quantity', $qty);
-
-                    // (b) Restore location-aware inventory record
-                    if ($sale->location_id) {
-                        \App\Models\Inventory::getOrCreate(
-                            $sale->business_id,
-                            $item->product_id,
-                            $sale->location_id
-                        )->addStock($qty);
-                    }
-
-                    // (c) Record inventory transaction for traceability
-                    \App\Models\InventoryTransaction::create([
-                        'business_id'      => $sale->business_id,
-                        'product_id'       => $item->product_id,
-                        'transaction_type' => 'VOID_RESTOCK',
-                        'quantity_in'      => $qty,
-                        'quantity_out'     => 0,
-                        'reference_type'   => Sale::class,
-                        'reference_id'     => $sale->id,
-                        'description'      => "Void restock — Sale #{$sale->sale_number} reversed",
-                        'created_by'       => $user->id,
-                    ]);
-
-                    $stockRestored[] = [
-                        'product'  => $item->product->name,
-                        'quantity' => $qty,
-                    ];
-                }
-            }
+            $stockRestored = (new InventoryService())->restoreFromVoid($sale, $user->id);
 
             // 3. Reverse customer balance if sale had a linked customer ────────
             if ($sale->customer_id) {

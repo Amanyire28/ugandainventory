@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\NumberGenerator;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\Customer;
@@ -350,45 +351,16 @@ class OfflineSyncController extends Controller
                     'synced_at' => now(),
                 ]);
 
-                // Create items & deduct stock
-                foreach ($items as $item) {
-                    $product = Product::findOrFail($item['product_id']);
+                // Create items & deduct stock via InventoryService — locks each
+                // product row in ascending product_id order before validating
+                // and decrementing. Prevents concurrent offline sync overselling.
+                $inventoryItems = array_map(fn($i) => [
+                    'product_id' => $i['product_id'],
+                    'quantity'   => $i['quantity'],
+                    'price'      => $i['price'],
+                ], $items);
 
-                    SaleItem::create([
-                        'sale_id' => $sale->id,
-                        'product_id' => $item['product_id'],
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['price'],
-                        'total' => $item['quantity'] * $item['price'],
-                        'selling_price' => $item['price'],
-                        'cost_price_at_sale' => $product->cost_price,
-                        'subtotal' => $item['quantity'] * $item['price'],
-                    ]);
-
-                    // Record Inventory Transaction
-                    InventoryTransaction::create([
-                        'business_id' => $businessId,
-                        'product_id' => $product->id,
-                        'transaction_type' => 'SALE',
-                        'quantity_in' => 0,
-                        'quantity_out' => $item['quantity'],
-                        'reference_type' => Sale::class,
-                        'reference_id' => $sale->id,
-                        'description' => "Offline POS Sale #{$sale->sale_number} (Synced)",
-                        'created_by' => $user->id,
-                    ]);
-
-                    // Sync location inventory table
-                    $inventory = Inventory::where('business_id', $businessId)
-                        ->where('product_id', $product->id)
-                        ->first();
-                    if ($inventory) {
-                        $inventory->decrement('quantity', $item['quantity']);
-                    }
-
-                    // Update product table quantity
-                    $product->decrement('quantity', $item['quantity']);
-                }
+                (new \App\Services\InventoryService())->deductForSale($sale, $inventoryItems, $user->id);
 
                 // Record Customer Transaction if applicable
                 if ($sale->customer_id) {
@@ -488,67 +460,30 @@ class OfflineSyncController extends Controller
 
                     // Create approved adjustment record
                     $adjustment = StockAdjustment::create([
-                        'business_id' => $businessId,
+                        'business_id'             => $businessId,
                         'stock_taking_session_id' => $session->id,
-                        'product_id' => $product->id,
-                        'adjustment_date' => now(),
-                        'physical_count' => $physicalQty,
-                        'system_quantity' => $systemQty,
-                        'variance' => $variance,
-                        'adjustment_quantity' => $variance,
-                        'reason' => 'Stock Take',
-                        'notes' => $count['notes'] ?? 'Offline recorded',
-                        'status' => 'approved',
-                        'recorded_by' => $user->id,
-                        'approved_by' => $user->id,
-                        'approved_at' => now(),
+                        'product_id'              => $product->id,
+                        'adjustment_date'         => now(),
+                        'physical_count'          => $physicalQty,
+                        'system_quantity'         => $systemQty,
+                        'variance'                => $variance,
+                        'adjustment_quantity'     => $variance,
+                        'reason'                  => 'Stock Take',
+                        'notes'                   => $count['notes'] ?? 'Offline recorded',
+                        'status'                  => 'approved',
+                        'recorded_by'             => $user->id,
+                        'approved_by'             => $user->id,
+                        'approved_at'             => now(),
                     ]);
 
-                    // Apply count to product quantity
-                    $product->quantity = $physicalQty;
-                    $product->save();
-
-                    // Sync location inventory
-                    $inventory = Inventory::where('business_id', $businessId)
-                        ->where('product_id', $product->id)
-                        ->first();
-                    if ($inventory) {
-                        $inventory->quantity = $physicalQty;
-                        $inventory->save();
-                    }
-
-                    // Record Inventory Transaction
-                    $qtyIn = $variance > 0 ? $variance : 0;
-                    $qtyOut = $variance < 0 ? abs($variance) : 0;
-
-                    InventoryTransaction::create([
-                        'business_id' => $businessId,
-                        'product_id' => $product->id,
-                        'transaction_type' => 'ADJUSTMENT',
-                        'quantity_in' => $qtyIn,
-                        'quantity_out' => $qtyOut,
-                        'reference_type' => StockAdjustment::class,
-                        'reference_id' => $adjustment->id,
-                        'description' => sprintf(
-                            'Offline Stock Take. System: %.2f → Physical: %.2f (Variance: %+.2f).',
-                            $systemQty,
-                            $physicalQty,
-                            $variance
-                        ),
-                        'created_by' => $user->id,
-                    ]);
-
-                    // Audit Log
-                    AuditLog::log(
-                        'stock_adjustment',
-                        Product::class,
-                        $product->id,
-                        ['quantity' => $systemQty],
-                        [
-                            'quantity' => $physicalQty,
-                            'variance' => $variance,
-                            'session_id' => $session->id,
-                        ]
+                    // Apply the physical count via InventoryService — locks the
+                    // product row before setting quantity to prevent race conditions.
+                    (new \App\Services\InventoryService())->applyStockAdjustment(
+                        $product,
+                        $physicalQty,
+                        $adjustment,
+                        $businessId,
+                        $user->id
                     );
                 }
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NumberGenerator;
+use App\Services\InventoryService;
 use App\Models\Inventory;
 use App\Models\Location;
 use App\Models\Product;
@@ -58,7 +60,8 @@ class StockTransferController extends Controller
         try {
             DB::beginTransaction();
 
-            $transferNumber = 'TRF-' . strtoupper(uniqid());
+            // Generate transfer number via centralized service (concurrency-safe)
+            $transferNumber = (new NumberGenerator())->nextTransferNumber($businessId);
 
             $transfer = StockTransfer::create([
                 'business_id'        => $businessId,
@@ -71,72 +74,21 @@ class StockTransferController extends Controller
                 'transferred_at'     => now(),
             ]);
 
-            foreach ($validated['products'] as $item) {
-                $product = Product::findOrFail($item['id']);
-                $transferQty = (float)$item['qty'];
+            // Deduct from source and add to destination via InventoryService.
+            // Locks each product row in ascending product_id order before
+            // validating available quantity — prevents concurrent transfer race conditions.
+            $transferItems = array_map(fn($p) => [
+                'product_id' => $p['id'],
+                'qty'        => $p['qty'],
+            ], $validated['products']);
 
-                // Record transfer item
-                StockTransferItem::create([
-                    'stock_transfer_id' => $transfer->id,
-                    'product_id'        => $product->id,
-                    'quantity'          => $transferQty,
-                    'unit_cost'         => $product->cost_price ?? 0,
-                ]);
-
-                // 1. Deduct stock from Source Branch
-                $sourceInv = Inventory::firstOrCreate(
-                    [
-                        'product_id'  => $product->id,
-                        'location_id' => $validated['from_location_id'],
-                    ],
-                    [
-                        'quantity'      => 0,
-                        'reorder_level' => $product->reorder_level ?? 5,
-                    ]
-                );
-
-                $sourceInv->decrement('quantity', $transferQty);
-
-                // 2. Add stock to Destination Branch
-                $destInv = Inventory::firstOrCreate(
-                    [
-                        'product_id'  => $product->id,
-                        'location_id' => $validated['to_location_id'],
-                    ],
-                    [
-                        'quantity'      => 0,
-                        'reorder_level' => $product->reorder_level ?? 5,
-                    ]
-                );
-
-                $destInv->increment('quantity', $transferQty);
-
-                // Source Location Outflow
-                \App\Models\InventoryTransaction::create([
-                    'business_id' => $businessId,
-                    'product_id' => $product->id,
-                    'transaction_type' => 'TRANSFER_OUT',
-                    'quantity_in' => 0,
-                    'quantity_out' => $transferQty,
-                    'reference_type' => StockTransfer::class,
-                    'reference_id' => $transfer->id,
-                    'description' => "Transferred OUT to location ID {$validated['to_location_id']} via transfer #{$transferNumber}",
-                    'created_by' => $user->id,
-                ]);
-
-                // Destination Location Inflow
-                \App\Models\InventoryTransaction::create([
-                    'business_id' => $businessId,
-                    'product_id' => $product->id,
-                    'transaction_type' => 'TRANSFER_IN',
-                    'quantity_in' => $transferQty,
-                    'quantity_out' => 0,
-                    'reference_type' => StockTransfer::class,
-                    'reference_id' => $transfer->id,
-                    'description' => "Transferred IN from location ID {$validated['from_location_id']} via transfer #{$transferNumber}",
-                    'created_by' => $user->id,
-                ]);
-            }
+            (new InventoryService())->deductForTransfer(
+                $transfer,
+                $transferItems,
+                (int) $validated['from_location_id'],
+                (int) $validated['to_location_id'],
+                $user->id
+            );
 
             // Audit Log
             \App\Models\AuditLog::log('stock_transfer', StockTransfer::class, $transfer->id, null, $transfer->toArray());

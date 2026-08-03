@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\NumberGenerator;
+use App\Services\InventoryService;
 use App\Models\{Product, Customer, Sale, SaleItem, Category};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB};
@@ -84,26 +86,21 @@ class CashierPOSController extends Controller
         DB::beginTransaction();
 
         try {
-            // Generate sale number
-            $lastSale = Sale::where('business_id', $businessId)->latest('id')->first();
-            $nextId = $lastSale ? $lastSale->id + 1 : 1;
-            $saleNumber = 'SALE-' . date('Ymd') . '-' . str_pad($nextId, 5, '0', STR_PAD_LEFT);
+            // Generate sale number via centralized service (concurrency-safe)
+            $saleNumber = (new NumberGenerator())->nextSaleNumber($businessId);
 
-            // Calculate totals and validate stock
+            // Calculate totals — note: stock is NOT validated here.
+            // Validation happens inside InventoryService after the lock is acquired.
             $subtotal = 0;
             foreach ($items as $item) {
-                $product = Product::findOrFail($item['id']);
-                if ($product->quantity < $item['quantity']) {
-                    return back()->with('error', "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.");
-                }
                 $subtotal += $item['price'] * $item['quantity'];
             }
 
             $discount = $validated['discount'] ?? 0;
-            $tax = $validated['tax'] ?? 0;
-            $total = $subtotal + $tax - $discount;
+            $tax      = $validated['tax'] ?? 0;
+            $total    = $subtotal + $tax - $discount;
 
-            // Create sale record
+            // Create sale header
             $sale = Sale::create([
                 'business_id'     => $businessId,
                 'user_id'         => $user->id,
@@ -119,48 +116,15 @@ class CashierPOSController extends Controller
                 'notes'           => $validated['notes'] ?? null,
             ]);
 
-            // Create sale items and update stock
-            foreach ($items as $item) {
-                $product = Product::findOrFail($item['id']);
+            // Deduct stock via InventoryService — locks rows in ascending product_id
+            // order before validating and decrementing. Throws on insufficient stock.
+            $inventoryItems = array_map(fn($i) => [
+                'product_id' => $i['id'],
+                'quantity'   => $i['quantity'],
+                'price'      => $i['price'],
+            ], $items);
 
-                // Check if product is out of stock
-                if ($product->quantity <= 0) {
-                    throw new \Exception("{$product->name} is out of stock and cannot be sold.");
-                }
-
-                // Check stock availability
-                if ($product->quantity < $item['quantity']) {
-                    throw new \Exception("Insufficient stock for {$product->name}. Available: {$product->quantity}");
-                }
-
-                // Create sale item
-                SaleItem::create([
-                    'sale_id'            => $sale->id,
-                    'product_id'         => $product->id,
-                    'quantity'           => $item['quantity'],
-                    'unit_price'         => $item['price'],
-                    'total'              => $item['price'] * $item['quantity'],
-                    'selling_price'      => $item['price'],
-                    'cost_price_at_sale' => $product->cost_price,
-                    'subtotal'           => $item['price'] * $item['quantity'],
-                ]);
-
-                // Record Inventory Transaction
-                \App\Models\InventoryTransaction::create([
-                    'business_id' => $businessId,
-                    'product_id' => $product->id,
-                    'transaction_type' => 'SALE',
-                    'quantity_in' => 0,
-                    'quantity_out' => $item['quantity'],
-                    'reference_type' => Sale::class,
-                    'reference_id' => $sale->id,
-                    'description' => "Cashier POS Sale #{$sale->sale_number}",
-                    'created_by' => $user->id,
-                ]);
-
-                // Reduce stock
-                $product->decrement('quantity', $item['quantity']);
-            }
+            (new InventoryService())->deductForSale($sale, $inventoryItems, $user->id);
 
             // Record Customer Transaction if applicable
             if ($sale->customer_id) {

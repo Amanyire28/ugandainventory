@@ -1,11 +1,14 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Services\MailerService;
+use App\Services\NumberGenerator;
+use App\Services\InventoryService;
 use App\Models\{Product, Customer, Sale, SaleItem, Category};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth, DB, Mail, Log};
-use App\Mail\SaleReceiptMail; // ✅ ADD THIS
+use App\Mail\SaleReceiptMail;
 
 class POSController extends Controller
 {
@@ -170,74 +173,38 @@ class POSController extends Controller
                 ], 400);
             }
 
-            // Generate sale number
-            $today = now()->format('Ymd');
-            $count = Sale::where('business_id', $businessId)
-                ->whereDate('created_at', today())
-                ->count() + 1;
-            $saleNumber = 'SAL-' . $today . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+            // Generate sale number via centralized service (concurrency-safe)
+            $saleNumber = (new NumberGenerator())->nextSaleNumber($businessId);
 
             $locationId = session('active_location_id') ?? $user->location_id ?? \App\Models\Location::where('business_id', $businessId)->where('is_main', true)->value('id') ?? \App\Models\Location::where('business_id', $businessId)->value('id');
 
-            // Create sale
+            // Create sale header — no items yet, no stock touched yet
             $sale = Sale::create([
-                'business_id' => $businessId,
-                'location_id' => $locationId,
-                'user_id' => $user->id,
-                'customer_id' => $customerId,
-                'sale_number' => $saleNumber,
-                'sale_date' => now(),
-                'subtotal' => $subtotal,
-                'tax_amount' => $taxAmount,
+                'business_id'     => $businessId,
+                'location_id'     => $locationId,
+                'user_id'         => $user->id,
+                'customer_id'     => $customerId,
+                'sale_number'     => $saleNumber,
+                'sale_date'       => now(),
+                'subtotal'        => $subtotal,
+                'tax_amount'      => $taxAmount,
                 'discount_amount' => $discount,
-                'total' => $total,
-                'payment_status' => 'paid',
-                'payment_method' => 'cash',
-                'notes' => $validated['notes'] ?? null,
+                'total'           => $total,
+                'payment_status'  => 'paid',
+                'payment_method'  => 'cash',
+                'notes'           => $validated['notes'] ?? null,
             ]);
 
-            // Create sale items
-            foreach ($validated['items'] as $item) {
-                $product = Product::findOrFail($item['product_id']);
+            // Deduct stock via InventoryService — locks each product row in
+            // ascending product_id order before validating and decrementing.
+            // Any insufficient-stock throws \RuntimeException → rolls back everything.
+            $inventoryItems = array_map(fn($i) => [
+                'product_id' => $i['product_id'],
+                'quantity'   => $i['quantity'],
+                'price'      => $i['price'],
+            ], $validated['items']);
 
-                // Check if product is out of stock
-                if ($product->quantity <= 0) {
-                    throw new \Exception("{$product->name} is out of stock and cannot be sold.");
-                }
-
-                // Check stock
-                if ($product->quantity < $item['quantity']) {
-                    throw new \Exception("Insufficient stock for {$product->name}. Available: {$product->quantity}");
-                }
-
-                // Create sale item
-                $saleItem = new SaleItem();
-                $saleItem->sale_id = $sale->id;
-                $saleItem->product_id = $item['product_id'];
-                $saleItem->quantity = $item['quantity'];
-                $saleItem->unit_price = $item['price'];
-                $saleItem->total = $item['quantity'] * $item['price'];
-                $saleItem->selling_price = $item['price'];
-                $saleItem->cost_price_at_sale = $product->cost_price;
-                $saleItem->subtotal = $item['quantity'] * $item['price'];
-                $saleItem->save();
-
-                // Record Inventory Transaction
-                \App\Models\InventoryTransaction::create([
-                    'business_id' => $businessId,
-                    'product_id' => $product->id,
-                    'transaction_type' => 'SALE',
-                    'quantity_in' => 0,
-                    'quantity_out' => $item['quantity'],
-                    'reference_type' => Sale::class,
-                    'reference_id' => $sale->id,
-                    'description' => "POS Sale #{$sale->sale_number}",
-                    'created_by' => $user->id,
-                ]);
-
-                // Update stock
-                $product->decrement('quantity', $item['quantity']);
-            }
+            (new InventoryService())->deductForSale($sale, $inventoryItems, $user->id);
 
             // Record Customer Transaction if applicable
             if ($sale->customer_id) {
@@ -245,13 +212,13 @@ class POSController extends Controller
                     ->orderBy('id', 'desc')
                     ->value('balance') ?? 0;
                 \App\Models\CustomerTransaction::create([
-                    'customer_id' => $sale->customer_id,
-                    'sale_id' => $sale->id,
+                    'customer_id'      => $sale->customer_id,
+                    'sale_id'          => $sale->id,
                     'transaction_type' => 'SALE',
-                    'debit' => $sale->total,
-                    'credit' => $sale->total, // Fully paid cash sale
-                    'balance' => $prevBal,
-                    'notes' => "POS Cash Sale #{$sale->sale_number}",
+                    'debit'            => $sale->total,
+                    'credit'           => $sale->total,
+                    'balance'          => $prevBal,
+                    'notes'            => "POS Cash Sale #{$sale->sale_number}",
                 ]);
             }
 
@@ -260,50 +227,39 @@ class POSController extends Controller
 
             DB::commit();
 
-            // ✅ SEND EMAIL RECEIPT (After successful sale)
+            // Send email receipt (outside transaction — failure must not roll back the sale)
             $emailMessage = '';
             if ($sale->customer && $sale->customer->email) {
                 try {
-                    // Load relationships needed for email
                     $sale->load(['business', 'customer', 'items.product', 'user']);
-                    
-                           MailerService::sendSaleReceipt($sale);
-                    
+                    MailerService::sendSaleReceipt($sale);
                     $emailMessage = ' | Receipt sent to ' . $sale->customer->email;
-                    
-                    Log::info('Receipt email sent successfully', [
-                        'sale_id' => $sale->id,
-                        'customer_email' => $sale->customer->email,
-                    ]);
+                    Log::info('Receipt email sent successfully', ['sale_id' => $sale->id, 'customer_email' => $sale->customer->email]);
                 } catch (\Exception $e) {
-                    Log::error('Failed to send receipt email', [
-                        'sale_id' => $sale->id,
-                        'error' => $e->getMessage(),
-                        'trace' => $e->getTraceAsString(),
-                    ]);
-                    // Don't fail the sale if email fails
+                    Log::error('Failed to send receipt email', ['sale_id' => $sale->id, 'error' => $e->getMessage()]);
                     $emailMessage = ' | (Email failed to send)';
                 }
             }
 
             return response()->json([
-                'success' => true,
-                'message' => 'Sale completed successfully!' . $emailMessage,
-                'sale_id' => $sale->id,
-                'sale_number' => $sale->sale_number,
-                'total' => $total,
-                'amount_paid' => $validated['amount_paid'],
-                'change' => $validated['amount_paid'] - $total,
+                'success'    => true,
+                'message'    => 'Sale completed successfully!' . $emailMessage,
+                'sale_id'    => $sale->id,
+                'sale_number'=> $sale->sale_number,
+                'total'      => $total,
+                'amount_paid'=> $validated['amount_paid'],
+                'change'     => $validated['amount_paid'] - $total,
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('POS Sale Error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], 400);
+
         }
     }
 

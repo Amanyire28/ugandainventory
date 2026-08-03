@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\NumberGenerator;
+use App\Services\InventoryService;
 use App\Models\{
     Invoice, InvoiceItem, Customer, Product, User, Business, Sale, SaleItem
 };
@@ -304,8 +306,8 @@ class InvoiceController extends Controller
                 $customerId = $customer->id;
             }
 
-            $latestId = Invoice::where('business_id', $businessId)->max('id') ?? 1;
-            $invoiceNum = 'INV-' . now()->format('Ymd') . '-' . str_pad($latestId+1, 4, '0', STR_PAD_LEFT);
+            // Generate invoice number via centralized service (concurrency-safe)
+            $invoiceNum = (new NumberGenerator())->nextInvoiceNumber($businessId);
             $invoice = Invoice::create([
                 'business_id'    => $businessId,
                 'user_id'        => $user->id,
@@ -321,47 +323,26 @@ class InvoiceController extends Controller
                 'notes'          => $request->input('notes', null),
             ]);
 
+            // Build item list for InventoryService
+            $inventoryItems = array_map(fn($i) => [
+                'product_id' => $i['product_id'],
+                'quantity'   => $i['quantity'],
+                'price'      => $i['price'],
+            ], $validated['items']);
+
+            // Deduct stock — locks each product row before validating.
+            // Throws \RuntimeException on insufficient stock → rolls back entire transaction.
+            (new InventoryService())->deductForInvoice($invoice, $inventoryItems, $user->id);
+
+            // Calculate totals from validated items (products already loaded in service)
             $subtotal = 0;
             $autoVat  = 0;
             foreach ($validated['items'] as $item) {
-                $product = Product::find($item['product_id']);
-                if ($product && $product->quantity < $item['quantity']) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => "Insufficient stock for {$product->name}. Only {$product->quantity} left in stock.",
-                    ], 400);
-                }
+                $product   = Product::find($item['product_id']);
                 $lineTotal = $item['quantity'] * $item['price'];
-                InvoiceItem::create([
-                    'invoice_id'  => $invoice->id,
-                    'description' => $product ? $product->name : 'Item',
-                    'product_id'  => $product ? $product->id : null,
-                    'quantity'    => $item['quantity'],
-                    'unit_price'  => $item['price'],
-                    'total'       => $lineTotal,
-                    'added_by'    => $user->id
-                ]);
                 $subtotal += $lineTotal;
-
-                // Use ?? false: products with NULL requires_vat are treated as no-VAT
                 if ($product && (bool) ($product->requires_vat ?? false)) {
                     $autoVat += $lineTotal * 0.18;
-                }
-
-                if ($product) {
-                    $product->decrement('quantity', $item['quantity']);
-                    
-                    \App\Models\InventoryTransaction::create([
-                        'business_id' => $businessId,
-                        'product_id' => $product->id,
-                        'transaction_type' => 'SALE',
-                        'quantity_in' => 0,
-                        'quantity_out' => $item['quantity'],
-                        'reference_type' => Invoice::class,
-                        'reference_id' => $invoice->id,
-                        'description' => "Credit Invoice #{$invoiceNum}",
-                        'created_by' => $user->id,
-                    ]);
                 }
             }
 
@@ -501,7 +482,7 @@ public function pay(Request $request, $id)
             'business_id'     => $invoice->business_id,
             'user_id'         => $invoice->user_id,
             'customer_id'     => $invoice->customer_id,
-            'sale_number'     => 'SALE-' . now()->format('Ymd') . '-' . rand(1000, 9999),
+            'sale_number'     => (new NumberGenerator())->nextSaleNumber($invoice->business_id),
             'sale_date'       => now(),
             'subtotal'        => $invoice->subtotal,
             'tax_amount'      => $invoice->tax_amount,
