@@ -110,7 +110,7 @@ class InventoryService
             if ($sale->location_id) {
                 $inv = Inventory::firstOrCreate(
                     ['product_id' => $productId, 'location_id' => $sale->location_id],
-                    ['quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
+                    ['business_id' => $sale->business_id, 'quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
                 );
                 $inv->decrement('quantity', $qty);
             }
@@ -402,14 +402,14 @@ class InventoryService
             // Deduct from source branch inventory
             $sourceInv = Inventory::firstOrCreate(
                 ['product_id' => $productId, 'location_id' => $fromLocationId],
-                ['quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
+                ['business_id' => $transfer->business_id, 'quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
             );
             $sourceInv->decrement('quantity', $transferQty);
 
             // Add to destination branch inventory
             $destInv = Inventory::firstOrCreate(
                 ['product_id' => $productId, 'location_id' => $toLocationId],
-                ['quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
+                ['business_id' => $transfer->business_id, 'quantity' => 0, 'reorder_level' => $product->reorder_level ?? 5]
             );
             $destInv->increment('quantity', $transferQty);
 
