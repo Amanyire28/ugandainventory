@@ -305,10 +305,18 @@ class StockReconciliationService
         // 2. Set base date and quantity
         if ($lastLocked) {
             $baseStock = (float) $lastLocked->closing_stock;
-            $baseDate = Carbon::parse($lastLocked->period_end)->endOfDay();
+            $baseDate  = Carbon::parse($lastLocked->period_end)->endOfDay();
         } else {
-            $baseStock = (float) $product->opening_stock;
-            $baseDate = Carbon::parse($product->created_at)->subDay()->startOfDay();
+            // No locked period exists — derive opening from the inventory ledger instead
+            // of trusting product.opening_stock, which may reflect stock added via
+            // purchases that would be double-counted in the roll-forward.
+            //
+            // Strategy: start from 0 at the product creation date and roll forward
+            // all ledger transactions (purchases, sales, adjustments) up to the
+            // day before the report period starts. This gives a true opening balance
+            // without double-counting.
+            $baseStock = 0.0;
+            $baseDate  = Carbon::parse($product->created_at)->subDay()->startOfDay();
         }
 
         // 3. Roll forward base stock to the day before $startDate
