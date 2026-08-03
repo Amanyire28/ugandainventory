@@ -87,7 +87,9 @@ Route::middleware(['auth', 'tenant', 'subscription'])->group(function () {
     // ========================================
     // MAIN DASHBOARD (Auto-redirects based on role)
     // ========================================
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Cashiers are excluded — they have /cashier/dashboard. If a cashier somehow
+    // hits this URL, DashboardController::index() redirects them anyway.
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('role:owner,manager,inventory_manager,accountant,Shop_Attendant');
     Route::get('/dashboard/annual', [DashboardController::class, 'annual'])->name('dashboard.annual');
     Route::get('/dashboard/annual/export', [DashboardController::class, 'exportAnnual'])->name('dashboard.annual.export');
 

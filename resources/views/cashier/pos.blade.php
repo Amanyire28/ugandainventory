@@ -436,6 +436,14 @@ function filterProducts(search) {
 
 // ----- INITIAL SETUP -----
 document.addEventListener('DOMContentLoaded', function() {
+    // Reset button state on every fresh page load (handles back-button bfcache restore)
+    const btn = document.getElementById('checkoutBtn');
+    if (btn) {
+        btn.dataset.submitting = 'false';
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle text-lg"></i> <span id="checkoutBtnText">Complete Sale</span>';
+    }
+
     setPaymentType();
     toggleCustomerFields();
     updateTotals();
@@ -455,8 +463,23 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('exactAmountBtn').addEventListener('click', exactAmount);
     document.getElementById('clearCartBtn').addEventListener('click', clearCart);
 
-    // Build item fields on form submit
+    // Build item fields on form submit — with double-submit guard
     document.getElementById('posForm').addEventListener('submit', function(e) {
+        const btn = document.getElementById('checkoutBtn');
+
+        // If already submitting, block the duplicate submit entirely
+        if (btn && btn.dataset.submitting === 'true') {
+            e.preventDefault();
+            return;
+        }
+
+        // Lock the button immediately so rapid double-clicks can't fire twice
+        if (btn) {
+            btn.dataset.submitting = 'true';
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+        }
+
         // Remove any old item inputs
         this.querySelectorAll('input[name^="items["]').forEach(i => i.remove());
         cart.forEach(function(item, idx) {
@@ -613,6 +636,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 item.classList.remove('bg-green-50', 'ring-1', 'ring-green-400', 'font-semibold');
             }
         });
+    }
+});
+
+// Reset checkout button if browser restores page from bfcache
+// (back button press — DOMContentLoaded does NOT re-fire in this case)
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+        const btn = document.getElementById('checkoutBtn');
+        if (btn) {
+            btn.dataset.submitting = 'false';
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle text-lg"></i> <span id="checkoutBtnText">Complete Sale</span>';
+        }
     }
 });
 </script>

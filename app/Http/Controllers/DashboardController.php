@@ -18,7 +18,11 @@ class DashboardController extends Controller
         $businessId = $user->business_id;
         $userRole = $user->role->name;
 
-        // Filters
+        // Cashiers have their own dedicated dashboard — hard redirect so they
+        // never see the owner/manager view, regardless of how they arrived here.
+        if ($userRole === 'cashier') {
+            return redirect()->route('cashier.dashboard');
+        }
         $period = $request->get('period', 'week'); // day, week, month, year
         $selectedYear = $request->get('year', now()->year);
         
