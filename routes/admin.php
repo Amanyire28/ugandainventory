@@ -25,7 +25,7 @@ Route:: prefix('admin')->name('admin.')->group(function () {
     // ========================================
     // PROTECTED ROUTES (Protection inside controller)
     // ========================================
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/', [AdminController::class, 'dashboard'])->name('root');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [AdminController::class, 'editProfile'])->name('profile.edit');
     Route::patch('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
